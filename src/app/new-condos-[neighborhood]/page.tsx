@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -8,11 +10,6 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import InquiryForm from '@/components/projects/InquiryForm';
 
 type Props = { params: Promise<{ neighborhood: string }> };
-
-export async function generateStaticParams() {
-  const neighborhoods = await prisma.neighborhood.findMany({ select: { slug: true } });
-  return neighborhoods.map((n) => ({ neighborhood: n.slug }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { neighborhood: slug } = await params;
