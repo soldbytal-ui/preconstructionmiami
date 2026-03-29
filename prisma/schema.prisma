@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  PRE_LAUNCH
+  PRE_CONSTRUCTION
+  UNDER_CONSTRUCTION
+  NEAR_COMPLETION
+  COMPLETED
+}
+
+enum ProjectCategory {
+  ULTRA_LUXURY
+  LUXURY_BRANDED
+  LUXURY
+  PREMIUM
+  AFFORDABLE_LUXURY
+}
+
+model Project {
+  id               String          @id @default(cuid())
+  name             String
+  slug             String          @unique
+  address          String?
+  neighborhoodId   String?
+  developerId      String?
+  architect        String?
+  status           ProjectStatus   @default(PRE_CONSTRUCTION)
+  estCompletion    String?
+  totalUnits       Int?
+  floors           Int?
+  priceMin         Int?
+  priceMax         Int?
+  pricePerSqft     Int?
+  sizeRangeMin     Int?
+  sizeRangeMax     Int?
+  depositStructure String?
+  description      String?         @db.Text
+  amenities        Json?
+  images           Json?
+  mainImageUrl     String?
+  category         ProjectCategory @default(PREMIUM)
+  websiteUrl       String?
+  featured         Boolean         @default(false)
+  unitTypes        String?
+  latitude         Float?
+  longitude        Float?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  neighborhood     Neighborhood?   @relation(fields: [neighborhoodId], references: [id])
+  developer        Developer?      @relation(fields: [developerId], references: [id])
+  leads            Lead[]
+
+  @@index([neighborhoodId])
+  @@index([developerId])
+  @@index([status])
+  @@index([category])
+  @@index([featured])
+  @@map("projects")
+}
+
+model Neighborhood {
+  id                String    @id @default(cuid())
+  name              String
+  slug              String    @unique
+  region            String?
+  description       String?   @db.Text
+  avgPriceStudio    Int?
+  avgPrice1br       Int?
+  avgPrice2br       Int?
+  avgPrice3br       Int?
+  avgPricePenthouse Int?
+  lifestyleDescription String? @db.Text
+  imageUrl          String?
+  metaTitle         String?
+  metaDescription   String?
+  displayOrder      Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  projects          Project[]
+  leads             Lead[]
+
+  @@map("neighborhoods")
+}
+
+model Developer {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String?   @db.Text
+  headquarters  String?
+  foundedYear   Int?
+  logoUrl       String?
+  websiteUrl    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  projects      Project[]
+
+  @@map("developers")
+}
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  content         String    @db.Text
+  excerpt         String?   @db.Text
+  metaTitle       String?
+  metaDescription String?
+  targetKeyword   String?
+  featuredImage   String?
+  publishedAt     DateTime?
+  author          String    @default("PreConstructionMiami.net")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+model Lead {
+  id             String    @id @default(cuid())
+  name           String
+  email          String
+  phone          String?
+  projectId      String?
+  neighborhoodId String?
+  message        String?   @db.Text
+  source         String    @default("inquiry")
+  createdAt      DateTime  @default(now())
+
+  project        Project?       @relation(fields: [projectId], references: [id])
+  neighborhood   Neighborhood?  @relation(fields: [neighborhoodId], references: [id])
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("leads")
+}
