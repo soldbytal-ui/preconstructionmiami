@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 const leadSchema = z.object({
@@ -17,8 +17,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const data = leadSchema.parse(body);
 
-    const lead = await prisma.lead.create({
-      data: {
+    const { data: lead, error } = await supabase
+      .from('leads')
+      .insert({
         name: data.name,
         email: data.email,
         phone: data.phone || null,
@@ -26,8 +27,11 @@ export async function POST(request: Request) {
         neighborhoodId: data.neighborhoodId || null,
         message: data.message || null,
         source: data.source || 'inquiry',
-      },
-    });
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
 
     return NextResponse.json({ success: true, id: lead.id }, { status: 201 });
   } catch (error) {

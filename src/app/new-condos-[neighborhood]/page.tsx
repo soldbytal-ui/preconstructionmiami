@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
 import { generateBreadcrumbSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
@@ -13,7 +13,11 @@ type Props = { params: Promise<{ neighborhood: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { neighborhood: slug } = await params;
-  const n = await prisma.neighborhood.findUnique({ where: { slug } });
+  const { data: n } = await supabase
+    .from('neighborhoods')
+    .select('*')
+    .eq('slug', slug)
+    .single();
   if (!n) return { title: 'Neighborhood Not Found' };
   return {
     title: n.metaTitle || `New Pre-Construction Condos in ${n.name} | PreConstructionMiami.net`,
@@ -24,25 +28,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function NeighborhoodPage({ params }: Props) {
   const { neighborhood: slug } = await params;
 
-  const neighborhood = await prisma.neighborhood.findUnique({
-    where: { slug },
-    include: {
-      projects: {
-        orderBy: { priceMin: 'asc' },
-        include: { neighborhood: true, developer: true },
-      },
-      _count: { select: { projects: true } },
-    },
-  });
+  const { data: neighborhood } = await supabase
+    .from('neighborhoods')
+    .select('*')
+    .eq('slug', slug)
+    .single();
 
   if (!neighborhood) notFound();
 
-  const otherNeighborhoods = await prisma.neighborhood.findMany({
-    where: { id: { not: neighborhood.id } },
-    take: 4,
-    orderBy: { displayOrder: 'asc' },
-    include: { _count: { select: { projects: true } } },
-  });
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .eq('neighborhoodId', neighborhood.id)
+    .order('priceMin', { ascending: true });
+
+  const { data: otherNeighborhoods } = await supabase
+    .from('neighborhoods')
+    .select('*, projects(count)')
+    .neq('id', neighborhood.id)
+    .order('displayOrder', { ascending: true })
+    .limit(4);
+
+  const projectList = projects || [];
+  const projectCount = projectList.length;
+
+  const otherWithCount = (otherNeighborhoods || []).map((n: any) => ({
+    ...n,
+    _count: { projects: n.projects?.[0]?.count || 0 },
+  }));
 
   const breadcrumb = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
@@ -76,7 +89,7 @@ export default async function NeighborhoodPage({ params }: Props) {
             New Pre-Construction Condos in <span className="text-gold">{neighborhood.name}</span>
           </h1>
           <p className="text-gray-300 mt-4 text-lg max-w-2xl">
-            {neighborhood._count.projects} active {neighborhood._count.projects === 1 ? 'development' : 'developments'} available.
+            {projectCount} active {projectCount === 1 ? 'development' : 'developments'} available.
             {neighborhood.avgPriceStudio && ` Starting from ${formatPrice(neighborhood.avgPriceStudio)}.`}
           </p>
         </div>
@@ -122,10 +135,10 @@ export default async function NeighborhoodPage({ params }: Props) {
             {/* Projects */}
             <div>
               <h2 className="text-2xl font-bold text-navy mb-6">
-                All Projects in {neighborhood.name} ({neighborhood.projects.length})
+                All Projects in {neighborhood.name} ({projectCount})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {neighborhood.projects.map((project) => (
+                {projectList.map((project: any) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
               </div>
@@ -141,7 +154,7 @@ export default async function NeighborhoodPage({ params }: Props) {
               <div className="mt-6 card p-6">
                 <h3 className="font-display text-lg font-semibold text-navy mb-4">Other Neighborhoods</h3>
                 <div className="space-y-3">
-                  {otherNeighborhoods.map((n) => (
+                  {otherWithCount.map((n: any) => (
                     <Link
                       key={n.id}
                       href={`/new-condos-${n.slug}`}

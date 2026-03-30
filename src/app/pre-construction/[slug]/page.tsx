@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { formatPrice, formatPriceRange, STATUS_LABELS, CATEGORY_LABELS } from '@/lib/utils';
 import { generateRealEstateListingSchema, generateBreadcrumbSchema } from '@/lib/seo';
 import StatusBadge from '@/components/projects/StatusBadge';
@@ -13,10 +13,11 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const project = await prisma.project.findUnique({
-    where: { slug },
-    include: { neighborhood: true },
-  });
+  const { data: project } = await supabase
+    .from('projects')
+    .select('*, neighborhood:neighborhoods(*)')
+    .eq('slug', slug)
+    .single();
   if (!project) return { title: 'Project Not Found' };
   const area = project.neighborhood?.name || 'Miami';
   return {
@@ -27,18 +28,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params;
-  const project = await prisma.project.findUnique({
-    where: { slug },
-    include: { neighborhood: true, developer: true },
-  });
+  const { data: project } = await supabase
+    .from('projects')
+    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .eq('slug', slug)
+    .single();
 
   if (!project) notFound();
 
-  const relatedProjects = await prisma.project.findMany({
-    where: { neighborhoodId: project.neighborhoodId, id: { not: project.id } },
-    take: 3,
-    include: { neighborhood: true, developer: true },
-  });
+  const { data: relatedProjects } = await supabase
+    .from('projects')
+    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .eq('neighborhoodId', project.neighborhoodId)
+    .neq('id', project.id)
+    .limit(3);
 
   const listingSchema = generateRealEstateListingSchema(project);
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -184,13 +187,13 @@ export default async function ProjectDetailPage({ params }: Props) {
         </div>
 
         {/* Related Projects */}
-        {relatedProjects.length > 0 && (
+        {(relatedProjects || []).length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-navy mb-6">
               More in {project.neighborhood?.name || 'This Area'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedProjects.map((p) => (
+              {(relatedProjects || []).map((p: any) => (
                 <ProjectCard key={p.id} project={p} />
               ))}
             </div>

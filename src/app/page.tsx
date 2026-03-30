@@ -1,29 +1,41 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
 import { generateLocalBusinessSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 
 export default async function HomePage() {
-  const [featured, neighborhoods, projectCount, neighborhoodCount] = await Promise.all([
-    prisma.project.findMany({
-      where: { featured: true },
-      take: 6,
-      include: { neighborhood: true, developer: true },
-      orderBy: { priceMin: 'desc' },
-    }),
-    prisma.neighborhood.findMany({
-      orderBy: { displayOrder: 'asc' },
-      take: 8,
-      include: { _count: { select: { projects: true } } },
-    }),
-    prisma.project.count(),
-    prisma.neighborhood.count(),
+  const [
+    { data: featured },
+    { data: neighborhoods },
+    { count: projectCount },
+    { count: neighborhoodCount },
+  ] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+      .eq('featured', true)
+      .order('priceMin', { ascending: false })
+      .limit(6),
+    supabase
+      .from('neighborhoods')
+      .select('*, projects(count)')
+      .order('displayOrder', { ascending: true })
+      .limit(8),
+    supabase.from('projects').select('*', { count: 'exact', head: true }),
+    supabase.from('neighborhoods').select('*', { count: 'exact', head: true }),
   ]);
 
+  const neighborhoodsWithCount = (neighborhoods || []).map((n: any) => ({
+    ...n,
+    _count: { projects: n.projects?.[0]?.count || 0 },
+  }));
+
   const schema = generateLocalBusinessSchema();
+  const totalProjects = projectCount || 0;
+  const totalNeighborhoods = neighborhoodCount || 0;
 
   return (
     <>
@@ -38,7 +50,7 @@ export default async function HomePage() {
             <span className="text-gold">Pre-Construction</span> Marketplace
           </h1>
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Access {projectCount}+ new condo developments from $300K to $50M+ across South Florida.
+            Access {totalProjects}+ new condo developments from $300K to $50M+ across South Florida.
             Brickell, Miami Beach, Downtown, Edgewater &amp; more.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -53,8 +65,8 @@ export default async function HomePage() {
           {/* Stats Bar */}
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {[
-              { value: `${projectCount}+`, label: 'Projects' },
-              { value: `${neighborhoodCount}+`, label: 'Neighborhoods' },
+              { value: `${totalProjects}+`, label: 'Projects' },
+              { value: `${totalNeighborhoods}+`, label: 'Neighborhoods' },
               { value: '$300K-$50M+', label: 'Price Range' },
               { value: 'Pre-Launch', label: 'Access' },
             ].map((stat) => (
@@ -80,7 +92,7 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featured.map((project) => (
+            {(featured || []).map((project: any) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
@@ -100,7 +112,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {neighborhoods.map((n) => (
+            {neighborhoodsWithCount.map((n: any) => (
               <Link
                 key={n.id}
                 href={`/new-condos-${n.slug}`}

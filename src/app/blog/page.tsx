@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 
 export const metadata: Metadata = {
   title: 'Miami Pre-Construction Blog | Market Reports, Guides & Tips',
@@ -10,10 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const posts = await prisma.blogPost.findMany({
-    where: { publishedAt: { not: null } },
-    orderBy: { publishedAt: 'desc' },
-  });
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .not('publishedAt', 'is', null)
+    .order('publishedAt', { ascending: false });
 
   return (
     <div className="container-main py-10">
@@ -23,7 +24,7 @@ export default async function BlogPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.map((post) => (
+        {(posts || []).map((post: any) => (
           <Link
             key={post.id}
             href={`/blog/${post.slug}`}
@@ -55,7 +56,7 @@ export default async function BlogPage() {
         ))}
       </div>
 
-      {posts.length === 0 && (
+      {(!posts || posts.length === 0) && (
         <div className="text-center py-20 text-gray-400">
           <p>Blog posts coming soon.</p>
         </div>

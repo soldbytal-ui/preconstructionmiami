@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { Suspense } from 'react';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import type { Metadata } from 'next';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ProjectFilters from '@/components/projects/ProjectFilters';
@@ -19,26 +19,30 @@ export default async function ProjectsPage({ searchParams }: Props) {
   const params = await searchParams;
   const { q, neighborhood, status, category, sort } = params;
 
-  const where: any = {};
-  if (q) where.name = { contains: q, mode: 'insensitive' };
-  if (neighborhood) where.neighborhood = { slug: neighborhood };
-  if (status) where.status = status;
-  if (category) where.category = category;
+  let projectQuery = supabase
+    .from('projects')
+    .select('*, neighborhood:neighborhoods(*), developer:developers(*)');
 
-  let orderBy: any = { createdAt: 'desc' };
-  if (sort === 'price_asc') orderBy = { priceMin: 'asc' };
-  else if (sort === 'price_desc') orderBy = { priceMin: 'desc' };
-  else if (sort === 'units_desc') orderBy = { totalUnits: 'desc' };
+  if (q) projectQuery = projectQuery.ilike('name', `%${q}%`);
+  if (status) projectQuery = projectQuery.eq('status', status);
+  if (category) projectQuery = projectQuery.eq('category', category);
 
-  const [projects, neighborhoods, total] = await Promise.all([
-    prisma.project.findMany({
-      where,
-      orderBy,
-      include: { neighborhood: true, developer: true },
-    }),
-    prisma.neighborhood.findMany({ orderBy: { name: 'asc' } }),
-    prisma.project.count({ where }),
+  if (sort === 'price_asc') projectQuery = projectQuery.order('priceMin', { ascending: true });
+  else if (sort === 'price_desc') projectQuery = projectQuery.order('priceMin', { ascending: false });
+  else if (sort === 'units_desc') projectQuery = projectQuery.order('totalUnits', { ascending: false });
+  else projectQuery = projectQuery.order('createdAt', { ascending: false });
+
+  const [{ data: allProjects }, { data: neighborhoods }] = await Promise.all([
+    projectQuery,
+    supabase.from('neighborhoods').select('*').order('name'),
   ]);
+
+  // Filter by neighborhood slug in JS since it's a relation filter
+  let projects = allProjects || [];
+  if (neighborhood) {
+    projects = projects.filter((p: any) => p.neighborhood?.slug === neighborhood);
+  }
+  const total = projects.length;
 
   return (
     <div className="container-main py-10">
@@ -52,12 +56,12 @@ export default async function ProjectsPage({ searchParams }: Props) {
       </div>
 
       <Suspense fallback={<div className="h-20" />}>
-        <ProjectFilters neighborhoods={neighborhoods} />
+        <ProjectFilters neighborhoods={neighborhoods || []} />
       </Suspense>
 
       {projects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
+          {projects.map((project: any) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>

@@ -4,14 +4,18 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import Markdown from 'react-markdown';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { generateArticleSchema, generateBreadcrumbSchema } from '@/lib/seo';
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({ where: { slug } });
+  const { data: post } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
   if (!post) return { title: 'Post Not Found' };
   return {
     title: post.metaTitle || post.title,
@@ -21,14 +25,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({ where: { slug } });
+  const { data: post } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('slug', slug)
+    .single();
   if (!post) notFound();
 
-  const relatedPosts = await prisma.blogPost.findMany({
-    where: { id: { not: post.id }, publishedAt: { not: null } },
-    take: 3,
-    orderBy: { publishedAt: 'desc' },
-  });
+  const { data: relatedPosts } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .neq('id', post.id)
+    .not('publishedAt', 'is', null)
+    .order('publishedAt', { ascending: false })
+    .limit(3);
 
   const articleSchema = generateArticleSchema(post);
   const breadcrumb = generateBreadcrumbSchema([
@@ -94,11 +104,11 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
 
         {/* Related */}
-        {relatedPosts.length > 0 && (
+        {(relatedPosts || []).length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-navy mb-6">Related Articles</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedPosts.map((rp) => (
+              {(relatedPosts || []).map((rp: any) => (
                 <Link key={rp.id} href={`/blog/${rp.slug}`} className="card group p-5 hover:shadow-lg transition-shadow">
                   <h3 className="font-display font-semibold text-navy group-hover:text-gold transition-colors leading-tight">
                     {rp.title}
