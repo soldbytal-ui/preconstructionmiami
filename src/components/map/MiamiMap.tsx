@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import Map, { NavigationControl } from 'react-map-gl';
+import Map, { NavigationControl } from 'react-map-gl/mapbox';
 import DeckGL from '@deck.gl/react';
 import { ColumnLayer } from '@deck.gl/layers';
 import MapTooltip from './MapTooltip';
