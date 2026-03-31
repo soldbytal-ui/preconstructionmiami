@@ -9,6 +9,11 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
+  async rewrites() {
+    return [
+      { source: '/new-condos-:neighborhood', destination: '/areas/:neighborhood' },
+    ];
+  },
   async redirects() {
     return [
       { source: '/pre-construction', destination: '/new-condos', permanent: true },
