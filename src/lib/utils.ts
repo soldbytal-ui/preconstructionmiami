@@ -29,11 +29,11 @@ export function slugify(text: string): string {
 }
 
 export const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  PRE_LAUNCH: { bg: 'bg-purple-600', text: 'text-white' },
-  PRE_CONSTRUCTION: { bg: 'bg-blue-600', text: 'text-white' },
-  UNDER_CONSTRUCTION: { bg: 'bg-orange-500', text: 'text-white' },
-  NEAR_COMPLETION: { bg: 'bg-green-600', text: 'text-white' },
-  COMPLETED: { bg: 'bg-gray-500', text: 'text-white' },
+  PRE_LAUNCH: { bg: 'bg-accent-green/20', text: 'text-accent-green' },
+  PRE_CONSTRUCTION: { bg: 'bg-accent-green/20', text: 'text-accent-green' },
+  UNDER_CONSTRUCTION: { bg: 'bg-accent-blue/20', text: 'text-accent-blue' },
+  NEAR_COMPLETION: { bg: 'bg-accent-orange/20', text: 'text-accent-orange' },
+  COMPLETED: { bg: 'bg-accent-gray/20', text: 'text-accent-gray' },
 };
 
 export const STATUS_LABELS: Record<string, string> = {

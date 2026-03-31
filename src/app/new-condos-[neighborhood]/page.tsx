@@ -59,7 +59,7 @@ export default async function NeighborhoodPage({ params }: Props) {
 
   const breadcrumb = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
-    { name: 'Pre-Construction', url: 'https://preconstructionmiami.net/pre-construction' },
+    { name: 'New Condos', url: 'https://preconstructionmiami.net/new-condos' },
     { name: neighborhood.name, url: `https://preconstructionmiami.net/new-condos-${neighborhood.slug}` },
   ]);
 
@@ -76,19 +76,19 @@ export default async function NeighborhoodPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
 
       {/* Hero */}
-      <section className="bg-navy text-white py-16 md:py-24">
+      <section className="bg-surface py-16 md:py-24 border-b border-border">
         <div className="container-main">
-          <nav className="text-sm text-gray-400 mb-6 flex items-center gap-2">
-            <Link href="/" className="hover:text-gold">Home</Link>
+          <nav className="text-sm text-text-muted mb-6 flex items-center gap-2">
+            <Link href="/" className="hover:text-accent-green transition-colors">Home</Link>
             <span>/</span>
-            <Link href="/pre-construction" className="hover:text-gold">Pre-Construction</Link>
+            <Link href="/new-condos" className="hover:text-accent-green transition-colors">New Condos</Link>
             <span>/</span>
-            <span className="text-gold">{neighborhood.name}</span>
+            <span className="text-accent-green">{neighborhood.name}</span>
           </nav>
-          <h1 className="text-3xl md:text-5xl font-bold">
-            New Pre-Construction Condos in <span className="text-gold">{neighborhood.name}</span>
+          <h1 className="text-3xl md:text-5xl font-bold text-text-primary">
+            New Pre-Construction Condos in <span className="text-accent-green">{neighborhood.name}</span>
           </h1>
-          <p className="text-gray-300 mt-4 text-lg max-w-2xl">
+          <p className="text-text-muted mt-4 text-lg max-w-2xl">
             {projectCount} active {projectCount === 1 ? 'development' : 'developments'} available.
             {neighborhood.avgPriceStudio && ` Starting from ${formatPrice(neighborhood.avgPriceStudio)}.`}
           </p>
@@ -100,30 +100,28 @@ export default async function NeighborhoodPage({ params }: Props) {
           <div className="lg:col-span-2 space-y-10">
             {/* Description */}
             {neighborhood.description && (
-              <div className="prose prose-gray max-w-none">
-                <div className="text-gray-600 leading-relaxed whitespace-pre-line">
-                  {neighborhood.description}
-                </div>
+              <div className="text-text-muted leading-relaxed whitespace-pre-line">
+                {neighborhood.description}
               </div>
             )}
 
             {/* Price Table */}
             {prices.length > 0 && (
               <div>
-                <h2 className="text-2xl font-bold text-navy mb-4">Average Pre-Construction Prices</h2>
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <h2 className="text-2xl font-bold text-text-primary mb-4">Average Pre-Construction Prices</h2>
+                <div className="card overflow-hidden">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-navy text-white text-sm">
-                        <th className="px-6 py-3 text-left font-medium">Unit Type</th>
-                        <th className="px-6 py-3 text-right font-medium">Starting Price</th>
+                      <tr className="bg-surface2 text-sm">
+                        <th className="px-6 py-3 text-left font-medium text-text-muted">Unit Type</th>
+                        <th className="px-6 py-3 text-right font-medium text-text-muted">Starting Price</th>
                       </tr>
                     </thead>
                     <tbody>
                       {prices.map((p, i) => (
-                        <tr key={p.type} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-6 py-3 text-sm text-gray-700">{p.type}</td>
-                          <td className="px-6 py-3 text-sm text-right font-semibold text-gold">{formatPrice(p.price)}</td>
+                        <tr key={p.type} className={`border-t border-border ${i % 2 === 0 ? 'bg-bg' : 'bg-surface'}`}>
+                          <td className="px-6 py-3 text-sm text-text-primary">{p.type}</td>
+                          <td className="px-6 py-3 text-sm text-right font-semibold font-mono text-accent-green">{formatPrice(p.price)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -134,7 +132,7 @@ export default async function NeighborhoodPage({ params }: Props) {
 
             {/* Projects */}
             <div>
-              <h2 className="text-2xl font-bold text-navy mb-6">
+              <h2 className="text-2xl font-bold text-text-primary mb-6">
                 All Projects in {neighborhood.name} ({projectCount})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -142,6 +140,11 @@ export default async function NeighborhoodPage({ params }: Props) {
                   <ProjectCard key={project.id} project={project} />
                 ))}
               </div>
+              {projectCount === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-text-muted">No projects listed in this neighborhood yet.</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -152,16 +155,16 @@ export default async function NeighborhoodPage({ params }: Props) {
 
               {/* Other Neighborhoods */}
               <div className="mt-6 card p-6">
-                <h3 className="font-display text-lg font-semibold text-navy mb-4">Other Neighborhoods</h3>
+                <h3 className="text-lg font-semibold text-text-primary mb-4">Other Neighborhoods</h3>
                 <div className="space-y-3">
                   {otherWithCount.map((n: any) => (
                     <Link
                       key={n.id}
                       href={`/new-condos-${n.slug}`}
-                      className="flex items-center justify-between text-sm hover:text-gold transition-colors"
+                      className="flex items-center justify-between text-sm text-text-muted hover:text-accent-green transition-colors"
                     >
                       <span>{n.name}</span>
-                      <span className="text-gray-400">{n._count.projects} projects</span>
+                      <span className="text-text-muted/60">{n._count.projects} projects</span>
                     </Link>
                   ))}
                 </div>

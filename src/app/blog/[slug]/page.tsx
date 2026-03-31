@@ -53,24 +53,24 @@ export default async function BlogPostPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
 
       <article className="container-main py-10 max-w-4xl">
-        <nav className="text-sm text-gray-500 mb-6 flex items-center gap-2">
-          <Link href="/" className="hover:text-gold">Home</Link>
+        <nav className="text-sm text-text-muted mb-6 flex items-center gap-2">
+          <Link href="/" className="hover:text-accent-green transition-colors">Home</Link>
           <span>/</span>
-          <Link href="/blog" className="hover:text-gold">Blog</Link>
+          <Link href="/blog" className="hover:text-accent-green transition-colors">Blog</Link>
           <span>/</span>
-          <span className="text-navy font-medium truncate">{post.title}</span>
+          <span className="text-text-primary font-medium truncate">{post.title}</span>
         </nav>
 
         <header className="mb-10">
           {post.targetKeyword && (
-            <span className="text-xs text-gold font-medium uppercase tracking-wider">
+            <span className="inline-block text-xs text-accent-green font-medium uppercase tracking-wider bg-accent-green/10 px-2 py-0.5 rounded">
               {post.targetKeyword}
             </span>
           )}
-          <h1 className="text-3xl md:text-4xl font-bold text-navy mt-2 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-bold text-text-primary mt-2 leading-tight">
             {post.title}
           </h1>
-          <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
+          <div className="flex items-center gap-4 mt-4 text-sm text-text-muted">
             <span>By {post.author}</span>
             {post.publishedAt && (
               <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
@@ -78,7 +78,7 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
         </header>
 
-        <div className="prose prose-gray prose-lg max-w-none prose-headings:font-display prose-headings:text-navy prose-a:text-gold prose-a:no-underline hover:prose-a:underline prose-strong:text-navy">
+        <div className="prose prose-invert prose-lg max-w-none prose-headings:text-text-primary prose-p:text-text-muted prose-li:text-text-muted prose-strong:text-text-primary prose-a:text-accent-green prose-a:no-underline hover:prose-a:underline prose-blockquote:border-accent-green/30 prose-blockquote:text-text-muted prose-code:text-accent-green prose-hr:border-border">
           <Markdown
             components={{
               a: ({ href, children }) => {
@@ -94,27 +94,27 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
 
         {/* CTA */}
-        <div className="mt-12 bg-navy rounded-xl p-8 text-center text-white">
-          <h3 className="font-display text-2xl font-bold mb-3">Interested in Miami Pre-Construction?</h3>
-          <p className="text-gray-300 mb-6">Browse our curated selection of 200+ new developments across South Florida.</p>
+        <div className="mt-12 glass-panel p-8 text-center">
+          <h3 className="text-2xl font-bold text-text-primary mb-3">Interested in Miami Pre-Construction?</h3>
+          <p className="text-text-muted mb-6">Browse our curated selection of 200+ new developments across South Florida.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/pre-construction" className="btn-gold">Browse Projects</Link>
-            <Link href="/contact" className="btn-outline border-gold text-gold hover:bg-gold hover:text-navy">Contact Us</Link>
+            <Link href="/new-condos" className="btn-primary">Browse Projects</Link>
+            <Link href="/contact-us" className="btn-secondary">Contact Us</Link>
           </div>
         </div>
 
         {/* Related */}
         {(relatedPosts || []).length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-navy mb-6">Related Articles</h2>
+            <h2 className="text-2xl font-bold text-text-primary mb-6">Related Articles</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {(relatedPosts || []).map((rp: any) => (
-                <Link key={rp.id} href={`/blog/${rp.slug}`} className="card group p-5 hover:shadow-lg transition-shadow">
-                  <h3 className="font-display font-semibold text-navy group-hover:text-gold transition-colors leading-tight">
+                <Link key={rp.id} href={`/blog/${rp.slug}`} className="card group p-5 hover:border-accent-green/30 transition-all">
+                  <h3 className="font-semibold text-text-primary group-hover:text-accent-green transition-colors leading-tight">
                     {rp.title}
                   </h3>
                   {rp.publishedAt && (
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-text-muted/60 mt-2">
                       {new Date(rp.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   )}

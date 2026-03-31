@@ -15,54 +15,35 @@ export default function ProjectFilters({ neighborhoods }: { neighborhoods: Neigh
       if (value) params.set(key, value);
       else params.delete(key);
       params.delete('page');
-      router.push(`/pre-construction?${params.toString()}`);
+      router.push(`/new-condos?${params.toString()}`);
     },
     [router, searchParams]
   );
 
+  const selectClass = "px-4 py-2.5 bg-surface2 border border-border rounded-xl text-sm text-text-primary focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green outline-none transition-colors appearance-none";
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 mb-8">
+    <div className="card p-4 mb-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Search */}
         <input
           type="text"
           placeholder="Search projects..."
           defaultValue={searchParams.get('q') || ''}
           onChange={(e) => updateParam('q', e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gold focus:border-gold outline-none"
+          className="px-4 py-2.5 bg-surface2 border border-border rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-accent-green/30 focus:border-accent-green outline-none transition-colors"
         />
-
-        {/* Neighborhood */}
-        <select
-          defaultValue={searchParams.get('neighborhood') || ''}
-          onChange={(e) => updateParam('neighborhood', e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gold focus:border-gold outline-none bg-white"
-        >
+        <select defaultValue={searchParams.get('neighborhood') || ''} onChange={(e) => updateParam('neighborhood', e.target.value)} className={selectClass}>
           <option value="">All Neighborhoods</option>
-          {neighborhoods.map((n) => (
-            <option key={n.id} value={n.slug}>{n.name}</option>
-          ))}
+          {neighborhoods.map((n) => <option key={n.id} value={n.slug}>{n.name}</option>)}
         </select>
-
-        {/* Status */}
-        <select
-          defaultValue={searchParams.get('status') || ''}
-          onChange={(e) => updateParam('status', e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gold focus:border-gold outline-none bg-white"
-        >
+        <select defaultValue={searchParams.get('status') || ''} onChange={(e) => updateParam('status', e.target.value)} className={selectClass}>
           <option value="">All Statuses</option>
           <option value="PRE_LAUNCH">Pre-Launch</option>
           <option value="PRE_CONSTRUCTION">Pre-Construction</option>
           <option value="UNDER_CONSTRUCTION">Under Construction</option>
           <option value="NEAR_COMPLETION">Near Completion</option>
         </select>
-
-        {/* Category */}
-        <select
-          defaultValue={searchParams.get('category') || ''}
-          onChange={(e) => updateParam('category', e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gold focus:border-gold outline-none bg-white"
-        >
+        <select defaultValue={searchParams.get('category') || ''} onChange={(e) => updateParam('category', e.target.value)} className={selectClass}>
           <option value="">All Categories</option>
           <option value="ULTRA_LUXURY">Ultra-Luxury</option>
           <option value="LUXURY_BRANDED">Luxury Branded</option>
@@ -70,13 +51,7 @@ export default function ProjectFilters({ neighborhoods }: { neighborhoods: Neigh
           <option value="PREMIUM">Premium</option>
           <option value="AFFORDABLE_LUXURY">Affordable Luxury</option>
         </select>
-
-        {/* Sort */}
-        <select
-          defaultValue={searchParams.get('sort') || ''}
-          onChange={(e) => updateParam('sort', e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gold focus:border-gold outline-none bg-white"
-        >
+        <select defaultValue={searchParams.get('sort') || ''} onChange={(e) => updateParam('sort', e.target.value)} className={selectClass}>
           <option value="">Sort: Newest</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
