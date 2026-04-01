@@ -1,5 +1,35 @@
 import Link from 'next/link';
 
+const MIAMI_DADE = [
+  { name: 'Brickell', slug: 'brickell' },
+  { name: 'Downtown Miami', slug: 'downtown-miami' },
+  { name: 'Edgewater', slug: 'edgewater' },
+  { name: 'Miami Beach', slug: 'miami-beach' },
+  { name: 'South Beach', slug: 'south-beach' },
+  { name: 'Coconut Grove', slug: 'coconut-grove' },
+  { name: 'Coral Gables', slug: 'coral-gables' },
+  { name: 'Sunny Isles Beach', slug: 'sunny-isles-beach' },
+  { name: 'Surfside', slug: 'surfside' },
+  { name: 'Bal Harbour', slug: 'bal-harbour' },
+  { name: 'Bay Harbor Islands', slug: 'bay-harbor-islands' },
+  { name: 'Key Biscayne', slug: 'key-biscayne' },
+  { name: 'Midtown/Wynwood', slug: 'midtown-wynwood' },
+  { name: 'Design District', slug: 'design-district' },
+  { name: 'Aventura', slug: 'aventura' },
+  { name: 'North Bay Village', slug: 'north-bay-village' },
+  { name: 'North Miami Beach', slug: 'north-miami-beach' },
+];
+
+const BROWARD_PALM = [
+  { name: 'Fort Lauderdale', slug: 'fort-lauderdale' },
+  { name: 'Hollywood', slug: 'hollywood' },
+  { name: 'Hallandale Beach', slug: 'hallandale-beach' },
+  { name: 'Pompano Beach', slug: 'pompano-beach' },
+  { name: 'Palm Beach', slug: 'palm-beach' },
+  { name: 'Boca Raton', slug: 'boca-raton' },
+  { name: 'West Palm Beach', slug: 'west-palm-beach' },
+];
+
 export default function Footer() {
   return (
     <footer className="bg-surface border-t border-border">
@@ -11,22 +41,13 @@ export default function Footer() {
               <span className="text-text-primary font-light text-xl ml-1">MIAMI</span>
             </Link>
             <p className="text-sm text-text-muted leading-relaxed">
-              Miami&apos;s premier marketplace for pre-construction condos. Access 200+ new developments across South Florida.
+              South Florida&apos;s premier marketplace for pre-construction condos. Access 130+ new developments across 24 neighborhoods from Brickell to West Palm Beach.
             </p>
           </div>
           <div>
-            <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Neighborhoods</h4>
-            <ul className="space-y-2">
-              {[
-                { name: 'Brickell', slug: 'brickell' },
-                { name: 'Miami Beach', slug: 'miami-beach' },
-                { name: 'Downtown Miami', slug: 'downtown-miami' },
-                { name: 'Edgewater', slug: 'edgewater' },
-                { name: 'Sunny Isles', slug: 'sunny-isles-beach' },
-                { name: 'Coconut Grove', slug: 'coconut-grove' },
-                { name: 'Hollywood', slug: 'hollywood' },
-                { name: 'Fort Lauderdale', slug: 'fort-lauderdale' },
-              ].map((n) => (
+            <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Miami-Dade</h4>
+            <ul className="space-y-1.5">
+              {MIAMI_DADE.map((n) => (
                 <li key={n.slug}>
                   <Link href={`/new-condos-${n.slug}`} className="text-sm text-text-muted hover:text-accent-green transition-colors">{n.name}</Link>
                 </li>
@@ -34,10 +55,18 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Resources</h4>
-            <ul className="space-y-2">
+            <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Broward & Palm Beach</h4>
+            <ul className="space-y-1.5">
+              {BROWARD_PALM.map((n) => (
+                <li key={n.slug}>
+                  <Link href={`/new-condos-${n.slug}`} className="text-sm text-text-muted hover:text-accent-green transition-colors">{n.name}</Link>
+                </li>
+              ))}
+            </ul>
+            <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mt-8 mb-4">Resources</h4>
+            <ul className="space-y-1.5">
               <li><Link href="/new-condos" className="text-sm text-text-muted hover:text-accent-green transition-colors">All Properties</Link></li>
-              <li><Link href="/blog" className="text-sm text-text-muted hover:text-accent-green transition-colors">Blog</Link></li>
+              <li><Link href="/blog" className="text-sm text-text-muted hover:text-accent-green transition-colors">Market Insights Blog</Link></li>
               <li><Link href="/about" className="text-sm text-text-muted hover:text-accent-green transition-colors">About Us</Link></li>
             </ul>
           </div>
@@ -45,8 +74,17 @@ export default function Footer() {
             <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Contact</h4>
             <ul className="space-y-2 text-sm">
               <li className="text-text-muted">Miami, Florida</li>
-              <li><Link href="/contact-us" className="text-text-muted hover:text-accent-green transition-colors">Get in Touch &rarr;</Link></li>
+              <li><Link href="/contact-us" className="text-accent-green hover:underline transition-colors">Get in Touch &rarr;</Link></li>
             </ul>
+            <div className="mt-8">
+              <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Popular Searches</h4>
+              <ul className="space-y-1.5">
+                <li><Link href="/new-condos?category=ULTRA_LUXURY" className="text-sm text-text-muted hover:text-accent-green transition-colors">Ultra-Luxury Condos</Link></li>
+                <li><Link href="/new-condos?status=PRE_LAUNCH" className="text-sm text-text-muted hover:text-accent-green transition-colors">Pre-Launch Projects</Link></li>
+                <li><Link href="/new-condos?status=UNDER_CONSTRUCTION" className="text-sm text-text-muted hover:text-accent-green transition-colors">Under Construction</Link></li>
+                <li><Link href="/new-condos?sort=price_asc" className="text-sm text-text-muted hover:text-accent-green transition-colors">Most Affordable</Link></li>
+              </ul>
+            </div>
           </div>
         </div>
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -54,6 +92,7 @@ export default function Footer() {
           <div className="flex gap-6 text-xs">
             <Link href="/about" className="text-text-muted hover:text-accent-green transition-colors">About</Link>
             <Link href="/contact-us" className="text-text-muted hover:text-accent-green transition-colors">Contact</Link>
+            <Link href="/blog" className="text-text-muted hover:text-accent-green transition-colors">Blog</Link>
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
-import { generateBreadcrumbSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import InquiryForm from '@/components/projects/InquiryForm';
 
@@ -22,6 +22,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: n.metaTitle || `New Pre-Construction Condos in ${n.name} | PreConstructionMiami.net`,
     description: n.metaDescription || `Browse pre-construction condos in ${n.name}. Find new developments, pricing, floor plans, and completion dates.`,
+    alternates: {
+      canonical: `https://preconstructionmiami.net/new-condos-${n.slug}`,
+    },
+    openGraph: {
+      title: n.metaTitle || `New Pre-Construction Condos in ${n.name}`,
+      description: n.metaDescription || `Browse pre-construction condos in ${n.name}.`,
+      url: `https://preconstructionmiami.net/new-condos-${n.slug}`,
+      type: 'website',
+    },
   };
 }
 
@@ -36,32 +45,63 @@ export default async function NeighborhoodPage({ params }: Props) {
 
   if (!neighborhood) notFound();
 
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
-    .eq('neighborhoodId', neighborhood.id)
-    .order('priceMin', { ascending: true });
-
-  const { data: otherNeighborhoods } = await supabase
-    .from('neighborhoods')
-    .select('*, projects(count)')
-    .neq('id', neighborhood.id)
-    .order('displayOrder', { ascending: true })
-    .limit(4);
+  const [{ data: projects }, { data: allNeighborhoods }] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+      .eq('neighborhoodId', neighborhood.id)
+      .order('priceMin', { ascending: true }),
+    supabase
+      .from('neighborhoods')
+      .select('*, projects(count)')
+      .neq('id', neighborhood.id)
+      .order('displayOrder', { ascending: true })
+      .limit(12),
+  ]);
 
   const projectList = projects || [];
   const projectCount = projectList.length;
 
-  const otherWithCount = (otherNeighborhoods || []).map((n: any) => ({
+  const allWithCount = (allNeighborhoods || []).map((n: any) => ({
     ...n,
     _count: { projects: n.projects?.[0]?.count || 0 },
   }));
+
+  // Split neighborhoods for sidebar (4) and bottom interlinking (all)
+  const sidebarNeighborhoods = allWithCount.slice(0, 4);
+  const bottomNeighborhoods = allWithCount;
 
   const breadcrumb = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
     { name: 'New Condos', url: 'https://preconstructionmiami.net/new-condos' },
     { name: neighborhood.name, url: `https://preconstructionmiami.net/new-condos-${neighborhood.slug}` },
   ]);
+
+  // Generate dynamic FAQs based on neighborhood data
+  const faqs = [
+    {
+      question: `What are the best new pre-construction condos in ${neighborhood.name}?`,
+      answer: projectCount > 0
+        ? `There are currently ${projectCount} active pre-construction developments in ${neighborhood.name}. ${projectList.slice(0, 3).map((p: any) => p.name).join(', ')}${projectCount > 3 ? ` and ${projectCount - 3} more` : ''} are among the top projects. Visit our ${neighborhood.name} page for full pricing, floor plans, and availability.`
+        : `New pre-construction projects in ${neighborhood.name} are coming soon. Register with us to be notified of new launches and VIP pricing.`,
+    },
+    {
+      question: `What is the average price of pre-construction condos in ${neighborhood.name}?`,
+      answer: neighborhood.avgPriceStudio
+        ? `Pre-construction condo prices in ${neighborhood.name} start from approximately ${formatPrice(neighborhood.avgPriceStudio)} for studios. ${neighborhood.avgPrice2br ? `Two-bedroom units average around ${formatPrice(neighborhood.avgPrice2br)}.` : ''} Prices vary significantly by developer, floor level, and view. Contact us for current pricing on specific projects.`
+        : `Pre-construction condo prices in ${neighborhood.name} vary by project, unit type, and floor level. Contact our team for current pricing on specific developments in ${neighborhood.name}.`,
+    },
+    {
+      question: `Is ${neighborhood.name} a good area to buy pre-construction in Miami?`,
+      answer: `${neighborhood.name} is one of South Florida's most sought-after neighborhoods for pre-construction investment. ${neighborhood.description?.slice(0, 200) || `The area offers excellent amenities, strong appreciation potential, and a desirable lifestyle.`} Contact our team for a personalized investment analysis.`,
+    },
+    {
+      question: `When will new condos in ${neighborhood.name} be completed?`,
+      answer: `Most pre-construction condos currently selling in ${neighborhood.name} have estimated completion dates between 2026 and 2029. Completion timelines vary by project — some developments in ${neighborhood.name} are already under construction while others are in pre-construction sales. Contact us for project-specific timelines.`,
+    },
+  ];
+
+  const faqSchema = generateFAQSchema(faqs);
 
   const prices = [
     { type: 'Studio', price: neighborhood.avgPriceStudio },
@@ -74,6 +114,7 @@ export default async function NeighborhoodPage({ params }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* Hero */}
       <section className="bg-surface py-16 md:py-24 border-b border-border">
@@ -89,8 +130,11 @@ export default async function NeighborhoodPage({ params }: Props) {
             New Pre-Construction Condos in <span className="text-accent-green">{neighborhood.name}</span>
           </h1>
           <p className="text-text-muted mt-4 text-lg max-w-2xl">
-            {projectCount} active {projectCount === 1 ? 'development' : 'developments'} available.
+            {projectCount > 0
+              ? `${projectCount} active ${projectCount === 1 ? 'development' : 'developments'} available.`
+              : 'New developments coming soon.'}
             {neighborhood.avgPriceStudio && ` Starting from ${formatPrice(neighborhood.avgPriceStudio)}.`}
+            {' '}Updated for 2025-2028.
           </p>
         </div>
       </section>
@@ -98,17 +142,24 @@ export default async function NeighborhoodPage({ params }: Props) {
       <div className="container-main py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2 space-y-10">
-            {/* Description */}
+            {/* About This Neighborhood */}
             {neighborhood.description && (
-              <div className="text-text-muted leading-relaxed whitespace-pre-line">
-                {neighborhood.description}
-              </div>
+              <section>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">
+                  About {neighborhood.name} Real Estate
+                </h2>
+                <div className="text-text-muted leading-relaxed whitespace-pre-line">
+                  {neighborhood.description}
+                </div>
+              </section>
             )}
 
             {/* Price Table */}
             {prices.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold text-text-primary mb-4">Average Pre-Construction Prices</h2>
+              <section>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">
+                  Average Pre-Construction Prices in {neighborhood.name}
+                </h2>
                 <div className="card overflow-hidden">
                   <table className="w-full">
                     <thead>
@@ -127,13 +178,13 @@ export default async function NeighborhoodPage({ params }: Props) {
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </section>
             )}
 
             {/* Projects */}
-            <div>
+            <section>
               <h2 className="text-2xl font-bold text-text-primary mb-6">
-                All Projects in {neighborhood.name} ({projectCount})
+                All Pre-Construction Projects in {neighborhood.name} ({projectCount})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {projectList.map((project: any) => (
@@ -141,23 +192,107 @@ export default async function NeighborhoodPage({ params }: Props) {
                 ))}
               </div>
               {projectCount === 0 && (
-                <div className="text-center py-16">
-                  <p className="text-text-muted">No projects listed in this neighborhood yet.</p>
+                <div className="text-center py-16 card">
+                  <p className="text-text-muted mb-4">No projects listed in {neighborhood.name} yet.</p>
+                  <p className="text-sm text-text-muted">
+                    New pre-construction launches are announced regularly.{' '}
+                    <Link href="/contact-us" className="text-accent-green hover:underline">Contact us</Link>
+                    {' '}to be notified of upcoming projects in {neighborhood.name}.
+                  </p>
                 </div>
               )}
-            </div>
+            </section>
+
+            {/* Lifestyle Section */}
+            {neighborhood.lifestyleDescription && (
+              <section>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">
+                  Living in {neighborhood.name}: Lifestyle & Amenities
+                </h2>
+                <div className="text-text-muted leading-relaxed whitespace-pre-line">
+                  {neighborhood.lifestyleDescription}
+                </div>
+              </section>
+            )}
+
+            {/* FAQ Section */}
+            <section>
+              <h2 className="text-2xl font-bold text-text-primary mb-6">
+                Frequently Asked Questions About {neighborhood.name} Pre-Construction
+              </h2>
+              <div className="space-y-4">
+                {faqs.map((faq, i) => (
+                  <details key={i} className="card group" open={i === 0}>
+                    <summary className="p-5 cursor-pointer list-none flex items-center justify-between text-text-primary font-medium hover:text-accent-green transition-colors">
+                      <h3 className="text-base font-medium pr-4">{faq.question}</h3>
+                      <span className="text-accent-green text-xl flex-shrink-0 group-open:rotate-45 transition-transform">+</span>
+                    </summary>
+                    <div className="px-5 pb-5 text-text-muted text-sm leading-relaxed border-t border-border pt-4">
+                      {faq.answer}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+
+            {/* Explore All Neighborhoods — Full Interlinking */}
+            <section>
+              <h2 className="text-2xl font-bold text-text-primary mb-6">
+                Explore More South Florida Neighborhoods
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {bottomNeighborhoods.map((n: any) => (
+                  <Link
+                    key={n.id}
+                    href={`/new-condos-${n.slug}`}
+                    className="card p-4 hover:border-accent-green/30 transition-all group"
+                  >
+                    <div className="text-sm font-medium text-text-primary group-hover:text-accent-green transition-colors">
+                      {n.name}
+                    </div>
+                    <div className="text-xs text-text-muted mt-1">
+                      {n._count.projects} {n._count.projects === 1 ? 'project' : 'projects'}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-4 text-center">
+                <Link href="/new-condos" className="text-sm text-accent-green hover:underline">
+                  View all neighborhoods &rarr;
+                </Link>
+              </div>
+            </section>
+
+            {/* CTA — Contextual interlink to homepage */}
+            <section className="bg-accent-green/5 border border-accent-green/20 rounded-2xl p-8 text-center">
+              <h2 className="text-xl font-bold text-text-primary mb-3">
+                Ready to Invest in {neighborhood.name}?
+              </h2>
+              <p className="text-text-muted text-sm mb-6 max-w-lg mx-auto">
+                Our team specializes in {neighborhood.name} pre-construction condos.
+                Get VIP access to new launches, developer pricing, and exclusive floor plans.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/contact-us" className="btn-primary">
+                  Schedule a Consultation
+                </Link>
+                <Link href="/new-condos" className="px-6 py-3 border border-border rounded-xl text-sm text-text-primary hover:border-accent-green/30 transition-colors">
+                  Browse All Projects
+                </Link>
+              </div>
+            </section>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <div className="sticky top-20">
+            <div className="sticky top-20 space-y-6">
               <InquiryForm neighborhoodId={neighborhood.id} source="neighborhood" />
 
-              {/* Other Neighborhoods */}
-              <div className="mt-6 card p-6">
-                <h3 className="text-lg font-semibold text-text-primary mb-4">Other Neighborhoods</h3>
+              {/* Nearby Neighborhoods */}
+              <div className="card p-6">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">Nearby Neighborhoods</h3>
                 <div className="space-y-3">
-                  {otherWithCount.map((n: any) => (
+                  {sidebarNeighborhoods.map((n: any) => (
                     <Link
                       key={n.id}
                       href={`/new-condos-${n.slug}`}
@@ -167,6 +302,25 @@ export default async function NeighborhoodPage({ params }: Props) {
                       <span className="text-text-muted/60">{n._count.projects} projects</span>
                     </Link>
                   ))}
+                </div>
+              </div>
+
+              {/* Quick Links */}
+              <div className="card p-6">
+                <h3 className="text-lg font-semibold text-text-primary mb-4">Quick Links</h3>
+                <div className="space-y-2">
+                  <Link href="/" className="block text-sm text-text-muted hover:text-accent-green transition-colors">
+                    &rarr; Home
+                  </Link>
+                  <Link href="/new-condos" className="block text-sm text-text-muted hover:text-accent-green transition-colors">
+                    &rarr; All New Condos
+                  </Link>
+                  <Link href="/blog" className="block text-sm text-text-muted hover:text-accent-green transition-colors">
+                    &rarr; Market Insights Blog
+                  </Link>
+                  <Link href="/contact-us" className="block text-sm text-text-muted hover:text-accent-green transition-colors">
+                    &rarr; Contact Our Team
+                  </Link>
                 </div>
               </div>
             </div>

@@ -9,14 +9,26 @@ const NEIGHBORHOODS = [
   { name: 'Downtown Miami', slug: 'downtown-miami' },
   { name: 'Edgewater', slug: 'edgewater' },
   { name: 'Miami Beach', slug: 'miami-beach' },
+  { name: 'South Beach', slug: 'south-beach' },
   { name: 'Sunny Isles Beach', slug: 'sunny-isles-beach' },
   { name: 'Coconut Grove', slug: 'coconut-grove' },
+  { name: 'Coral Gables', slug: 'coral-gables' },
+  { name: 'Surfside', slug: 'surfside' },
+  { name: 'Bal Harbour', slug: 'bal-harbour' },
+  { name: 'Bay Harbor Islands', slug: 'bay-harbor-islands' },
+  { name: 'Key Biscayne', slug: 'key-biscayne' },
+  { name: 'Midtown/Wynwood', slug: 'midtown-wynwood' },
+  { name: 'Design District', slug: 'design-district' },
+  { name: 'Aventura', slug: 'aventura' },
   { name: 'Hollywood', slug: 'hollywood' },
   { name: 'Fort Lauderdale', slug: 'fort-lauderdale' },
-  { name: 'Aventura', slug: 'aventura' },
-  { name: 'Surfside', slug: 'surfside' },
-  { name: 'Wynwood', slug: 'wynwood' },
-  { name: 'Midtown', slug: 'midtown' },
+  { name: 'Hallandale Beach', slug: 'hallandale-beach' },
+  { name: 'Pompano Beach', slug: 'pompano-beach' },
+  { name: 'North Bay Village', slug: 'north-bay-village' },
+  { name: 'North Miami Beach', slug: 'north-miami-beach' },
+  { name: 'Palm Beach', slug: 'palm-beach' },
+  { name: 'Boca Raton', slug: 'boca-raton' },
+  { name: 'West Palm Beach', slug: 'west-palm-beach' },
 ];
 
 export default function Navbar() {
@@ -59,7 +71,7 @@ export default function Navbar() {
               </svg>
             </button>
             {hoodOpen && (
-              <div className="absolute top-full left-0 mt-1 glass-panel rounded-xl py-2 min-w-[200px]">
+              <div className="absolute top-full left-0 mt-1 glass-panel rounded-xl py-3 min-w-[420px] grid grid-cols-2 gap-0">
                 {NEIGHBORHOODS.map((n) => (
                   <Link key={n.slug} href={`/new-condos-${n.slug}`} className="block px-4 py-2 text-sm text-text-muted hover:text-accent-green hover:bg-surface2 transition-colors">
                     {n.name}
@@ -91,7 +103,7 @@ export default function Navbar() {
             <div className="pt-2 border-t border-border mt-2">
               <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Neighborhoods</p>
               <div className="grid grid-cols-2 gap-1">
-                {NEIGHBORHOODS.slice(0, 8).map((n) => (
+                {NEIGHBORHOODS.slice(0, 12).map((n) => (
                   <Link key={n.slug} href={`/new-condos-${n.slug}`} className="text-sm text-text-muted hover:text-accent-green py-1.5 transition-colors">{n.name}</Link>
                 ))}
               </div>
