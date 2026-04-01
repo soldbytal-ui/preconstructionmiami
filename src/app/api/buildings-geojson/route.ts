@@ -7,7 +7,7 @@ export async function GET() {
   const { data: projects, error } = await supabase
     .from('projects')
     .select(
-      'id, name, slug, latitude, longitude, floors, totalUnits, priceMin, priceMax, status, category, address, estCompletion, description, mainImageUrl, footprint, developer:developers(name), neighborhood:neighborhoods(name, slug)'
+      'id, name, slug, latitude, longitude, floors, totalUnits, priceMin, priceMax, status, category, address, estCompletion, description, mainImageUrl, footprint, modelUrl, developer:developers(name), neighborhood:neighborhoods(name, slug)'
     )
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)
@@ -39,6 +39,7 @@ export async function GET() {
       neighborhoodSlug: p.neighborhood?.slug || null,
       latitude: p.latitude,
       longitude: p.longitude,
+      modelUrl: p.modelUrl || null,
     },
   }));
 
