@@ -45,6 +45,7 @@ model Project {
   description      String?         @db.Text
   amenities        Json?
   images           Json?
+  footprint        Json?
   mainImageUrl     String?
   category         ProjectCategory @default(PREMIUM)
   websiteUrl       String?

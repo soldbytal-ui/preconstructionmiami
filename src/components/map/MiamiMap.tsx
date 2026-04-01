@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import Map, { NavigationControl } from 'react-map-gl/mapbox';
-import DeckGL from '@deck.gl/react';
-import { ColumnLayer } from '@deck.gl/layers';
+import Map, { NavigationControl, Source, Layer } from 'react-map-gl/mapbox';
+import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/mapbox';
 import MapTooltip from './MapTooltip';
 import MapPropertyCard from './MapPropertyCard';
 
@@ -15,15 +14,15 @@ const INITIAL_VIEW_STATE = {
   zoom: 13.5,
   pitch: 55,
   bearing: -20,
-  transitionDuration: 0,
 };
 
-const STATUS_COLORS: Record<string, [number, number, number, number]> = {
-  PRE_LAUNCH: [0, 229, 180, 220],
-  PRE_CONSTRUCTION: [0, 229, 180, 220],
-  UNDER_CONSTRUCTION: [56, 182, 255, 220],
-  NEAR_COMPLETION: [255, 122, 61, 220],
-  COMPLETED: [138, 144, 152, 220],
+// Color by status — fill-extrusion-color match expression
+const STATUS_COLORS: Record<string, string> = {
+  PRE_LAUNCH: '#00E5B4',
+  PRE_CONSTRUCTION: '#00E5B4',
+  UNDER_CONSTRUCTION: '#38B6FF',
+  NEAR_COMPLETION: '#FF7A3D',
+  COMPLETED: '#8A9098',
 };
 
 export type MapProject = {
@@ -56,36 +55,30 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>(null);
   const [selectedProject, setSelectedProject] = useState<MapProject | null>(null);
-  const mapRef = useRef<any>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [geojsonData, setGeojsonData] = useState<GeoJSON.FeatureCollection | null>(null);
+  const mapRef = useRef<MapRef>(null);
 
-  const validProjects = projects.filter(
-    (p) => p.latitude && p.longitude && p.latitude !== 0 && p.longitude !== 0
-  );
-
-  const onHover = useCallback((info: any) => {
-    if (info.object) {
-      setHoverInfo({ x: info.x, y: info.y, object: info.object });
-    } else {
-      setHoverInfo(null);
-    }
+  // Fetch GeoJSON data from API
+  useEffect(() => {
+    fetch('/api/buildings-geojson')
+      .then((res) => res.json())
+      .then((data) => setGeojsonData(data))
+      .catch(console.error);
   }, []);
 
-  const onClick = useCallback((info: any) => {
-    if (info.object) {
-      setSelectedProject(info.object);
-      setHoverInfo(null);
-      setViewState((prev: any) => ({
-        ...prev,
-        longitude: info.object.longitude,
-        latitude: info.object.latitude,
-        zoom: 15,
-        transitionDuration: 800,
-      }));
+  // Build a lookup from projects prop for tooltip/card data
+  const projectLookup = useRef<Record<string, MapProject>>({});
+  useEffect(() => {
+    const lookup: Record<string, MapProject> = {};
+    for (const p of projects) {
+      lookup[p.id] = p;
     }
-  }, []);
+    projectLookup.current = lookup;
+  }, [projects]);
 
   const onMapLoad = useCallback(() => {
-    const map = mapRef.current?.getMap?.();
+    const map = mapRef.current?.getMap();
     if (!map) return;
 
     const layers = map.getStyle()?.layers;
@@ -95,6 +88,7 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
       (layer: any) => layer.type === 'symbol' && layer.layout?.['text-field']
     )?.id;
 
+    // Add city-wide 3D buildings (dark gray context layer)
     if (!map.getLayer('3d-buildings')) {
       map.addLayer(
         {
@@ -106,8 +100,16 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
           minzoom: 12,
           paint: {
             'fill-extrusion-color': '#1a1d23',
-            'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'height']],
-            'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'min_height']],
+            'fill-extrusion-height': [
+              'interpolate', ['linear'], ['zoom'],
+              12, 0,
+              12.5, ['get', 'height'],
+            ],
+            'fill-extrusion-base': [
+              'interpolate', ['linear'], ['zoom'],
+              12, 0,
+              12.5, ['get', 'min_height'],
+            ],
             'fill-extrusion-opacity': 0.5,
           },
         },
@@ -116,53 +118,154 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
     }
   }, []);
 
-  const columnLayer = new ColumnLayer({
-    id: 'projects-columns',
-    data: validProjects,
-    getPosition: (d: MapProject) => [d.longitude!, d.latitude!],
-    diskResolution: 12,
-    radius: 30,
-    extruded: true,
-    getElevation: (d: MapProject) => (d.floors || 10) * 5,
-    getFillColor: (d: MapProject) => {
-      if (selectedProject && d.id === selectedProject.id) {
-        return [255, 255, 255, 255];
+  const onMouseMove = useCallback(
+    (e: MapLayerMouseEvent) => {
+      const features = e.features;
+      if (features && features.length > 0) {
+        const f = features[0];
+        const props = f.properties;
+        if (!props) return;
+
+        setHoveredId(props.id);
+
+        // Build a MapProject from geojson properties + project lookup
+        const proj: MapProject = projectLookup.current[props.id] || {
+          id: props.id,
+          name: props.name,
+          slug: props.slug,
+          latitude: props.latitude,
+          longitude: props.longitude,
+          floors: props.floors,
+          totalUnits: props.totalUnits,
+          priceMin: props.priceMin,
+          priceMax: props.priceMax,
+          status: props.status,
+          category: props.category,
+          address: props.address,
+          developer: props.developer ? { name: props.developer } : null,
+          neighborhood: props.neighborhood
+            ? { name: props.neighborhood, slug: props.neighborhoodSlug || '' }
+            : null,
+          estCompletion: props.estCompletion,
+          description: props.description,
+          mainImageUrl: props.mainImageUrl,
+        };
+
+        setHoverInfo({ x: e.point.x, y: e.point.y, object: proj });
+      } else {
+        setHoveredId(null);
+        setHoverInfo(null);
       }
-      return STATUS_COLORS[d.status] || [138, 144, 152, 220];
     },
-    material: {
-      ambient: 0.4,
-      diffuse: 0.7,
-      shininess: 50,
+    []
+  );
+
+  const onMouseLeave = useCallback(() => {
+    setHoveredId(null);
+    setHoverInfo(null);
+  }, []);
+
+  const onBuildingClick = useCallback(
+    (e: MapLayerMouseEvent) => {
+      const features = e.features;
+      if (!features || features.length === 0) return;
+
+      const props = features[0].properties;
+      if (!props) return;
+
+      const proj: MapProject = projectLookup.current[props.id] || {
+        id: props.id,
+        name: props.name,
+        slug: props.slug,
+        latitude: props.latitude,
+        longitude: props.longitude,
+        floors: props.floors,
+        totalUnits: props.totalUnits,
+        priceMin: props.priceMin,
+        priceMax: props.priceMax,
+        status: props.status,
+        category: props.category,
+        address: props.address,
+        developer: props.developer ? { name: props.developer } : null,
+        neighborhood: props.neighborhood
+          ? { name: props.neighborhood, slug: props.neighborhoodSlug || '' }
+          : null,
+        estCompletion: props.estCompletion,
+        description: props.description,
+        mainImageUrl: props.mainImageUrl,
+      };
+
+      setSelectedProject(proj);
+      setHoverInfo(null);
+
+      setViewState((prev) => ({
+        ...prev,
+        longitude: props.longitude,
+        latitude: props.latitude,
+        zoom: 15,
+      }));
     },
-    pickable: true,
-    onHover,
-    onClick,
-    updateTriggers: {
-      getFillColor: [selectedProject?.id],
-    },
-  } as any);
+    []
+  );
+
+  // Build the fill-extrusion-color match expression
+  const colorExpression: any = [
+    'match',
+    ['get', 'status'],
+    'PRE_LAUNCH', '#00E5B4',
+    'PRE_CONSTRUCTION', '#00E5B4',
+    'UNDER_CONSTRUCTION', '#38B6FF',
+    'NEAR_COMPLETION', '#FF7A3D',
+    'COMPLETED', '#8A9098',
+    '#8A9098', // default
+  ];
+
+  // When a building is hovered, make it brighter
+  const fillColor: any = hoveredId
+    ? [
+        'case',
+        ['==', ['get', 'id'], hoveredId],
+        '#ffffff',
+        colorExpression,
+      ]
+    : colorExpression;
 
   return (
     <div className="relative w-full h-full">
-      <DeckGL
-        viewState={viewState}
-        onViewStateChange={({ viewState: vs }: any) => setViewState(vs)}
-        controller={true}
-        layers={[columnLayer]}
-        getCursor={({ isHovering }: any) => (isHovering ? 'pointer' : 'grab')}
+      <Map
+        ref={mapRef}
+        {...viewState}
+        onMove={(evt) => setViewState(evt.viewState)}
+        mapboxAccessToken={MAPBOX_TOKEN}
+        mapStyle="mapbox://styles/mapbox/dark-v11"
+        onLoad={onMapLoad}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        onClick={onBuildingClick}
+        interactiveLayerIds={geojsonData ? ['project-extrusions'] : []}
+        cursor={hoveredId ? 'pointer' : 'grab'}
+        reuseMaps
+        attributionControl={false}
+        pitch={viewState.pitch}
+        bearing={viewState.bearing}
       >
-        <Map
-          ref={mapRef}
-          mapboxAccessToken={MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/mapbox/dark-v11"
-          onLoad={onMapLoad}
-          reuseMaps
-          attributionControl={false}
-        >
-          <NavigationControl position="bottom-right" showCompass={false} />
-        </Map>
-      </DeckGL>
+        <NavigationControl position="bottom-right" showCompass={false} />
+
+        {geojsonData && (
+          <Source id="project-buildings" type="geojson" data={geojsonData}>
+            <Layer
+              id="project-extrusions"
+              type="fill-extrusion"
+              paint={{
+                'fill-extrusion-color': fillColor,
+                'fill-extrusion-height': ['*', ['get', 'floors'], 4],
+                'fill-extrusion-base': 0,
+                'fill-extrusion-opacity': 0.85,
+              }}
+            />
+          </Source>
+        )}
+      </Map>
 
       {hoverInfo && !selectedProject && <MapTooltip info={hoverInfo} />}
 
