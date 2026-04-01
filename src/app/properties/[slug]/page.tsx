@@ -9,6 +9,8 @@ import { generateRealEstateListingSchema, generateBreadcrumbSchema } from '@/lib
 import StatusBadge from '@/components/projects/StatusBadge';
 import InquiryForm from '@/components/projects/InquiryForm';
 import ProjectCard from '@/components/projects/ProjectCard';
+import ImageGallery from '@/components/projects/ImageGallery';
+import FloorPlans from '@/components/projects/FloorPlans';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -59,6 +61,9 @@ export default async function PropertyDetailPage({ params }: Props) {
   ]);
 
   const amenities = (project.amenities as string[] | null) || [];
+  const projectImages = (project.images as any) || {};
+  const galleryImages = (projectImages.gallery || []) as { url: string; alt?: string; type?: string }[];
+  const floorPlanImages = (projectImages.floorPlans || []) as { url: string; label?: string }[];
 
   return (
     <>
@@ -165,6 +170,12 @@ export default async function PropertyDetailPage({ params }: Props) {
                 </div>
               </div>
             )}
+
+            {/* Gallery */}
+            <ImageGallery images={galleryImages} projectName={project.name} />
+
+            {/* Floor Plans — gated */}
+            <FloorPlans floorPlans={floorPlanImages} projectId={project.id} projectName={project.name} />
 
             {/* Architect */}
             {project.architect && (
