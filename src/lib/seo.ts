@@ -53,7 +53,7 @@ export function generateArticleSchema(post: {
   title: string;
   slug: string;
   excerpt?: string | null;
-  publishedAt?: Date | null;
+  publishedAt?: Date | string | null;
   author: string;
 }) {
   return {
@@ -62,7 +62,7 @@ export function generateArticleSchema(post: {
     headline: post.title,
     url: `https://preconstructionmiami.net/blog/${post.slug}`,
     ...(post.excerpt && { description: post.excerpt }),
-    ...(post.publishedAt && { datePublished: post.publishedAt.toISOString() }),
+    ...(post.publishedAt && { datePublished: typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toISOString() }),
     author: { '@type': 'Organization', name: post.author },
     publisher: {
       '@type': 'Organization',
