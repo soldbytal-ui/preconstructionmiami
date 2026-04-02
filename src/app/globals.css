@@ -52,6 +52,10 @@
 .mapboxgl-popup-tip {
   display: none;
 }
+.mini-map-popup .mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 10px;
+}
 
 /* ============================================
    Pulsing Beam Markers — Premium Map Effect
@@ -109,35 +113,32 @@
   color: rgba(240, 237, 232, 0.5);
 }
 
-/* Vertical beam of light */
-.beam-shaft {
+/* Featured beam — tall and prominent */
+.beam-shaft-featured {
   width: 2px;
   height: 100px;
-  background: linear-gradient(
-    to top,
-    #00E5B4,
-    rgba(0, 229, 180, 0.6) 30%,
-    rgba(0, 229, 180, 0.2) 70%,
-    transparent
-  );
   border-radius: 1px;
   animation: beam-breathe 3s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(0, 229, 180, 0.4),
-              0 0 20px rgba(0, 229, 180, 0.15);
+  transition: all 0.3s ease;
 }
 
-.beam-shaft-hover {
-  width: 3px;
+/* Non-featured beam — shorter and subtler */
+.beam-shaft-small {
+  width: 1.5px;
+  height: 40px;
+  border-radius: 1px;
+  animation: beam-breathe 4s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.beam-marker-container:hover .beam-shaft-small {
+  height: 70px;
+  width: 2px;
+}
+
+.beam-marker-container:hover .beam-shaft-featured {
   height: 120px;
-  background: linear-gradient(
-    to top,
-    #00E5B4,
-    rgba(0, 229, 180, 0.8) 30%,
-    rgba(0, 229, 180, 0.4) 70%,
-    transparent
-  );
-  box-shadow: 0 0 15px rgba(0, 229, 180, 0.6),
-              0 0 40px rgba(0, 229, 180, 0.25);
+  width: 3px;
 }
 
 /* Ground glow beneath beam */
@@ -204,8 +205,8 @@
   will-change: transform;
 }
 
-.beam-shaft,
-.beam-shaft-hover {
+.beam-shaft-featured,
+.beam-shaft-small {
   transform-origin: bottom center;
 }
 
