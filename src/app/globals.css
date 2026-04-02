@@ -197,3 +197,30 @@
   0%, 100% { transform: scale(1); box-shadow: 0 0 6px #00E5B4, 0 0 12px rgba(0, 229, 180, 0.5); }
   50% { transform: scale(1.3); box-shadow: 0 0 10px #00E5B4, 0 0 20px rgba(0, 229, 180, 0.7); }
 }
+
+/* Fix zoom glitch: use fixed pixel sizes so beams don't stretch */
+.beam-marker-container {
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.beam-shaft,
+.beam-shaft-hover {
+  transform-origin: bottom center;
+}
+
+/* Mini-map project dots */
+.mini-map-dot {
+  width: 8px;
+  height: 8px;
+  background: #00E5B4;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 229, 180, 0.3);
+  box-shadow: 0 0 8px rgba(0, 229, 180, 0.5), 0 0 16px rgba(0, 229, 180, 0.2);
+  animation: mini-dot-glow 2s ease-in-out infinite;
+}
+
+@keyframes mini-dot-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 229, 180, 0.5), 0 0 16px rgba(0, 229, 180, 0.2); }
+  50% { box-shadow: 0 0 12px rgba(0, 229, 180, 0.7), 0 0 24px rgba(0, 229, 180, 0.35); }
+}

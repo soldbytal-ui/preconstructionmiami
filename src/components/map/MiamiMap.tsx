@@ -54,11 +54,13 @@ function BeamMarker({
   isHovered,
   onHover,
   onClick,
+  scale = 1,
 }: {
   project: MapProject;
   isHovered: boolean;
   onHover: (p: MapProject | null) => void;
   onClick: (p: MapProject) => void;
+  scale?: number;
 }) {
   return (
     <Marker
@@ -68,6 +70,7 @@ function BeamMarker({
     >
       <div
         className="beam-marker-container cursor-pointer"
+        style={{ transform: `scale(${scale})` }}
         onMouseEnter={() => onHover(project)}
         onMouseLeave={() => onHover(null)}
         onClick={(e) => { e.stopPropagation(); onClick(project); }}
@@ -123,12 +126,16 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
     projectLookup.current = lookup;
   }, [projects]);
 
-  // Projects with coordinates for beam markers
+  // Only show beam markers for featured buildings (ones with known pre-construction status and coords)
+  // At high zoom, markers can overlap — limit to key projects
   const markerProjects = useMemo(() => {
     return projects.filter(
       (p) => p.latitude && p.longitude && p.latitude !== 0
     );
   }, [projects]);
+
+  // Scale beam markers based on zoom to prevent distortion
+  const beamScale = Math.max(0.5, Math.min(1.2, (viewState.zoom - 12) / 4));
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -336,6 +343,7 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
             isHovered={hoveredId === p.id}
             onHover={onMarkerHover}
             onClick={onMarkerClick}
+            scale={beamScale}
           />
         ))}
       </Map>

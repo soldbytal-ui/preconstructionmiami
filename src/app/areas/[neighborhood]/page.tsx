@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/utils';
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import InquiryForm from '@/components/projects/InquiryForm';
+import DynamicNeighborhoodMap from '@/components/map/DynamicNeighborhoodMap';
 
 type Props = { params: Promise<{ neighborhood: string }> };
 
@@ -103,6 +104,35 @@ export default async function NeighborhoodPage({ params }: Props) {
 
   const faqSchema = generateFAQSchema(faqs);
 
+  // Neighborhood center coordinates for mini-map
+  const NEIGHBORHOOD_MAP_CENTERS: Record<string, [number, number]> = {
+    'brickell': [25.7635, -80.1940],
+    'downtown-miami': [25.7750, -80.1900],
+    'edgewater': [25.7950, -80.1870],
+    'midtown-wynwood': [25.8050, -80.1990],
+    'miami-beach': [25.7907, -80.1300],
+    'coconut-grove': [25.7280, -80.2410],
+    'sunny-isles-beach': [25.9430, -80.1240],
+    'aventura': [25.9565, -80.1392],
+    'surfside': [25.8785, -80.1258],
+    'hollywood': [25.9870, -80.1490],
+    'design-district': [25.8141, -80.1913],
+    'coral-gables': [25.7210, -80.2680],
+    'south-beach': [25.7826, -80.1340],
+    'bal-harbour': [25.8920, -80.1270],
+    'north-bay-village': [25.8460, -80.1530],
+    'hallandale-beach': [25.9812, -80.1485],
+    'key-biscayne': [25.6935, -80.1627],
+    'fort-lauderdale': [26.1224, -80.1373],
+    'bay-harbor-islands': [25.8870, -80.1320],
+    'palm-beach': [26.7056, -80.0364],
+    'north-miami-beach': [25.9330, -80.1620],
+    'pompano-beach': [26.2379, -80.1248],
+    'boca-raton': [26.3587, -80.0831],
+    'west-palm-beach': [26.7153, -80.0534],
+  };
+  const mapCenter = NEIGHBORHOOD_MAP_CENTERS[slug] || [25.7750, -80.1900];
+
   const prices = [
     { type: 'Studio', price: neighborhood.avgPriceStudio },
     { type: '1 Bedroom', price: neighborhood.avgPrice1br },
@@ -137,6 +167,15 @@ export default async function NeighborhoodPage({ params }: Props) {
             {' '}Updated for 2025-2028.
           </p>
         </div>
+      </section>
+
+      {/* Neighborhood 3D Mini-Map */}
+      <section className="container-main mt-8">
+        <DynamicNeighborhoodMap
+          center={mapCenter}
+          neighborhoodName={neighborhood.name}
+          neighborhoodId={neighborhood.id}
+        />
       </section>
 
       <div className="container-main py-10">
