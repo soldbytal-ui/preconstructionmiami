@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import Map, { NavigationControl, Source, Layer } from 'react-map-gl/mapbox';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import Map, { NavigationControl, Source, Layer, Marker } from 'react-map-gl/mapbox';
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/mapbox';
 import MapTooltip from './MapTooltip';
 import MapPropertyCard from './MapPropertyCard';
@@ -42,6 +42,65 @@ type HoverInfo = {
   object: MapProject;
 } | null;
 
+function formatPrice(val: number | null) {
+  if (!val) return '';
+  if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
+  return `$${(val / 1000).toFixed(0)}K`;
+}
+
+/** Pulsing light beam marker for pre-construction buildings */
+function BeamMarker({
+  project,
+  isHovered,
+  onHover,
+  onClick,
+}: {
+  project: MapProject;
+  isHovered: boolean;
+  onHover: (p: MapProject | null) => void;
+  onClick: (p: MapProject) => void;
+}) {
+  return (
+    <Marker
+      longitude={project.longitude!}
+      latitude={project.latitude!}
+      anchor="bottom"
+    >
+      <div
+        className="beam-marker-container cursor-pointer"
+        onMouseEnter={() => onHover(project)}
+        onMouseLeave={() => onHover(null)}
+        onClick={(e) => { e.stopPropagation(); onClick(project); }}
+      >
+        {/* Floating label */}
+        <div className={`beam-label ${isHovered ? 'beam-label-hover' : ''}`}>
+          <span className="beam-label-name">{project.name}</span>
+          {project.priceMin && (
+            <span className="beam-label-price">From {formatPrice(project.priceMin)}</span>
+          )}
+          {project.floors && (
+            <span className="beam-label-floors">{project.floors} floors</span>
+          )}
+        </div>
+
+        {/* Beam of light */}
+        <div className={`beam-shaft ${isHovered ? 'beam-shaft-hover' : ''}`} />
+
+        {/* Ground glow */}
+        <div className="beam-ground-glow" />
+
+        {/* Pulse rings */}
+        <div className="beam-pulse-ring beam-pulse-ring-1" />
+        <div className="beam-pulse-ring beam-pulse-ring-2" />
+        <div className="beam-pulse-ring beam-pulse-ring-3" />
+
+        {/* Center dot */}
+        <div className="beam-dot" />
+      </div>
+    </Marker>
+  );
+}
+
 export default function MiamiMap({ projects }: { projects: MapProject[] }) {
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>(null);
@@ -64,6 +123,13 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
     projectLookup.current = lookup;
   }, [projects]);
 
+  // Projects with coordinates for beam markers
+  const markerProjects = useMemo(() => {
+    return projects.filter(
+      (p) => p.latitude && p.longitude && p.latitude !== 0
+    );
+  }, [projects]);
+
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
@@ -73,6 +139,7 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
       (layer: any) => layer.type === 'symbol' && layer.layout?.['text-field']
     )?.id;
 
+    // Enhanced 3D city buildings — brighter, more visible
     if (!map.getLayer('3d-buildings')) {
       map.addLayer(
         {
@@ -83,10 +150,37 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
           type: 'fill-extrusion',
           minzoom: 12,
           paint: {
-            'fill-extrusion-color': '#1a1d23',
+            'fill-extrusion-color': [
+              'interpolate', ['linear'], ['get', 'height'],
+              0, '#16181e',
+              50, '#1e2028',
+              100, '#252730',
+              200, '#2d3040',
+            ],
             'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'height']],
             'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'min_height']],
-            'fill-extrusion-opacity': 0.5,
+            'fill-extrusion-opacity': 0.75,
+          },
+        },
+        labelLayerId
+      );
+    }
+
+    // Ambient light on building edges — subtle highlight
+    if (!map.getLayer('3d-buildings-edges')) {
+      map.addLayer(
+        {
+          id: '3d-buildings-edges',
+          source: 'composite',
+          'source-layer': 'building',
+          filter: ['==', 'extrude', 'true'],
+          type: 'fill-extrusion',
+          minzoom: 14,
+          paint: {
+            'fill-extrusion-color': '#00E5B4',
+            'fill-extrusion-height': ['get', 'height'],
+            'fill-extrusion-base': ['get', 'min_height'],
+            'fill-extrusion-opacity': 0.02,
           },
         },
         labelLayerId
@@ -118,6 +212,7 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
     };
   }, []);
 
+  // Fill-extrusion interactions
   const onMouseMove = useCallback((e: MapLayerMouseEvent) => {
     const features = e.features;
     if (features && features.length > 0) {
@@ -126,10 +221,13 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
       setHoveredId(props.id);
       setHoverInfo({ x: e.point.x, y: e.point.y, object: buildProjectFromProps(props) });
     } else {
-      setHoveredId(null);
-      setHoverInfo(null);
+      // Don't clear hover if we're hovering a marker (handled by marker events)
+      if (!hoveredId || !markerProjects.find(p => p.id === hoveredId)) {
+        setHoveredId(null);
+        setHoverInfo(null);
+      }
     }
-  }, [buildProjectFromProps]);
+  }, [buildProjectFromProps, hoveredId, markerProjects]);
 
   const onMouseLeave = useCallback(() => {
     setHoveredId(null);
@@ -146,6 +244,23 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
     setViewState((prev) => ({ ...prev, longitude: props.longitude, latitude: props.latitude, zoom: 15 }));
   }, [buildProjectFromProps]);
 
+  // Marker handlers
+  const onMarkerHover = useCallback((p: MapProject | null) => {
+    if (p) {
+      setHoveredId(p.id);
+    } else {
+      setHoveredId(null);
+      setHoverInfo(null);
+    }
+  }, []);
+
+  const onMarkerClick = useCallback((p: MapProject) => {
+    setSelectedProject(p);
+    setHoverInfo(null);
+    setViewState((prev) => ({ ...prev, longitude: p.longitude!, latitude: p.latitude!, zoom: 15 }));
+  }, []);
+
+  // Fill-extrusion color with status mapping + hover
   const colorExpression: any = [
     'match', ['get', 'status'],
     'PRE_LAUNCH', '#00E5B4',
@@ -159,6 +274,11 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
   const fillColor: any = hoveredId
     ? ['case', ['==', ['get', 'id'], hoveredId], '#ffffff', colorExpression]
     : colorExpression;
+
+  // Glow layer — slightly larger footprint with transparency for halo effect
+  const glowOpacity: any = hoveredId
+    ? ['case', ['==', ['get', 'id'], hoveredId], 0.4, 0.08]
+    : 0.08;
 
   return (
     <div className="relative w-full h-full">
@@ -183,6 +303,18 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
 
         {geojsonData && (
           <Source id="project-buildings" type="geojson" data={geojsonData}>
+            {/* Glow/halo layer underneath — taller, transparent */}
+            <Layer
+              id="project-glow"
+              type="fill-extrusion"
+              paint={{
+                'fill-extrusion-color': colorExpression,
+                'fill-extrusion-height': ['*', ['get', 'floors'], 4.5],
+                'fill-extrusion-base': 0,
+                'fill-extrusion-opacity': glowOpacity as any,
+              }}
+            />
+            {/* Main building extrusions */}
             <Layer
               id="project-extrusions"
               type="fill-extrusion"
@@ -190,11 +322,22 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
                 'fill-extrusion-color': fillColor,
                 'fill-extrusion-height': ['*', ['get', 'floors'], 4],
                 'fill-extrusion-base': 0,
-                'fill-extrusion-opacity': 0.85,
+                'fill-extrusion-opacity': 0.9,
               }}
             />
           </Source>
         )}
+
+        {/* Pulsing beam markers for all buildings with coordinates */}
+        {markerProjects.map((p) => (
+          <BeamMarker
+            key={p.id}
+            project={p}
+            isHovered={hoveredId === p.id}
+            onHover={onMarkerHover}
+            onClick={onMarkerClick}
+          />
+        ))}
       </Map>
 
       {hoverInfo && !selectedProject && <MapTooltip info={hoverInfo} />}
