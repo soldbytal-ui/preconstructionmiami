@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import Map, { NavigationControl, Source, Layer, Marker } from 'react-map-gl/mapbox';
+import Map, { NavigationControl, Source, Layer } from 'react-map-gl/mapbox';
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/mapbox';
 import MapTooltip from './MapTooltip';
 import MapPropertyCard from './MapPropertyCard';
@@ -16,7 +16,6 @@ const INITIAL_VIEW_STATE = {
   bearing: -20,
 };
 
-// Featured building slugs — these get permanent floating labels
 const FEATURED_SLUGS = new Set([
   'waldorf-astoria-residences-miami',
   'mercedes-benz-places-miami',
@@ -24,14 +23,6 @@ const FEATURED_SLUGS = new Set([
   'baccarat-residences-miami',
   'ora-by-casa-tua',
 ]);
-
-const STATUS_BEAM_COLORS: Record<string, string> = {
-  PRE_LAUNCH: '#00E5B4',
-  PRE_CONSTRUCTION: '#00E5B4',
-  UNDER_CONSTRUCTION: '#38B6FF',
-  NEAR_COMPLETION: '#FF7A3D',
-  COMPLETED: '#8A9098',
-};
 
 export type MapProject = {
   id: string;
@@ -59,87 +50,26 @@ type HoverInfo = {
   object: MapProject;
 } | null;
 
+/** Generate a small circle polygon (8 sides) centered at lat/lng with given radius in meters */
+function createCirclePoly(lat: number, lng: number, radiusM: number): GeoJSON.Polygon {
+  const mPerDegLat = 111320;
+  const mPerDegLng = 111320 * Math.cos((lat * Math.PI) / 180);
+  const coords: [number, number][] = [];
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    coords.push([
+      lng + (radiusM * Math.cos(angle)) / mPerDegLng,
+      lat + (radiusM * Math.sin(angle)) / mPerDegLat,
+    ]);
+  }
+  coords.push(coords[0]); // close
+  return { type: 'Polygon', coordinates: [coords] };
+}
+
 function formatPrice(val: number | null) {
   if (!val) return '';
   if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
   return `$${(val / 1000).toFixed(0)}K`;
-}
-
-/** Beam marker — featured buildings get persistent labels, others get hover-only labels */
-function BeamMarker({
-  project,
-  isHovered,
-  isFeatured,
-  onHover,
-  onClick,
-  scale = 1,
-}: {
-  project: MapProject;
-  isHovered: boolean;
-  isFeatured: boolean;
-  onHover: (p: MapProject | null, e: React.MouseEvent) => void;
-  onClick: (p: MapProject) => void;
-  scale?: number;
-}) {
-  const color = STATUS_BEAM_COLORS[project.status] || '#8A9098';
-  const showLabel = isFeatured || isHovered;
-
-  return (
-    <Marker
-      longitude={project.longitude!}
-      latitude={project.latitude!}
-      anchor="bottom"
-    >
-      <div
-        className="beam-marker-container cursor-pointer"
-        style={{ transform: `scale(${scale})` }}
-        onMouseEnter={(e) => onHover(project, e)}
-        onMouseLeave={() => onHover(null, null as any)}
-        onClick={(e) => { e.stopPropagation(); onClick(project); }}
-      >
-        {/* Floating label — always for featured, hover-only for others */}
-        {showLabel && (
-          <div className={`beam-label ${isHovered ? 'beam-label-hover' : ''}`}>
-            <span className="beam-label-name">{project.name}</span>
-            {project.priceMin && (
-              <span className="beam-label-price">From {formatPrice(project.priceMin)}</span>
-            )}
-          </div>
-        )}
-
-        {/* Beam of light — colored by status */}
-        <div
-          className={isFeatured ? 'beam-shaft-featured' : 'beam-shaft-small'}
-          style={{
-            background: `linear-gradient(to top, ${color}, ${color}99 30%, ${color}33 70%, transparent)`,
-            boxShadow: isHovered
-              ? `0 0 15px ${color}99, 0 0 40px ${color}44`
-              : `0 0 6px ${color}66`,
-          }}
-        />
-
-        {/* Ground glow */}
-        <div
-          className="beam-ground-glow"
-          style={{ background: `radial-gradient(circle, ${color}55 0%, transparent 70%)` }}
-        />
-
-        {/* Pulse rings — only for featured */}
-        {isFeatured && (
-          <>
-            <div className="beam-pulse-ring beam-pulse-ring-1" style={{ borderColor: `${color}88` }} />
-            <div className="beam-pulse-ring beam-pulse-ring-2" style={{ borderColor: `${color}88` }} />
-          </>
-        )}
-
-        {/* Center dot */}
-        <div
-          className="beam-dot"
-          style={{ background: color, boxShadow: `0 0 6px ${color}, 0 0 12px ${color}88` }}
-        />
-      </div>
-    </Marker>
-  );
 }
 
 export default function MiamiMap({ projects }: { projects: MapProject[] }) {
@@ -150,6 +80,7 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
   const [geojsonData, setGeojsonData] = useState<GeoJSON.FeatureCollection | null>(null);
   const mapRef = useRef<MapRef>(null);
 
+  // Fetch building footprints from API
   useEffect(() => {
     fetch('/api/buildings-geojson')
       .then((res) => res.json())
@@ -167,15 +98,52 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
     projectLookup.current = lookup;
   }, [projects]);
 
-  // ALL projects with coordinates get beam markers
-  const markerProjects = useMemo(() => {
-    const filtered = projects.filter((p) => p.latitude && p.longitude && p.latitude !== 0);
-    console.log(`[MiamiMap] projects prop: ${projects.length}, with coords: ${filtered.length}`);
-    return filtered;
-  }, [projects]);
+  // Build column markers GeoJSON — small circle polygons for each project
+  const columnMarkersGeoJSON = useMemo((): GeoJSON.FeatureCollection | null => {
+    if (!geojsonData) return null;
+    const features = geojsonData.features.map((f: any) => {
+      const p = f.properties;
+      return {
+        type: 'Feature' as const,
+        geometry: createCirclePoly(p.latitude, p.longitude, 10),
+        properties: { ...p, isFeatured: FEATURED_SLUGS.has(p.slug) ? 1 : 0 },
+      };
+    });
+    return { type: 'FeatureCollection', features };
+  }, [geojsonData]);
 
-  // Scale beam markers based on zoom
-  const beamScale = Math.max(0.4, Math.min(1.2, (viewState.zoom - 11) / 5));
+  // Build labels GeoJSON — point features for featured buildings
+  const labelsGeoJSON = useMemo((): GeoJSON.FeatureCollection | null => {
+    if (!geojsonData) return null;
+    const features = geojsonData.features
+      .filter((f: any) => FEATURED_SLUGS.has(f.properties?.slug))
+      .map((f: any) => {
+        const p = f.properties;
+        const label = p.priceMin
+          ? `${p.name}\nFrom ${formatPrice(p.priceMin)}`
+          : p.name;
+        return {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [p.longitude, p.latitude] },
+          properties: { ...p, label },
+        };
+      });
+    return { type: 'FeatureCollection', features };
+  }, [geojsonData]);
+
+  // Ground glow circles — flat circles at base
+  const glowDotsGeoJSON = useMemo((): GeoJSON.FeatureCollection | null => {
+    if (!geojsonData) return null;
+    const features = geojsonData.features.map((f: any) => {
+      const p = f.properties;
+      return {
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [p.longitude, p.latitude] },
+        properties: { id: p.id, status: p.status },
+      };
+    });
+    return { type: 'FeatureCollection', features };
+  }, [geojsonData]);
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -186,70 +154,36 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
       (layer: any) => layer.type === 'symbol' && layer.layout?.['text-field']
     )?.id;
 
+    // Dark city 3D buildings
     if (!map.getLayer('3d-buildings')) {
-      map.addLayer(
-        {
-          id: '3d-buildings',
-          source: 'composite',
-          'source-layer': 'building',
-          filter: ['==', 'extrude', 'true'],
-          type: 'fill-extrusion',
-          minzoom: 12,
-          paint: {
-            'fill-extrusion-color': [
-              'interpolate', ['linear'], ['get', 'height'],
-              0, '#16181e', 50, '#1e2028', 100, '#252730', 200, '#2d3040',
-            ],
-            'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'height']],
-            'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'min_height']],
-            'fill-extrusion-opacity': 0.75,
-          },
+      map.addLayer({
+        id: '3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 12,
+        paint: {
+          'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'height'], 0, '#16181e', 50, '#1e2028', 100, '#252730', 200, '#2d3040'],
+          'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'height']],
+          'fill-extrusion-base': ['interpolate', ['linear'], ['zoom'], 12, 0, 12.5, ['get', 'min_height']],
+          'fill-extrusion-opacity': 0.75,
         },
-        labelLayerId
-      );
-    }
-
-    if (!map.getLayer('3d-buildings-edges')) {
-      map.addLayer(
-        {
-          id: '3d-buildings-edges',
-          source: 'composite',
-          'source-layer': 'building',
-          filter: ['==', 'extrude', 'true'],
-          type: 'fill-extrusion',
-          minzoom: 14,
-          paint: {
-            'fill-extrusion-color': '#00E5B4',
-            'fill-extrusion-height': ['get', 'height'],
-            'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.02,
-          },
-        },
-        labelLayerId
-      );
+      }, labelLayerId);
     }
   }, []);
 
   const buildProjectFromProps = useCallback((props: any): MapProject => {
     return projectLookup.current[props.id] || {
-      id: props.id,
-      name: props.name,
-      slug: props.slug,
-      latitude: props.latitude,
-      longitude: props.longitude,
-      floors: props.floors,
-      totalUnits: props.totalUnits,
-      priceMin: props.priceMin,
-      priceMax: props.priceMax,
-      status: props.status,
-      category: props.category,
+      id: props.id, name: props.name, slug: props.slug,
+      latitude: props.latitude, longitude: props.longitude,
+      floors: props.floors, totalUnits: props.totalUnits,
+      priceMin: props.priceMin, priceMax: props.priceMax,
+      status: props.status, category: props.category,
       address: props.address,
       developer: props.developer ? { name: props.developer } : null,
-      neighborhood: props.neighborhood
-        ? { name: props.neighborhood, slug: props.neighborhoodSlug || '' }
-        : null,
-      estCompletion: props.estCompletion,
-      description: props.description,
+      neighborhood: props.neighborhood ? { name: props.neighborhood, slug: props.neighborhoodSlug || '' } : null,
+      estCompletion: props.estCompletion, description: props.description,
       mainImageUrl: props.mainImageUrl,
     };
   }, []);
@@ -261,10 +195,11 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
       if (!props) return;
       setHoveredId(props.id);
       setHoverInfo({ x: e.point.x, y: e.point.y, object: buildProjectFromProps(props) });
-    } else if (!hoveredId) {
+    } else {
+      setHoveredId(null);
       setHoverInfo(null);
     }
-  }, [buildProjectFromProps, hoveredId]);
+  }, [buildProjectFromProps]);
 
   const onMouseLeave = useCallback(() => {
     setHoveredId(null);
@@ -281,41 +216,21 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
     setViewState((prev) => ({ ...prev, longitude: props.longitude, latitude: props.latitude, zoom: 15 }));
   }, [buildProjectFromProps]);
 
-  const onMarkerHover = useCallback((p: MapProject | null, e: React.MouseEvent | null) => {
-    if (p) {
-      setHoveredId(p.id);
-      if (e) {
-        setHoverInfo({ x: e.clientX, y: e.clientY, object: p });
-      }
-    } else {
-      setHoveredId(null);
-      setHoverInfo(null);
-    }
-  }, []);
-
-  const onMarkerClick = useCallback((p: MapProject) => {
-    setSelectedProject(p);
-    setHoverInfo(null);
-    setViewState((prev) => ({ ...prev, longitude: p.longitude!, latitude: p.latitude!, zoom: 15 }));
-  }, []);
-
-  const colorExpression: any = [
+  // Color expressions
+  const statusColor: any = [
     'match', ['get', 'status'],
-    'PRE_LAUNCH', '#00E5B4',
-    'PRE_CONSTRUCTION', '#00E5B4',
-    'UNDER_CONSTRUCTION', '#38B6FF',
-    'NEAR_COMPLETION', '#FF7A3D',
-    'COMPLETED', '#8A9098',
-    '#8A9098',
+    'PRE_LAUNCH', '#00E5B4', 'PRE_CONSTRUCTION', '#00E5B4',
+    'UNDER_CONSTRUCTION', '#38B6FF', 'NEAR_COMPLETION', '#FF7A3D',
+    'COMPLETED', '#8A9098', '#8A9098',
   ];
 
-  const fillColor: any = hoveredId
-    ? ['case', ['==', ['get', 'id'], hoveredId], '#ffffff', colorExpression]
-    : colorExpression;
+  const columnColor: any = hoveredId
+    ? ['case', ['==', ['get', 'id'], hoveredId], '#ffffff', statusColor]
+    : statusColor;
 
   const glowOpacity: any = hoveredId
-    ? ['case', ['==', ['get', 'id'], hoveredId], 0.4, 0.08]
-    : 0.08;
+    ? ['case', ['==', ['get', 'id'], hoveredId], 0.5, 0.12]
+    : 0.12;
 
   return (
     <div className="relative w-full h-full">
@@ -329,7 +244,7 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
         onClick={onBuildingClick}
-        interactiveLayerIds={geojsonData ? ['project-extrusions'] : []}
+        interactiveLayerIds={columnMarkersGeoJSON ? ['column-markers', 'footprint-extrusions'] : []}
         cursor={hoveredId ? 'pointer' : 'grab'}
         reuseMaps
         attributionControl={false}
@@ -338,23 +253,24 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
       >
         <NavigationControl position="bottom-right" showCompass={false} />
 
+        {/* Building footprint extrusions */}
         {geojsonData && (
-          <Source id="project-buildings" type="geojson" data={geojsonData}>
+          <Source id="footprints" type="geojson" data={geojsonData}>
             <Layer
-              id="project-glow"
+              id="footprint-glow"
               type="fill-extrusion"
               paint={{
-                'fill-extrusion-color': colorExpression,
+                'fill-extrusion-color': statusColor,
                 'fill-extrusion-height': ['*', ['get', 'floors'], 4.5],
                 'fill-extrusion-base': 0,
                 'fill-extrusion-opacity': glowOpacity as any,
               }}
             />
             <Layer
-              id="project-extrusions"
+              id="footprint-extrusions"
               type="fill-extrusion"
               paint={{
-                'fill-extrusion-color': fillColor,
+                'fill-extrusion-color': columnColor,
                 'fill-extrusion-height': ['*', ['get', 'floors'], 4],
                 'fill-extrusion-base': 0,
                 'fill-extrusion-opacity': 0.9,
@@ -363,18 +279,84 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
           </Source>
         )}
 
-        {/* Beam markers for ALL 130 buildings */}
-        {markerProjects.map((p) => (
-          <BeamMarker
-            key={p.id}
-            project={p}
-            isHovered={hoveredId === p.id}
-            isFeatured={FEATURED_SLUGS.has(p.slug)}
-            onHover={onMarkerHover}
-            onClick={onMarkerClick}
-            scale={beamScale}
-          />
-        ))}
+        {/* 3D column markers — small extruded circles at each project location */}
+        {columnMarkersGeoJSON && (
+          <Source id="column-markers-src" type="geojson" data={columnMarkersGeoJSON}>
+            {/* Column glow — slightly larger, transparent */}
+            <Layer
+              id="column-glow"
+              type="fill-extrusion"
+              paint={{
+                'fill-extrusion-color': statusColor,
+                'fill-extrusion-height': ['*', ['get', 'floors'], 3.8],
+                'fill-extrusion-base': 0,
+                'fill-extrusion-opacity': 0.15,
+              }}
+            />
+            {/* Main columns */}
+            <Layer
+              id="column-markers"
+              type="fill-extrusion"
+              paint={{
+                'fill-extrusion-color': columnColor,
+                'fill-extrusion-height': ['*', ['get', 'floors'], 3.5],
+                'fill-extrusion-base': 0,
+                'fill-extrusion-opacity': 0.95,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Ground glow dots — flat circles at the base of each column */}
+        {glowDotsGeoJSON && (
+          <Source id="glow-dots-src" type="geojson" data={glowDotsGeoJSON}>
+            <Layer
+              id="glow-dots"
+              type="circle"
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2, 14, 6, 18, 12],
+                'circle-color': statusColor,
+                'circle-opacity': 0.6,
+                'circle-blur': 0.8,
+              }}
+            />
+            <Layer
+              id="glow-dots-outer"
+              type="circle"
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 14, 14, 18, 25],
+                'circle-color': statusColor,
+                'circle-opacity': 0.15,
+                'circle-blur': 1,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Featured building labels — native Mapbox symbol layer */}
+        {labelsGeoJSON && (
+          <Source id="labels-src" type="geojson" data={labelsGeoJSON}>
+            <Layer
+              id="featured-labels"
+              type="symbol"
+              layout={{
+                'text-field': ['get', 'label'],
+                'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 14],
+                'text-anchor': 'bottom',
+                'text-offset': [0, -3],
+                'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+                'text-max-width': 12,
+                'text-allow-overlap': true,
+              }}
+              paint={{
+                'text-color': '#F0EDE8',
+                'text-halo-color': 'rgba(17, 19, 23, 0.9)',
+                'text-halo-width': 2,
+                'text-halo-blur': 1,
+              }}
+            />
+          </Source>
+        )}
       </Map>
 
       {hoverInfo && !selectedProject && <MapTooltip info={hoverInfo} />}
