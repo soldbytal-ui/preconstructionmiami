@@ -153,7 +153,10 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
   useEffect(() => {
     fetch('/api/buildings-geojson')
       .then((res) => res.json())
-      .then((data) => setGeojsonData(data))
+      .then((data) => {
+        console.log(`[MiamiMap] GeoJSON features: ${data?.features?.length || 0}`);
+        setGeojsonData(data);
+      })
       .catch(console.error);
   }, []);
 
@@ -166,7 +169,9 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
 
   // ALL projects with coordinates get beam markers
   const markerProjects = useMemo(() => {
-    return projects.filter((p) => p.latitude && p.longitude && p.latitude !== 0);
+    const filtered = projects.filter((p) => p.latitude && p.longitude && p.latitude !== 0);
+    console.log(`[MiamiMap] projects prop: ${projects.length}, with coords: ${filtered.length}`);
+    return filtered;
   }, [projects]);
 
   // Scale beam markers based on zoom

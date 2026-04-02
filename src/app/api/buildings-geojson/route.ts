@@ -14,8 +14,11 @@ export async function GET() {
     .not('footprint', 'is', null);
 
   if (error) {
+    console.error('buildings-geojson error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  console.log(`buildings-geojson: ${(projects || []).length} projects returned from Supabase`);
 
   const features = (projects || []).map((p: any) => ({
     type: 'Feature' as const,
@@ -50,7 +53,7 @@ export async function GET() {
 
   return NextResponse.json(geojson, {
     headers: {
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     },
   });
 }
