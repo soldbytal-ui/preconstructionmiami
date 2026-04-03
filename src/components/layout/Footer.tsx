@@ -76,7 +76,7 @@ export default function Footer() {
           <div>
             <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Contact</h4>
             <ul className="space-y-2 text-sm">
-              <li className="text-text-muted">Miami, Florida</li>
+              <li className="text-text-muted">3250 NE 1st Ave Unit 305, Miami, FL 33137, United States</li>
               <li><Link href="/contact-us" className="text-accent-green hover:underline transition-colors">Get in Touch &rarr;</Link></li>
             </ul>
             <div className="mt-8">
