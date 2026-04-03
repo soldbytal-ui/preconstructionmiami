@@ -5,12 +5,53 @@ export function generateLocalBusinessSchema() {
     name: 'PreConstructionMiami.net',
     description: 'Miami\'s premier pre-construction condo marketplace. Access 200+ new developments across South Florida.',
     url: 'https://preconstructionmiami.net',
-    areaServed: {
-      '@type': 'City',
-      name: 'Miami',
-      containedInPlace: { '@type': 'State', name: 'Florida' },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '3250 NE 1st Ave Unit 305',
+      addressLocality: 'Miami',
+      addressRegion: 'FL',
+      postalCode: '33137',
+      addressCountry: 'US',
     },
+    areaServed: [
+      { '@type': 'City', name: 'Miami', containedInPlace: { '@type': 'State', name: 'Florida' } },
+      { '@type': 'County', name: 'Miami-Dade County' },
+      { '@type': 'County', name: 'Broward County' },
+      { '@type': 'County', name: 'Palm Beach County' },
+    ],
     priceRange: '$300K - $50M+',
+    knowsAbout: ['pre-construction condos', 'Miami real estate', 'new construction', 'luxury condominiums', 'South Florida developments'],
+  };
+}
+
+export function generateWebSiteSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'PreConstructionMiami.net',
+    url: 'https://preconstructionmiami.net',
+    description: 'South Florida\'s premier marketplace for pre-construction condos. Access 200+ new developments across 24 neighborhoods.',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://preconstructionmiami.net/new-condos?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
+
+export function generateItemListSchema(items: { name: string; url: string; position: number }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: items.map((item) => ({
+      '@type': 'ListItem',
+      position: item.position,
+      name: item.name,
+      url: item.url,
+    })),
   };
 }
 
@@ -28,7 +69,7 @@ export function generateRealEstateListingSchema(project: {
     '@type': 'RealEstateListing',
     name: project.name,
     description: project.description || `${project.name} - New pre-construction development in Miami`,
-    url: `https://preconstructionmiami.net/pre-construction/${project.slug}`,
+    url: `https://preconstructionmiami.net/properties/${project.slug}`,
     ...(project.address && {
       address: {
         '@type': 'PostalAddress',

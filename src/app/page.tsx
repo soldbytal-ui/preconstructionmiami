@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/utils';
-import { generateLocalBusinessSchema } from '@/lib/seo';
+import { generateLocalBusinessSchema, generateWebSiteSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
@@ -40,12 +40,14 @@ export default async function HomePage() {
   }));
 
   const schema = generateLocalBusinessSchema();
+  const webSiteSchema = generateWebSiteSchema();
   const totalProjects = projectCount || 0;
   const totalNeighborhoods = neighborhoodCount || 0;
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }} />
 
       {/* Hero — Full-viewport 3D Map */}
       <section className="relative h-screen w-full">

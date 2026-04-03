@@ -9,6 +9,15 @@ import ProjectFilters from '@/components/projects/ProjectFilters';
 export const metadata: Metadata = {
   title: 'New Condos in Miami | Browse All Pre-Construction Projects',
   description: 'Browse 200+ new pre-construction condo projects across Miami-Dade, Broward & Palm Beach. Filter by neighborhood, price, status, and category.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net/new-condos',
+  },
+  openGraph: {
+    title: 'New Condos in Miami | Browse All Pre-Construction Projects',
+    description: 'Browse 200+ new pre-construction condo projects across Miami-Dade, Broward & Palm Beach.',
+    url: 'https://preconstructionmiami.net/new-condos',
+    type: 'website',
+  },
 };
 
 type Props = {

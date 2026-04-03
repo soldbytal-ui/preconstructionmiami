@@ -26,12 +26,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!project) return { title: 'Project Not Found' };
 
   const area = project.neighborhood?.name || 'Miami';
+  const title = project.metaTitle || `${project.name} | Pre-Construction in ${area}`;
+  const description =
+    project.metaDescription ||
+    project.description?.slice(0, 160) ||
+    `${project.name} - New pre-construction development in ${area}. ${project.priceMin ? `From ${formatPrice(project.priceMin)}.` : ''} ${project.totalUnits ? `${project.totalUnits} residences.` : ''}`;
   return {
-    title: project.metaTitle || `${project.name} | Pre-Construction in ${area}`,
-    description:
-      project.metaDescription ||
-      project.description?.slice(0, 160) ||
-      `${project.name} - New pre-construction development in ${area}. ${project.priceMin ? `From ${formatPrice(project.priceMin)}.` : ''} ${project.totalUnits ? `${project.totalUnits} residences.` : ''}`,
+    title,
+    description,
+    alternates: {
+      canonical: `https://preconstructionmiami.net/properties/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://preconstructionmiami.net/properties/${slug}`,
+      type: 'website',
+      ...(project.mainImageUrl && { images: [{ url: project.mainImageUrl, alt: project.name }] }),
+    },
   };
 }
 
@@ -55,7 +67,7 @@ export default async function PropertyDetailPage({ params }: Props) {
   const listingSchema = generateRealEstateListingSchema(project);
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
-    { name: 'Properties', url: 'https://preconstructionmiami.net/pre-construction' },
+    { name: 'Properties', url: 'https://preconstructionmiami.net/new-condos' },
     ...(project.neighborhood
       ? [{ name: project.neighborhood.name, url: `https://preconstructionmiami.net/new-condos-${project.neighborhood.slug}` }]
       : []),

@@ -5,11 +5,15 @@ import ChatWidget from '@/components/chat/ChatWidget';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://preconstructionmiami.net'),
   title: {
     default: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
     template: '%s | PreConstructionMiami.net',
   },
   description: 'Access 200+ pre-construction condo developments across Miami and South Florida. From $300K to $50M+. Brickell, Miami Beach, Downtown, Edgewater & more.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -17,6 +21,31 @@ export const metadata: Metadata = {
     siteName: 'PreConstructionMiami.net',
     title: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
     description: 'Access 200+ pre-construction condo developments across Miami and South Florida.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'PreConstructionMiami.net - Miami Pre-Construction Condo Marketplace',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
+    description: 'Access 200+ pre-construction condo developments across Miami and South Florida.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 

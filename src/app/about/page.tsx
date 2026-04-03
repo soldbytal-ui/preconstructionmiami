@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us | PreConstructionMiami.net',
+  title: 'About Us',
   description: 'PreConstructionMiami.net is Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 200+ developments.',
 };
 
