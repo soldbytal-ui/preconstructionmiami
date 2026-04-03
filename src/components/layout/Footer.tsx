@@ -66,6 +66,7 @@ export default function Footer() {
             <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mt-8 mb-4">Resources</h4>
             <ul className="space-y-1.5">
               <li><Link href="/new-condos" className="text-sm text-text-muted hover:text-accent-green transition-colors">All Properties</Link></li>
+              <li><Link href="/developers" className="text-sm text-text-muted hover:text-accent-green transition-colors">Developers</Link></li>
               <li><Link href="/blog" className="text-sm text-text-muted hover:text-accent-green transition-colors">Market Insights Blog</Link></li>
               <li><Link href="/about" className="text-sm text-text-muted hover:text-accent-green transition-colors">About Us</Link></li>
             </ul>
@@ -87,12 +88,24 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        {/* Disclaimer Banner */}
+        <div className="border-t border-border mt-12 pt-8">
+          <p className="text-xs text-text-muted/70 leading-relaxed max-w-4xl">
+            PreConstructionMiami.net is an informational platform that partners with licensed local real estate professionals. We are not licensed real estate brokers. All pricing and project details are approximate, based on publicly available information, and subject to change without notice. Consult a licensed real estate professional before making any purchasing decisions.
+            {' '}Prices shown throughout this site are estimates only &mdash; verify with the developer or a licensed agent.
+          </p>
+        </div>
+
+        {/* Copyright + Legal Links */}
+        <div className="border-t border-border mt-6 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-text-muted">&copy; {new Date().getFullYear()} PreConstructionMiami.net. All rights reserved.</p>
-          <div className="flex gap-6 text-xs">
+          <div className="flex flex-wrap gap-4 text-xs">
             <Link href="/about" className="text-text-muted hover:text-accent-green transition-colors">About</Link>
             <Link href="/contact-us" className="text-text-muted hover:text-accent-green transition-colors">Contact</Link>
             <Link href="/blog" className="text-text-muted hover:text-accent-green transition-colors">Blog</Link>
+            <span className="text-text-muted/30">|</span>
+            <Link href="/terms" className="text-text-muted hover:text-accent-green transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="text-text-muted hover:text-accent-green transition-colors">Privacy Policy</Link>
           </div>
         </div>
       </div>

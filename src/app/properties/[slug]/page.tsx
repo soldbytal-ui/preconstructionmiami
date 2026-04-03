@@ -133,6 +133,7 @@ export default async function PropertyDetailPage({ params }: Props) {
                 </div>
               ))}
             </div>
+            <p className="text-[10px] text-text-muted/40 -mt-2">Prices shown are approximate and subject to change. Verify with developer or licensed agent.</p>
 
             {project.unitTypes && (
               <div className="glass-panel rounded-xl p-4">
@@ -256,6 +257,15 @@ export default async function PropertyDetailPage({ params }: Props) {
           <div className="space-y-6">
             <div className="sticky top-24">
               <InquiryForm projectId={project.id} projectName={project.name} />
+
+              {/* Form disclaimer */}
+              <p className="text-[10px] text-text-muted/50 mt-3 px-1 leading-relaxed">
+                By submitting this form, you agree to our{' '}
+                <Link href="/terms" className="underline hover:text-text-muted">Terms of Service</Link> and{' '}
+                <Link href="/privacy" className="underline hover:text-text-muted">Privacy Policy</Link>.
+                PreConstructionMiami partners with licensed local real estate professionals to assist you.
+                We are an informational platform and do not directly participate in real estate transactions.
+              </p>
 
               {/* Neighborhood link */}
               {project.neighborhood && (
