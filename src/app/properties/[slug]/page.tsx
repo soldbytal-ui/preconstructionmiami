@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { formatPrice, formatPriceRange, STATUS_LABELS, CATEGORY_LABELS } from '@/lib/utils';
 import { generateRealEstateListingSchema, generateBreadcrumbSchema } from '@/lib/seo';
+import Markdown from 'react-markdown';
 import StatusBadge from '@/components/projects/StatusBadge';
 import InquiryForm from '@/components/projects/InquiryForm';
 import ProjectCard from '@/components/projects/ProjectCard';
@@ -26,8 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const area = project.neighborhood?.name || 'Miami';
   return {
-    title: `${project.name} | Pre-Construction in ${area}`,
+    title: project.metaTitle || `${project.name} | Pre-Construction in ${area}`,
     description:
+      project.metaDescription ||
       project.description?.slice(0, 160) ||
       `${project.name} - New pre-construction development in ${area}. ${project.priceMin ? `From ${formatPrice(project.priceMin)}.` : ''} ${project.totalUnits ? `${project.totalUnits} residences.` : ''}`,
   };
@@ -103,7 +105,7 @@ export default async function PropertyDetailPage({ params }: Props) {
               {project.address && <p className="text-text-muted mt-2">{project.address}</p>}
               {project.developer && (
                 <p className="text-text-muted mt-1">
-                  by <span className="text-text-primary font-medium">{project.developer.name}</span>
+                  by <Link href={`/developers/${project.developer.slug}`} className="text-text-primary font-medium hover:text-accent-green transition-colors">{project.developer.name}</Link>
                 </p>
               )}
             </div>
@@ -146,13 +148,21 @@ export default async function PropertyDetailPage({ params }: Props) {
               </div>
             )}
 
-            {/* Description */}
+            {/* Description — renders markdown for SEO content */}
             {project.description && (
-              <div>
-                <h2 className="text-2xl font-semibold text-text-primary mb-4">About {project.name}</h2>
-                <div className="text-text-muted leading-relaxed whitespace-pre-line">
+              <div className="prose prose-invert prose-sm max-w-none prose-headings:text-text-primary prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-3 prose-p:text-text-muted prose-p:leading-relaxed prose-li:text-text-muted prose-strong:text-text-primary prose-a:text-accent-green">
+                <Markdown
+                  components={{
+                    a: ({ href, children }) => {
+                      if (href?.startsWith('/')) {
+                        return <a href={href}>{children}</a>;
+                      }
+                      return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
+                    },
+                  }}
+                >
                   {project.description}
-                </div>
+                </Markdown>
               </div>
             )}
 
@@ -182,6 +192,62 @@ export default async function PropertyDetailPage({ params }: Props) {
               <div className="glass-panel rounded-xl p-4">
                 <div className="text-xs text-text-muted uppercase tracking-wider mb-1">Architect</div>
                 <div className="text-text-primary font-medium">{project.architect}</div>
+              </div>
+            )}
+
+            {/* Long SEO Description */}
+            {project.longDescription && (
+              <div className="prose-content">
+                <div
+                  className="text-text-muted leading-relaxed [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-text-primary [&_h3]:mt-8 [&_h3]:mb-3 [&_a]:text-accent-green [&_a]:hover:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_p]:mb-4 whitespace-pre-line"
+                  dangerouslySetInnerHTML={{
+                    __html: project.longDescription
+                      .replace(/### (.+)/g, '<h3>$1</h3>')
+                      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                      .replace(/^- (.+)$/gm, '<li>$1</li>')
+                      .replace(/(<li>.*<\/li>\n?)+/gs, '<ul>$&</ul>')
+                      .replace(/\n\n/g, '</p><p>')
+                      .replace(/^(?!<[hula])(.+)$/gm, '<p>$1</p>')
+                  }}
+                />
+              </div>
+            )}
+
+            {/* FAQ Section */}
+            {project.faqJson && Array.isArray(project.faqJson) && project.faqJson.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-semibold text-text-primary mb-4">
+                  Frequently Asked Questions
+                </h2>
+                <div className="space-y-3">
+                  {(project.faqJson as { question: string; answer: string }[]).map((faq, i) => (
+                    <details key={i} className="glass-panel rounded-xl group">
+                      <summary className="cursor-pointer p-4 flex items-center justify-between text-text-primary font-medium hover:text-accent-green transition-colors">
+                        {faq.question}
+                        <svg className="w-5 h-5 text-text-muted group-open:rotate-180 transition-transform flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </summary>
+                      <div className="px-4 pb-4 text-text-muted leading-relaxed">
+                        {faq.answer}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+                <script
+                  type="application/ld+json"
+                  dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                      '@context': 'https://schema.org',
+                      '@type': 'FAQPage',
+                      mainEntity: (project.faqJson as { question: string; answer: string }[]).map(faq => ({
+                        '@type': 'Question',
+                        name: faq.question,
+                        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+                      })),
+                    }),
+                  }}
+                />
               </div>
             )}
           </div>
