@@ -80,6 +80,7 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          <Link href="/developers" className="btn-ghost text-sm">Developers</Link>
           <Link href="/blog" className="btn-ghost text-sm">Blog</Link>
           <Link href="/about" className="btn-ghost text-sm">About</Link>
           <Link href="/contact-us" className="btn-primary text-sm !py-2 !px-4 ml-2">Contact Us</Link>
@@ -98,6 +99,7 @@ export default function Navbar() {
         <div className="md:hidden glass-panel border-t border-border">
           <div className="container-main py-4 space-y-1">
             <Link href="/new-condos" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Properties</Link>
+            <Link href="/developers" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Developers</Link>
             <Link href="/blog" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Blog</Link>
             <Link href="/about" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">About</Link>
             <div className="pt-2 border-t border-border mt-2">

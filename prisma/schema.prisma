@@ -54,6 +54,10 @@ model Project {
   unitTypes        String?
   latitude         Float?
   longitude        Float?
+  longDescription  String?         @db.Text
+  metaTitle        String?
+  metaDescription  String?
+  faqJson          Json?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 

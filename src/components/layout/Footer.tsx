@@ -69,6 +69,8 @@ export default function Footer() {
               <li><Link href="/developers" className="text-sm text-text-muted hover:text-accent-green transition-colors">Developers</Link></li>
               <li><Link href="/blog" className="text-sm text-text-muted hover:text-accent-green transition-colors">Market Insights Blog</Link></li>
               <li><Link href="/about" className="text-sm text-text-muted hover:text-accent-green transition-colors">About Us</Link></li>
+              <li><Link href="/terms" className="text-sm text-text-muted hover:text-accent-green transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="text-sm text-text-muted hover:text-accent-green transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
           <div>
@@ -98,7 +100,10 @@ export default function Footer() {
 
         {/* Copyright + Legal Links */}
         <div className="border-t border-border mt-6 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-text-muted">&copy; {new Date().getFullYear()} PreConstructionMiami.net. All rights reserved.</p>
+          <div>
+            <p className="text-xs text-text-muted">&copy; {new Date().getFullYear()} PreConstructionMiami.net. All rights reserved.</p>
+            <p className="text-xs text-text-muted/60 mt-1">PreConstructionMiami is an informational platform that partners with licensed local real estate professionals. We are not licensed real estate brokers. All pricing and project details are approximate and subject to change.</p>
+          </div>
           <div className="flex flex-wrap gap-4 text-xs">
             <Link href="/about" className="text-text-muted hover:text-accent-green transition-colors">About</Link>
             <Link href="/contact-us" className="text-text-muted hover:text-accent-green transition-colors">Contact</Link>

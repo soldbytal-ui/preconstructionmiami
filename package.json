@@ -13,6 +13,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@deck.gl/core": "^9.2.11",
     "@deck.gl/layers": "^9.2.11",
     "@deck.gl/mapbox": "^9.2.11",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^18.3.7",
     "@types/three": "^0.183.1",
     "autoprefixer": "^10.4.27",
+    "cheerio": "^1.2.0",
     "clsx": "^2.1.1",
     "deck.gl": "^9.2.11",
     "mapbox-gl": "^3.20.0",
