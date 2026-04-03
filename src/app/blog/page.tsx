@@ -109,10 +109,16 @@ export default async function BlogPage() {
           className="block mb-12 group"
         >
           <div className="card overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-0">
-            <div className={`bg-gradient-to-br ${GRADIENTS[0]} flex items-center justify-center p-12 min-h-[280px]`}>
-              <svg className="w-24 h-24 text-accent-green/30 group-hover:text-accent-green/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d={ICONS[0]} />
-              </svg>
+            <div className="min-h-[280px] overflow-hidden">
+              {featured.featuredImage ? (
+                <img src={featured.featuredImage} alt={featured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+              ) : (
+                <div className={`w-full h-full bg-gradient-to-br ${GRADIENTS[0]} flex items-center justify-center p-12`}>
+                  <svg className="w-24 h-24 text-accent-green/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d={ICONS[0]} />
+                  </svg>
+                </div>
+              )}
             </div>
             <div className="p-8 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-4">
@@ -151,11 +157,17 @@ export default async function BlogPage() {
             href={`/blog/${post.slug}`}
             className="card group hover:border-accent-green/30 transition-all flex flex-col"
           >
-            {/* Icon Header */}
-            <div className={`bg-gradient-to-br ${GRADIENTS[(i + 1) % GRADIENTS.length]} flex items-center justify-center py-10 px-6`}>
-              <svg className="w-14 h-14 text-white/20 group-hover:text-white/40 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d={ICONS[(i + 1) % ICONS.length]} />
-              </svg>
+            {/* Image */}
+            <div className="h-48 overflow-hidden">
+              {post.featuredImage ? (
+                <img src={post.featuredImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+              ) : (
+                <div className={`w-full h-full bg-gradient-to-br ${GRADIENTS[(i + 1) % GRADIENTS.length]} flex items-center justify-center`}>
+                  <svg className="w-14 h-14 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d={ICONS[(i + 1) % ICONS.length]} />
+                  </svg>
+                </div>
+              )}
             </div>
 
             {/* Content */}

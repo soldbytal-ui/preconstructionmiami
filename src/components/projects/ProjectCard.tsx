@@ -22,12 +22,23 @@ type ProjectCardProps = {
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link href={`/properties/${project.slug}`} className="card group hover:border-accent-green/30 transition-all">
-      <div className="relative h-48 bg-gradient-to-br from-surface2 to-surface">
+      <div className="relative h-48 overflow-hidden">
         {project.mainImageUrl ? (
-          <img src={project.mainImageUrl} alt={project.name} className="w-full h-full object-cover" />
+          <img src={project.mainImageUrl} alt={`${project.name} - Pre-Construction in ${project.neighborhood?.name || 'Miami'}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-text-muted/30 text-4xl font-light">{project.name[0]}</span>
+          <div className={`w-full h-full flex flex-col items-center justify-center p-6 text-center ${
+            project.status === 'PRE_CONSTRUCTION' || project.status === 'PRE_LAUNCH'
+              ? 'bg-gradient-to-br from-accent-green/10 via-surface2 to-accent-green/5'
+              : project.status === 'UNDER_CONSTRUCTION'
+              ? 'bg-gradient-to-br from-blue-500/10 via-surface2 to-blue-500/5'
+              : project.status === 'NEAR_COMPLETION'
+              ? 'bg-gradient-to-br from-orange-500/10 via-surface2 to-orange-500/5'
+              : 'bg-gradient-to-br from-surface2 to-surface'
+          }`}>
+            <span className="text-text-primary/60 text-base font-semibold leading-tight line-clamp-2">{project.name}</span>
+            {project.neighborhood && (
+              <span className="text-text-muted/40 text-xs mt-1.5">{project.neighborhood.name}</span>
+            )}
           </div>
         )}
         <div className="absolute top-3 left-3">

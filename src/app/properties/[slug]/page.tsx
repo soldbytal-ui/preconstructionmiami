@@ -151,7 +151,17 @@ export default async function PropertyDetailPage({ params }: Props) {
 
             {/* Description — renders markdown for SEO content */}
             {project.description && (
-              <div className="prose prose-invert prose-sm max-w-none prose-headings:text-text-primary prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-3 prose-p:text-text-muted prose-p:leading-relaxed prose-li:text-text-muted prose-strong:text-text-primary prose-a:text-accent-green">
+              <div className="prose prose-invert prose-sm max-w-none
+                prose-headings:text-text-primary prose-headings:font-semibold
+                prose-h2:text-lg prose-h2:mt-10 prose-h2:mb-3 prose-h2:pl-4 prose-h2:border-l-[3px] prose-h2:border-accent-green/60
+                prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2
+                prose-p:text-text-muted prose-p:leading-relaxed prose-p:mb-4
+                prose-li:text-text-muted prose-li:leading-relaxed
+                prose-strong:text-text-primary prose-strong:font-semibold
+                prose-a:text-accent-green prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                prose-hr:border-border prose-hr:my-8
+                prose-ul:space-y-1 prose-ul:mb-4
+              ">
                 <Markdown
                   components={{
                     a: ({ href, children }) => {
@@ -160,6 +170,9 @@ export default async function PropertyDetailPage({ params }: Props) {
                       }
                       return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
                     },
+                    h2: ({ children }) => (
+                      <h2 className="text-lg font-semibold text-text-primary mt-10 mb-3 pl-4 border-l-[3px] border-accent-green/60">{children}</h2>
+                    ),
                   }}
                 >
                   {project.description}

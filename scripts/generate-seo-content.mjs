@@ -121,8 +121,8 @@ function generateDescription(p) {
 
   // CTA
   desc += `## Schedule a Private Showing\n\n`;
-  desc += `Interested in ${p.name}? Contact our team for exclusive access to floor plans, pricing, and availability. `;
-  desc += `As ${area}'s pre-construction specialists, we provide personalized guidance through every step of the buying process — from reservation to closing.`;
+  desc += `Interested in ${p.name}? Get in touch for exclusive access to floor plans, pricing, and availability. `;
+  desc += `Our partner agents who specialize in ${area} pre-construction provide personalized guidance through every step of the buying process — from reservation to closing.`;
 
   return desc;
 }
@@ -136,7 +136,7 @@ function generateFAQs(p) {
       question: `What is the starting price for ${p.name}?`,
       answer: p.priceMin
         ? `Residences at ${p.name} start from ${formatPrice(p.priceMin)}. Pricing varies by unit type, floor level, and view. Contact us for the most current pricing and availability.`
-        : `Pricing for ${p.name} is available upon request. Contact our team for current pricing, floor plans, and availability.`,
+        : `Pricing for ${p.name} is available upon request. Get in touch for current pricing, floor plans, and availability.`,
     },
     {
       question: `When will ${p.name} be completed?`,
@@ -154,7 +154,7 @@ function generateFAQs(p) {
     },
     {
       question: `Is ${p.name} a good investment?`,
-      answer: `${area} pre-construction condos have shown strong historical appreciation. ${p.name} offers an opportunity to purchase at pre-construction pricing before completion in ${completion}. Florida's tax-friendly environment and Miami's growth as a global business hub support long-term value. Contact our investment specialists for a personalized analysis.`,
+      answer: `${area} pre-construction condos have shown strong historical appreciation. ${p.name} offers an opportunity to purchase at pre-construction pricing before completion in ${completion}. Florida's tax-friendly environment and Miami's growth as a global business hub support long-term value. Connect with a licensed agent for a personalized analysis.`,
     },
   ];
 }
@@ -172,10 +172,7 @@ async function main() {
 
   let updated = 0;
   for (const p of projects) {
-    // Skip if already has a long description (>500 chars)
-    if (p.description && p.description.length > 500) {
-      continue;
-    }
+    // Regenerate all descriptions to fix language
 
     const description = generateDescription(p);
     const faqs = generateFAQs(p);

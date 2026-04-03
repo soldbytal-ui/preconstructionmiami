@@ -3,7 +3,7 @@ import InquiryForm from '@/components/projects/InquiryForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
-  description: 'Get in touch with our Miami pre-construction specialists. We can help you find the perfect new development.',
+  description: 'Get in touch — we connect you with licensed local agents who specialize in Miami pre-construction.',
 };
 
 export default function ContactPage() {
@@ -12,7 +12,7 @@ export default function ContactPage() {
       <h1 className="text-3xl md:text-4xl font-bold text-navy mb-4">Contact Us</h1>
       <p className="text-gray-500 mb-8">
         Interested in a specific project? Have questions about pre-construction in Miami?
-        Fill out the form below and our team will get back to you within 24 hours.
+        Fill out the form below and a licensed local agent will get back to you within 24 hours.
       </p>
 
       <InquiryForm source="contact" />

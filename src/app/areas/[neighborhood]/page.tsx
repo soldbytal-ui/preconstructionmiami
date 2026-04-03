@@ -90,11 +90,11 @@ export default async function NeighborhoodPage({ params }: Props) {
       question: `What is the average price of pre-construction condos in ${neighborhood.name}?`,
       answer: neighborhood.avgPriceStudio
         ? `Pre-construction condo prices in ${neighborhood.name} start from approximately ${formatPrice(neighborhood.avgPriceStudio)} for studios. ${neighborhood.avgPrice2br ? `Two-bedroom units average around ${formatPrice(neighborhood.avgPrice2br)}.` : ''} Prices vary significantly by developer, floor level, and view. Contact us for current pricing on specific projects.`
-        : `Pre-construction condo prices in ${neighborhood.name} vary by project, unit type, and floor level. Contact our team for current pricing on specific developments in ${neighborhood.name}.`,
+        : `Pre-construction condo prices in ${neighborhood.name} vary by project, unit type, and floor level. Get in touch for current pricing on specific developments in ${neighborhood.name}.`,
     },
     {
       question: `Is ${neighborhood.name} a good area to buy pre-construction in Miami?`,
-      answer: `${neighborhood.name} is one of South Florida's most sought-after neighborhoods for pre-construction investment. ${neighborhood.description?.slice(0, 200) || `The area offers excellent amenities, strong appreciation potential, and a desirable lifestyle.`} Contact our team for a personalized investment analysis.`,
+      answer: `${neighborhood.name} is one of South Florida's most sought-after neighborhoods for pre-construction investment. ${neighborhood.description?.slice(0, 200) || `The area offers excellent amenities, strong appreciation potential, and a desirable lifestyle.`} Connect with a licensed agent for a personalized investment analysis.`,
     },
     {
       question: `When will new condos in ${neighborhood.name} be completed?`,
@@ -274,6 +274,43 @@ export default async function NeighborhoodPage({ params }: Props) {
               </div>
             </section>
 
+            {/* Top Developers in this Neighborhood */}
+            {(() => {
+              const devCounts: Record<string, { name: string; slug: string; count: number }> = {};
+              for (const p of projectList) {
+                const dev = (p as any).developer;
+                if (dev?.name && dev?.slug) {
+                  if (!devCounts[dev.slug]) devCounts[dev.slug] = { name: dev.name, slug: dev.slug, count: 0 };
+                  devCounts[dev.slug].count++;
+                }
+              }
+              const topDevs = Object.values(devCounts).sort((a, b) => b.count - a.count).slice(0, 6);
+              if (topDevs.length === 0) return null;
+              return (
+                <section>
+                  <h2 className="text-2xl font-bold text-text-primary mb-6">
+                    Top Developers in {neighborhood.name}
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {topDevs.map((d) => (
+                      <Link
+                        key={d.slug}
+                        href={`/developers/${d.slug}`}
+                        className="card p-4 hover:border-accent-green/30 transition-all group"
+                      >
+                        <div className="text-sm font-medium text-text-primary group-hover:text-accent-green transition-colors line-clamp-1">
+                          {d.name}
+                        </div>
+                        <div className="text-xs text-text-muted mt-1">
+                          {d.count} {d.count === 1 ? 'project' : 'projects'} in {neighborhood.name}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
+
             {/* Explore All Neighborhoods — Full Interlinking */}
             <section>
               <h2 className="text-2xl font-bold text-text-primary mb-6">
@@ -308,7 +345,7 @@ export default async function NeighborhoodPage({ params }: Props) {
                 Ready to Invest in {neighborhood.name}?
               </h2>
               <p className="text-text-muted text-sm mb-6 max-w-lg mx-auto">
-                Our team specializes in {neighborhood.name} pre-construction condos.
+                Our partner agents specialize in {neighborhood.name} pre-construction condos.
                 Get VIP access to new launches, developer pricing, and exclusive floor plans.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -358,7 +395,7 @@ export default async function NeighborhoodPage({ params }: Props) {
                     &rarr; Market Insights Blog
                   </Link>
                   <Link href="/contact-us" className="block text-sm text-text-muted hover:text-accent-green transition-colors">
-                    &rarr; Contact Our Team
+                    &rarr; Connect with an Agent
                   </Link>
                 </div>
               </div>

@@ -224,7 +224,7 @@ export default async function BlogPostPage({ params }: Props) {
               {/* Share / Bookmark CTA */}
               <div className="card p-5 bg-accent-green/5 border-accent-green/20">
                 <h4 className="text-sm font-semibold text-text-primary mb-2">Need Expert Guidance?</h4>
-                <p className="text-xs text-text-muted mb-3">Our team specializes in Miami pre-construction. Get personalized recommendations.</p>
+                <p className="text-xs text-text-muted mb-3">Our partner agents specialize in Miami pre-construction. Get personalized recommendations.</p>
                 <Link href="/contact-us" className="btn-primary text-xs !py-2 !px-4 w-full">
                   Talk to an Expert
                 </Link>
