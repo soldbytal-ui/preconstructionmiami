@@ -1,17 +1,19 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { formatPrice } from '@/lib/utils';
 import { generateLocalBusinessSchema, generateWebSiteSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
 export default async function HomePage() {
-  console.log('[HomePage] SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30));
-  console.log('[HomePage] KEY present:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  // Create Supabase client fresh per request to avoid stale module-level singleton
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fnyrtptmcazhmoztmuay.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZueXJ0cHRtY2F6aG1venRtdWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NjE3MDEsImV4cCI6MjA5MDMzNzcwMX0.g-xX5_3KjesxPDcs390w2c7J35PKN0niRzaTFRcHRiI'
+  );
 
-  // Fetch all data with individual error handling
   const featuredRes = await supabase
     .from('projects')
     .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
