@@ -110,6 +110,8 @@ export default async function HomePage() {
               View All &rarr;
             </Link>
           </div>
+          {/* Temporary visible debug */}
+          <p className="text-xs text-red-500 mb-2">DEBUG: featured={sortedFeatured?.length ?? 'null'} url={process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(-20) ?? 'MISSING'} err={featuredRes?.error?.message ?? 'none'}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(sortedFeatured || []).map((project: any) => (
               <ProjectCard key={project.id} project={project} />
