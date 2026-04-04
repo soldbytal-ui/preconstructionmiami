@@ -90,19 +90,11 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        {/* Disclaimer Banner */}
-        <div className="border-t border-border mt-12 pt-8">
-          <p className="text-xs text-text-muted/70 leading-relaxed max-w-4xl">
-            PreConstructionMiami.net is an informational platform that partners with licensed local real estate professionals. We are not licensed real estate brokers. All pricing and project details are approximate, based on publicly available information, and subject to change without notice. Consult a licensed real estate professional before making any purchasing decisions.
-            {' '}Prices shown throughout this site are estimates only &mdash; verify with the developer or a licensed agent.
-          </p>
-        </div>
-
         {/* Copyright + Legal Links */}
-        <div className="border-t border-border mt-6 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-border mt-12 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <p className="text-xs text-text-muted">&copy; {new Date().getFullYear()} PreConstructionMiami.net. All rights reserved.</p>
-            <p className="text-xs text-text-muted/60 mt-1">PreConstructionMiami is an informational platform that partners with licensed local real estate professionals. We are not licensed real estate brokers. All pricing and project details are approximate and subject to change.</p>
+            <p className="text-xs text-text-muted/60 mt-1 max-w-2xl">PreConstructionMiami is an informational platform that partners with licensed local real estate professionals. We are not licensed real estate brokers. All pricing and project details are approximate and subject to change.</p>
           </div>
           <div className="flex flex-wrap gap-4 text-xs">
             <Link href="/about" className="text-text-muted hover:text-accent-green transition-colors">About</Link>

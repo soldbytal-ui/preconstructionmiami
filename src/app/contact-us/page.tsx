@@ -4,13 +4,13 @@ import type { Metadata } from 'next';
 import InquiryForm from '@/components/projects/InquiryForm';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | PreConstructionMiami.net',
+  title: 'Contact Us',
   description: 'Get in touch with PreConstructionMiami.net. We help buyers and investors navigate Miami pre-construction condos.',
 };
 
 export default function ContactPage() {
   return (
-    <div className="container-main py-10">
+    <div className="container-main pt-24 pb-10">
       <div className="mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-text-primary">Contact Us</h1>
         <p className="text-text-muted mt-2">We&apos;d love to hear from you. Reach out and we&apos;ll get back within 24 hours.</p>
@@ -71,6 +71,19 @@ export default function ContactPage() {
             </ul>
           </div>
         </div>
+      </div>
+
+      {/* Office Location Map */}
+      <div className="mt-10">
+        <h2 className="text-2xl font-semibold text-text-primary mb-4">Our Location</h2>
+        <div className="rounded-2xl overflow-hidden border border-border">
+          <img
+            src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+00D26A(-80.1918,25.8095)/-80.1918,25.8095,15,0/1200x300@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
+            alt="Office location - 3250 NE 1st Ave Unit 305, Miami, FL 33137"
+            className="w-full h-[300px] object-cover"
+          />
+        </div>
+        <p className="text-sm text-text-muted mt-3">3250 NE 1st Ave Unit 305, Miami, FL 33137, United States</p>
       </div>
     </div>
   );

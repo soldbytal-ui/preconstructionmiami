@@ -2,6 +2,35 @@ import Link from 'next/link';
 import StatusBadge from './StatusBadge';
 import { formatPrice, CATEGORY_LABELS } from '@/lib/utils';
 
+const NEIGHBORHOOD_FALLBACK_IMAGES: Record<string, string> = {
+  brickell: 'https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=600&h=400&fit=crop',
+  'downtown-miami': 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600&h=400&fit=crop',
+  'miami-beach': 'https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?w=600&h=400&fit=crop',
+  edgewater: 'https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=600&h=400&fit=crop',
+  'midtown-wynwood': 'https://images.unsplash.com/photo-1571895457364-1ec050122c8d?w=600&h=400&fit=crop',
+  'coconut-grove': 'https://images.unsplash.com/photo-1551524559-8af4e6624178?w=600&h=400&fit=crop',
+  'sunny-isles-beach': 'https://images.unsplash.com/photo-1548263594-a71ea65a8598?w=600&h=400&fit=crop',
+  surfside: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=600&h=400&fit=crop',
+  hollywood: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&h=400&fit=crop',
+  'fort-lauderdale': 'https://images.unsplash.com/photo-1605723517503-3cadb5818a0c?w=600&h=400&fit=crop',
+  'coral-gables': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+  aventura: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop',
+  'south-beach': 'https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?w=600&h=400&fit=crop',
+  'bal-harbour': 'https://images.unsplash.com/photo-1548263594-a71ea65a8598?w=600&h=400&fit=crop',
+  'bay-harbor-islands': 'https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=600&h=400&fit=crop',
+  'key-biscayne': 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=600&h=400&fit=crop',
+  'design-district': 'https://images.unsplash.com/photo-1571895457364-1ec050122c8d?w=600&h=400&fit=crop',
+  'hallandale-beach': 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600&h=400&fit=crop',
+  'pompano-beach': 'https://images.unsplash.com/photo-1605723517503-3cadb5818a0c?w=600&h=400&fit=crop',
+  'north-bay-village': 'https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=600&h=400&fit=crop',
+  'north-miami-beach': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop',
+  'palm-beach': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+  'boca-raton': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+  'west-palm-beach': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop',
+};
+
+const DEFAULT_FALLBACK = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&h=400&fit=crop';
+
 type ProjectCardProps = {
   project: {
     slug: string;
@@ -20,25 +49,23 @@ type ProjectCardProps = {
 };
 
 export default function ProjectCard({ project }: ProjectCardProps) {
+  const imageUrl =
+    project.mainImageUrl ||
+    NEIGHBORHOOD_FALLBACK_IMAGES[project.neighborhood?.slug || ''] ||
+    DEFAULT_FALLBACK;
+
   return (
     <Link href={`/properties/${project.slug}`} className="card group hover:border-accent-green/30 transition-all">
       <div className="relative h-48 overflow-hidden">
-        {project.mainImageUrl ? (
-          <img src={project.mainImageUrl} alt={`${project.name} - Pre-Construction in ${project.neighborhood?.name || 'Miami'}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-        ) : (
-          <div className={`w-full h-full flex flex-col items-center justify-center p-6 text-center ${
-            project.status === 'PRE_CONSTRUCTION' || project.status === 'PRE_LAUNCH'
-              ? 'bg-gradient-to-br from-accent-green/10 via-surface2 to-accent-green/5'
-              : project.status === 'UNDER_CONSTRUCTION'
-              ? 'bg-gradient-to-br from-blue-500/10 via-surface2 to-blue-500/5'
-              : project.status === 'NEAR_COMPLETION'
-              ? 'bg-gradient-to-br from-orange-500/10 via-surface2 to-orange-500/5'
-              : 'bg-gradient-to-br from-surface2 to-surface'
-          }`}>
-            <span className="text-text-primary/60 text-base font-semibold leading-tight line-clamp-2">{project.name}</span>
-            {project.neighborhood && (
-              <span className="text-text-muted/40 text-xs mt-1.5">{project.neighborhood.name}</span>
-            )}
+        <img
+          src={imageUrl}
+          alt={`${project.name} - Pre-Construction in ${project.neighborhood?.name || 'Miami'}`}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+        {!project.mainImageUrl && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
+            <span className="text-white/80 text-xs">{project.neighborhood?.name || 'Miami'}</span>
           </div>
         )}
         <div className="absolute top-3 left-3">

@@ -51,10 +51,16 @@ export default async function NewCondosPage({ searchParams }: Props) {
   if (neighborhood) {
     projects = projects.filter((p: any) => p.neighborhood?.slug === neighborhood);
   }
+  // Sort so projects with their own photos appear first
+  projects = projects.sort((a: any, b: any) => {
+    if (a.mainImageUrl && !b.mainImageUrl) return -1;
+    if (!a.mainImageUrl && b.mainImageUrl) return 1;
+    return 0;
+  });
   const total = projects.length;
 
   return (
-    <div className="container-main py-10">
+    <div className="container-main pt-24 pb-10">
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-text-primary">
           New Condos in Miami

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -35,6 +35,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoodOpen, setHoodOpen] = useState(false);
+  const hoodTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
   const isHome = pathname === '/';
 
@@ -63,20 +64,28 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-1">
           <Link href="/new-condos" className="btn-ghost text-sm">Properties</Link>
-          <div className="relative" onMouseEnter={() => setHoodOpen(true)} onMouseLeave={() => setHoodOpen(false)}>
-            <button className="btn-ghost text-sm flex items-center gap-1">
+          <div
+            className="relative"
+            onMouseEnter={() => { if (hoodTimeoutRef.current) clearTimeout(hoodTimeoutRef.current); setHoodOpen(true); }}
+            onMouseLeave={() => { hoodTimeoutRef.current = setTimeout(() => setHoodOpen(false), 150); }}
+          >
+            <button className="btn-ghost text-sm flex items-center gap-1 pb-3 -mb-3">
               Neighborhoods
               <svg className={`w-3.5 h-3.5 transition-transform ${hoodOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             {hoodOpen && (
-              <div className="absolute top-full left-0 mt-1 glass-panel rounded-xl py-3 min-w-[420px] grid grid-cols-2 gap-0">
-                {NEIGHBORHOODS.map((n) => (
-                  <Link key={n.slug} href={`/new-condos-${n.slug}`} className="block px-4 py-2 text-sm text-text-muted hover:text-accent-green hover:bg-surface2 transition-colors">
-                    {n.name}
-                  </Link>
-                ))}
+              <div className="absolute top-full left-0 pt-0 -mt-1">
+                {/* Invisible bridge to prevent gap */}
+                <div className="h-3" />
+                <div className="glass-panel rounded-xl py-3 min-w-[420px] grid grid-cols-2 gap-0">
+                  {NEIGHBORHOODS.map((n) => (
+                    <Link key={n.slug} href={`/new-condos-${n.slug}`} className="block px-4 py-2 text-sm text-text-muted hover:text-accent-green hover:bg-surface2 transition-colors">
+                      {n.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </div>

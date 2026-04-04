@@ -39,6 +39,13 @@ export default async function HomePage() {
     _count: { projects: n.projects?.[0]?.count || 0 },
   }));
 
+  // Sort featured: projects with images first
+  const sortedFeatured = (featured || []).sort((a: any, b: any) => {
+    if (a.mainImageUrl && !b.mainImageUrl) return -1;
+    if (!a.mainImageUrl && b.mainImageUrl) return 1;
+    return 0;
+  });
+
   const schema = generateLocalBusinessSchema();
   const webSiteSchema = generateWebSiteSchema();
   const totalProjects = projectCount || 0;
@@ -49,12 +56,22 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }} />
 
-      {/* Hero — Full-viewport 3D Map */}
-      <section className="relative h-screen w-full">
+      {/* Hero — 3D Map */}
+      <section className="relative h-[75vh] w-full">
         <DynamicMap projects={mapProjects || []} />
 
+        {/* Bottom gradient fade */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-bg to-transparent pointer-events-none z-10" />
+
+        {/* Animated scroll-down chevron */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center animate-bounce">
+          <svg className="w-6 h-6 text-text-muted/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
         {/* Overlay stats panel */}
-        <div className="absolute bottom-8 left-8 z-10 glass-panel rounded-2xl p-6 max-w-md">
+        <div className="absolute bottom-28 left-8 z-10 glass-panel rounded-2xl p-6 max-w-md">
           <h1 className="text-2xl md:text-3xl font-semibold text-text-primary leading-tight mb-4">
             Miami&apos;s Premier<br />
             <span className="text-accent-green">Pre-Construction</span> Marketplace
@@ -92,7 +109,7 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(featured || []).map((project: any) => (
+            {sortedFeatured.map((project: any) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>

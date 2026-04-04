@@ -88,15 +88,18 @@ export default function NeighborhoodMiniMap({
     'COMPLETED', '#8A9098', '#8A9098',
   ];
 
-  const onExtrusionClick = useCallback((e: MapLayerMouseEvent) => {
+  const onMapClick = useCallback((e: MapLayerMouseEvent) => {
     const f = e.features?.[0];
-    if (!f?.properties) return;
-    const p = f.properties;
-    setSelectedProject({
-      id: p.id, name: p.name, slug: p.slug,
-      latitude: p.latitude, longitude: p.longitude,
-      floors: p.floors, status: p.status, priceMin: p.priceMin,
-    });
+    if (f?.properties) {
+      const p = f.properties;
+      setSelectedProject({
+        id: p.id, name: p.name, slug: p.slug,
+        latitude: p.latitude, longitude: p.longitude,
+        floors: p.floors, status: p.status, priceMin: p.priceMin,
+      });
+    } else {
+      setSelectedProject(null);
+    }
   }, []);
 
   const statusColor = (status: string) => {
@@ -120,7 +123,7 @@ export default function NeighborhoodMiniMap({
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/mapbox/dark-v11"
         onLoad={onLoad}
-        onClick={onExtrusionClick}
+        onClick={onMapClick}
         interactiveLayerIds={geojsonData ? ['mini-extrusions'] : []}
         attributionControl={false}
       >
@@ -151,16 +154,26 @@ export default function NeighborhoodMiniMap({
           </Source>
         )}
 
-        {/* Dot markers */}
+        {/* Dot markers with larger click targets */}
         {projects.map((p) => (
           <Marker key={p.id} longitude={p.longitude} latitude={p.latitude} anchor="center">
             <div
-              className="mini-map-dot cursor-pointer"
-              style={{ background: statusColor(p.status), boxShadow: `0 0 8px ${statusColor(p.status)}88` }}
+              className="relative cursor-pointer flex items-center justify-center"
+              style={{ width: 32, height: 32 }}
               onClick={(e) => { e.stopPropagation(); setSelectedProject(p); }}
               onMouseEnter={() => setHoveredId(p.id)}
               onMouseLeave={() => setHoveredId(null)}
-            />
+            >
+              <div
+                className="mini-map-dot"
+                style={{
+                  background: statusColor(p.status),
+                  boxShadow: `0 0 10px ${statusColor(p.status)}88`,
+                  transform: hoveredId === p.id ? 'scale(1.4)' : 'scale(1)',
+                  transition: 'transform 0.15s ease',
+                }}
+              />
+            </div>
           </Marker>
         ))}
 

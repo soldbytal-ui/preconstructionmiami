@@ -178,7 +178,7 @@ export default async function NeighborhoodPage({ params }: Props) {
         />
       </section>
 
-      <div className="container-main py-10">
+      <div className="container-main pt-24 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2 space-y-10">
             {/* About This Neighborhood */}
