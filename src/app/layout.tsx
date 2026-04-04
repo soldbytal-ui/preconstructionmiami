@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import ChatWidget from '@/components/chat/ChatWidget';
+import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -53,15 +51,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#00E5B4" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-bg text-text-primary">
-        <Navbar />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
-        <ChatWidget />
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   );

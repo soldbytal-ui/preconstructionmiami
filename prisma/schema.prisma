@@ -134,21 +134,73 @@ model BlogPost {
   @@map("blog_posts")
 }
 
-model Lead {
+model Agent {
   id             String    @id @default(cuid())
   name           String
-  email          String
+  email          String    @unique
   phone          String?
-  projectId      String?
-  neighborhoodId String?
-  message        String?   @db.Text
-  source         String    @default("inquiry")
+  passwordHash   String
+  avatarUrl      String?
+  bio            String?   @db.Text
+  licenseNumber  String?
+  brokerage      String?
+  neighborhoods  String[]  @default([])
+  role           String    @default("agent")
+  isActive       Boolean   @default(true)
   createdAt      DateTime  @default(now())
+  lastLoginAt    DateTime?
 
-  project        Project?       @relation(fields: [projectId], references: [id])
-  neighborhood   Neighborhood?  @relation(fields: [neighborhoodId], references: [id])
+  leads          Lead[]
+  activities     DealActivity[]
+
+  @@map("agents")
+}
+
+model Lead {
+  id               String    @id @default(cuid())
+  name             String
+  email            String
+  phone            String?
+  projectId        String?
+  neighborhoodId   String?
+  message          String?   @db.Text
+  source           String    @default("inquiry")
+  assignedAgentId  String?
+  status           String    @default("new")
+  notes            String?   @db.Text
+  priority         String    @default("warm")
+  updatedAt        DateTime  @default(now())
+  contactedAt      DateTime?
+  closedAt         DateTime?
+  dealValue        Int?
+  twilioProxyNumber String?
+  createdAt        DateTime  @default(now())
+
+  project          Project?       @relation(fields: [projectId], references: [id])
+  neighborhood     Neighborhood?  @relation(fields: [neighborhoodId], references: [id])
+  assignedAgent    Agent?         @relation(fields: [assignedAgentId], references: [id])
+  activities       DealActivity[]
 
   @@index([email])
   @@index([createdAt])
+  @@index([assignedAgentId])
+  @@index([status])
   @@map("leads")
+}
+
+model DealActivity {
+  id        String   @id @default(cuid())
+  leadId    String
+  agentId   String?
+  type      String
+  content   String?  @db.Text
+  duration  Int?
+  createdAt DateTime @default(now())
+
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  agent     Agent?   @relation(fields: [agentId], references: [id])
+
+  @@index([leadId])
+  @@index([agentId])
+  @@map("deal_activities")
 }
