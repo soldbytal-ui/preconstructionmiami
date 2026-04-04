@@ -83,12 +83,19 @@ export default function MiamiMap({ projects }: { projects: MapProject[] }) {
   // Fetch building footprints from API
   useEffect(() => {
     fetch('/api/buildings-geojson')
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(`[MiamiMap] GeoJSON features: ${data?.features?.length || 0}`);
-        setGeojsonData(data);
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
       })
-      .catch(console.error);
+      .then((data) => {
+        if (data && data.type === 'FeatureCollection' && Array.isArray(data.features)) {
+          console.log(`[MiamiMap] GeoJSON features: ${data.features.length}`);
+          setGeojsonData(data);
+        } else {
+          console.warn('[MiamiMap] Invalid or empty GeoJSON response');
+        }
+      })
+      .catch((err) => console.warn('[MiamiMap] Failed to load geojson:', err));
   }, []);
 
   const projectLookup = useRef<Record<string, MapProject>>({});
