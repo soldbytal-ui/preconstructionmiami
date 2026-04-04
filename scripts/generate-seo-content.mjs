@@ -177,9 +177,16 @@ async function main() {
     const description = generateDescription(p);
     const faqs = generateFAQs(p);
 
+    const hood = p.neighborhood?.name || 'Miami';
+    const metaTitle = `${p.name} | Pre-Construction Condos in ${hood}`;
+    const metaDescription = description.replace(/[#\n]+/g, ' ').substring(0, 155).replace(/\s+\S*$/, '') + '...';
+
     const updates = {
       description,
-      // Store FAQs in the images JSON field alongside gallery (it's the only JSON column we have without schema changes)
+      longDescription: description,
+      metaTitle: metaTitle.substring(0, 70),
+      metaDescription,
+      faqJson: faqs,
     };
 
     const { error: upErr } = await supabase.from('projects').update(updates).eq('id', p.id);
