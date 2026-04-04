@@ -8,6 +8,9 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
 export default async function HomePage() {
+  console.log('[HomePage] SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30));
+  console.log('[HomePage] KEY present:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
   // Fetch all data with individual error handling
   const featuredRes = await supabase
     .from('projects')
@@ -31,6 +34,7 @@ export default async function HomePage() {
   const nhCountRes = await supabase.from('neighborhoods').select('*', { count: 'exact', head: true });
 
   const featured = featuredRes.data || [];
+  console.log('[HomePage] Featured count:', featured.length, 'error:', featuredRes.error?.message);
   const mapProjects = mapRes.data || [];
   const neighborhoods = neighborhoodRes.data || [];
   const projectCount = countRes.count || 0;
