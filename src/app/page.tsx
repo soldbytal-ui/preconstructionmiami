@@ -115,6 +115,11 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedFeatured.length === 0 && (
+              <div className="col-span-full text-text-muted text-sm p-4" data-dbg-url={process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(-30)} data-dbg-featured={featured.length} data-dbg-map={mapProjects.length} data-dbg-err={featuredRes.error?.message || 'none'}>
+                Loading featured projects...
+              </div>
+            )}
             {sortedFeatured.map((project: any) => (
               <ProjectCard key={project.id} project={project} />
             ))}
