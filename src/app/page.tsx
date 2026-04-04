@@ -8,41 +8,41 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
 export default async function HomePage() {
-  const [featuredRes, mapRes, neighborhoodRes, countRes, nhCountRes] = await Promise.all([
-    supabase
-      .from('projects')
-      .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
-      .eq('featured', true)
-      .order('priceMin', { ascending: false })
-      .limit(6),
-    supabase
-      .from('projects')
-      .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
-      .not('latitude', 'is', null),
-    supabase
-      .from('neighborhoods')
-      .select('*, projects(count)')
-      .order('displayOrder', { ascending: true })
-      .limit(12),
-    supabase.from('projects').select('*', { count: 'exact', head: true }),
-    supabase.from('neighborhoods').select('*', { count: 'exact', head: true }),
-  ]);
+  // Fetch all data with individual error handling
+  const featuredRes = await supabase
+    .from('projects')
+    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .eq('featured', true)
+    .order('priceMin', { ascending: false })
+    .limit(6);
 
-  if (featuredRes.error) console.error('Featured query error:', featuredRes.error);
+  const mapRes = await supabase
+    .from('projects')
+    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .not('latitude', 'is', null);
 
-  const featured = featuredRes.data;
-  const mapProjects = mapRes.data;
-  const neighborhoods = neighborhoodRes.data;
-  const projectCount = countRes.count;
-  const neighborhoodCount = nhCountRes.count;
+  const neighborhoodRes = await supabase
+    .from('neighborhoods')
+    .select('*, projects(count)')
+    .order('displayOrder', { ascending: true })
+    .limit(12);
 
-  const neighborhoodsWithCount = (neighborhoods || []).map((n: any) => ({
+  const countRes = await supabase.from('projects').select('*', { count: 'exact', head: true });
+  const nhCountRes = await supabase.from('neighborhoods').select('*', { count: 'exact', head: true });
+
+  const featured = featuredRes.data || [];
+  const mapProjects = mapRes.data || [];
+  const neighborhoods = neighborhoodRes.data || [];
+  const projectCount = countRes.count || 0;
+  const neighborhoodCount = nhCountRes.count || 0;
+
+  const neighborhoodsWithCount = (neighborhoods).map((n: any) => ({
     ...n,
     _count: { projects: n.projects?.[0]?.count || 0 },
   }));
 
   // Sort featured: projects with images first
-  const sortedFeatured = (featured || []).sort((a: any, b: any) => {
+  const sortedFeatured = [...featured].sort((a: any, b: any) => {
     if (a.mainImageUrl && !b.mainImageUrl) return -1;
     if (!a.mainImageUrl && b.mainImageUrl) return 1;
     return 0;
@@ -50,8 +50,8 @@ export default async function HomePage() {
 
   const schema = generateLocalBusinessSchema();
   const webSiteSchema = generateWebSiteSchema();
-  const totalProjects = projectCount || 0;
-  const totalNeighborhoods = neighborhoodCount || 0;
+  const totalProjects = projectCount;
+  const totalNeighborhoods = neighborhoodCount;
 
   return (
     <>
@@ -60,7 +60,7 @@ export default async function HomePage() {
 
       {/* Hero — 3D Map */}
       <section className="relative h-[75vh] w-full">
-        <DynamicMap projects={mapProjects || []} />
+        <DynamicMap projects={mapProjects} />
 
         {/* Bottom gradient fade */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-bg to-transparent pointer-events-none z-10" />
@@ -110,10 +110,8 @@ export default async function HomePage() {
               View All &rarr;
             </Link>
           </div>
-          {/* Temporary visible debug */}
-          <p className="text-xs text-red-500 mb-2">DEBUG: featured={sortedFeatured?.length ?? 'null'} url={process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(-20) ?? 'MISSING'} err={featuredRes?.error?.message ?? 'none'}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(sortedFeatured || []).map((project: any) => (
+            {sortedFeatured.map((project: any) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
