@@ -8,13 +8,7 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
 export default async function HomePage() {
-  const [
-    { data: featured },
-    { data: mapProjects },
-    { data: neighborhoods },
-    { count: projectCount },
-    { count: neighborhoodCount },
-  ] = await Promise.all([
+  const [featuredRes, mapRes, neighborhoodRes, countRes, nhCountRes] = await Promise.all([
     supabase
       .from('projects')
       .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
@@ -33,6 +27,14 @@ export default async function HomePage() {
     supabase.from('projects').select('*', { count: 'exact', head: true }),
     supabase.from('neighborhoods').select('*', { count: 'exact', head: true }),
   ]);
+
+  if (featuredRes.error) console.error('Featured query error:', featuredRes.error);
+
+  const featured = featuredRes.data;
+  const mapProjects = mapRes.data;
+  const neighborhoods = neighborhoodRes.data;
+  const projectCount = countRes.count;
+  const neighborhoodCount = nhCountRes.count;
 
   const neighborhoodsWithCount = (neighborhoods || []).map((n: any) => ({
     ...n,
