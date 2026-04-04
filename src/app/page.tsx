@@ -110,7 +110,7 @@ export default async function HomePage() {
               View All &rarr;
             </Link>
           </div>
-          <div data-debug-count={sortedFeatured?.length ?? 'null'} data-debug-error={featuredRes?.error?.message ?? 'none'} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(sortedFeatured || []).map((project: any) => (
               <ProjectCard key={project.id} project={project} />
             ))}
