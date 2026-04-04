@@ -8,37 +8,31 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
 export default async function HomePage() {
-  let featured: any[] = [];
-  let mapProjects: any[] = [];
-  let neighborhoods: any[] = [];
-  let projectCount = 0;
-  let neighborhoodCount = 0;
-
-  try {
-    const results = await Promise.all([
-      supabase?.from('projects')
-        .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
-        .eq('featured', true)
-        .order('priceMin', { ascending: false })
-        .limit(6) ?? { data: [], error: null },
-      supabase?.from('projects')
-        .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
-        .not('latitude', 'is', null) ?? { data: [], error: null },
-      supabase?.from('neighborhoods')
-        .select('*, projects(count)')
-        .order('displayOrder', { ascending: true })
-        .limit(12) ?? { data: [], error: null },
-      supabase?.from('projects').select('*', { count: 'exact', head: true }) ?? { count: 0, error: null },
-      supabase?.from('neighborhoods').select('*', { count: 'exact', head: true }) ?? { count: 0, error: null },
-    ]);
-    featured = results[0]?.data || [];
-    mapProjects = results[1]?.data || [];
-    neighborhoods = results[2]?.data || [];
-    projectCount = results[3]?.count || 0;
-    neighborhoodCount = results[4]?.count || 0;
-  } catch (e) {
-    console.error('Homepage data fetch error:', e);
-  }
+  const [
+    { data: featured },
+    { data: mapProjects },
+    { data: neighborhoods },
+    { count: projectCount },
+    { count: neighborhoodCount },
+  ] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+      .eq('featured', true)
+      .order('priceMin', { ascending: false })
+      .limit(6),
+    supabase
+      .from('projects')
+      .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+      .not('latitude', 'is', null),
+    supabase
+      .from('neighborhoods')
+      .select('*, projects(count)')
+      .order('displayOrder', { ascending: true })
+      .limit(12),
+    supabase.from('projects').select('*', { count: 'exact', head: true }),
+    supabase.from('neighborhoods').select('*', { count: 'exact', head: true }),
+  ]);
 
   const neighborhoodsWithCount = (neighborhoods || []).map((n: any) => ({
     ...n,

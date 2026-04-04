@@ -221,8 +221,8 @@ export default async function PropertyDetailPage({ params }: Props) {
               </div>
             )}
 
-            {/* Long SEO Description */}
-            {project.longDescription && (
+            {/* Long SEO Description — only show if different from description */}
+            {project.longDescription && project.longDescription !== project.description && (
               <div className="prose-content">
                 <div
                   className="text-text-muted leading-relaxed [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-text-primary [&_h3]:mt-8 [&_h3]:mb-3 [&_a]:text-accent-green [&_a]:hover:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_p]:mb-4 whitespace-pre-line"
