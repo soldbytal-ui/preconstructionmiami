@@ -7,7 +7,6 @@ export function generateLocalBusinessSchema() {
     url: 'https://preconstructionmiami.net',
     logo: 'https://preconstructionmiami.net/og-image.png',
     image: 'https://preconstructionmiami.net/og-image.png',
-    telephone: '+1-305-000-0000',
     email: 'info@preconstructionmiami.net',
     address: {
       '@type': 'PostalAddress',
@@ -103,32 +102,40 @@ export function generateRealEstateListingSchema(project: {
   address?: string | null;
   description?: string | null;
   priceMin?: number | null;
+  priceMax?: number | null;
   mainImageUrl?: string | null;
   totalUnits?: number | null;
+  floors?: number | null;
+  estCompletion?: string | null;
+  neighborhood?: { name: string } | null;
 }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
     name: project.name,
-    description: project.description || `${project.name} - New pre-construction development in Miami`,
+    description: project.description?.slice(0, 300) || `${project.name} - New pre-construction development in Miami`,
     url: `https://preconstructionmiami.net/properties/${project.slug}`,
     ...(project.address && {
       address: {
         '@type': 'PostalAddress',
         streetAddress: project.address,
-        addressLocality: 'Miami',
+        addressLocality: project.neighborhood?.name || 'Miami',
         addressRegion: 'FL',
         addressCountry: 'US',
       },
     }),
     ...(project.priceMin && {
       offers: {
-        '@type': 'Offer',
-        price: project.priceMin,
+        '@type': 'AggregateOffer',
+        lowPrice: project.priceMin,
+        ...(project.priceMax && { highPrice: project.priceMax }),
         priceCurrency: 'USD',
+        availability: 'https://schema.org/PreSale',
       },
     }),
     ...(project.mainImageUrl && { image: project.mainImageUrl }),
+    ...(project.totalUnits && { numberOfAccommodationUnits: project.totalUnits }),
+    ...(project.floors && { numberOfFloors: project.floors }),
   };
 }
 
@@ -150,7 +157,17 @@ export function generateArticleSchema(post: {
     ...(post.publishedAt && { datePublished: typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toISOString() }),
     ...(post.updatedAt && { dateModified: typeof post.updatedAt === 'string' ? post.updatedAt : post.updatedAt.toISOString() }),
     ...(post.featuredImage && { image: post.featuredImage }),
-    author: { '@type': 'Organization', name: post.author },
+    author: {
+      '@type': 'Person',
+      name: post.author || 'PreConstructionMiami.net',
+      url: 'https://preconstructionmiami.net/about',
+      jobTitle: 'Real Estate Market Analyst',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'PreConstructionMiami.net',
+        url: 'https://preconstructionmiami.net',
+      },
+    },
     publisher: {
       '@type': 'Organization',
       name: 'PreConstructionMiami.net',
@@ -164,6 +181,43 @@ export function generateArticleSchema(post: {
       '@type': 'WebPage',
       '@id': `https://preconstructionmiami.net/blog/${post.slug}`,
     },
+  };
+}
+
+export function generateHowToSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to Buy a Pre-Construction Condo in Miami',
+    description: 'A four-step guide to purchasing a pre-construction condo in South Florida, from browsing to move-in.',
+    totalTime: 'P24M',
+    step: [
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: 'Browse Projects',
+        text: 'Explore 200+ pre-construction developments across South Florida with detailed specs, pricing, and floor plans.',
+        url: 'https://preconstructionmiami.net/new-condos',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: 'Reserve Your Unit',
+        text: 'Secure your preferred unit with a reservation deposit, typically $10K-$50K. Lock in pre-construction pricing before public launch.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 3,
+        name: 'Track Construction',
+        text: 'Monitor construction milestones and make scheduled deposit payments, typically 50% total before completion.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 4,
+        name: 'Close and Move In',
+        text: 'Receive your keys to a brand-new home. Close with a mortgage or cash for the remaining balance at completion.',
+      },
+    ],
   };
 }
 

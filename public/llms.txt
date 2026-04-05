@@ -2,6 +2,8 @@
 
 > South Florida's premier marketplace for pre-construction condos. Access 200+ new developments across 24 neighborhoods from Brickell to West Palm Beach.
 
+For the complete content guide, see: https://preconstructionmiami.net/llms-full.txt
+
 ## About
 
 PreConstructionMiami.net is an informational technology and advertising platform that aggregates publicly available data about pre-construction real estate projects in South Florida. We connect buyers and investors with new developments across Miami-Dade, Broward, and Palm Beach counties.

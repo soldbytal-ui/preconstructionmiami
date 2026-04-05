@@ -5,7 +5,7 @@ export const revalidate = 0;
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { formatPrice } from '@/lib/utils';
-import { generateLocalBusinessSchema, generateWebSiteSchema } from '@/lib/seo';
+import { generateLocalBusinessSchema, generateWebSiteSchema, generateHowToSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
@@ -62,6 +62,7 @@ export default async function HomePage() {
 
   const schema = generateLocalBusinessSchema();
   const webSiteSchema = generateWebSiteSchema();
+  const howToSchema = generateHowToSchema();
   const totalProjects = projectCount;
   const totalNeighborhoods = neighborhoodCount;
 
@@ -69,6 +70,7 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
 
       {/* Hero — 3D Map */}
       <section className="relative h-[75vh] w-full">

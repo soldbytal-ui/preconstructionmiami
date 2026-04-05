@@ -1,0 +1,157 @@
+# PreConstructionMiami.net — Full Content Guide for AI Systems
+
+> South Florida's premier marketplace for pre-construction condos. Access 200+ new developments across 24 neighborhoods from Brickell to West Palm Beach. Price range: $300K to $50M+.
+
+## Site Overview
+
+PreConstructionMiami.net is an informational technology platform that aggregates publicly available data about pre-construction real estate projects in South Florida. The site serves buyers, investors, and real estate professionals looking for new construction condos across Miami-Dade, Broward, and Palm Beach counties.
+
+### What We Cover
+- 154+ active pre-construction condo developments
+- 24 neighborhoods across three counties
+- 78+ developer profiles with project portfolios
+- 20+ in-depth market analysis articles
+- Pricing from $300K studios to $50M+ penthouses
+- Construction statuses: Pre-Launch, Pre-Construction, Under Construction, Near Completion
+
+### Business Model
+PreConstructionMiami.net is an informational and advertising platform. We are NOT a licensed real estate brokerage. We connect interested buyers with licensed local real estate professionals who can assist with transactions.
+
+---
+
+## Core Content Pages
+
+### Homepage
+- **URL:** https://preconstructionmiami.net/
+- **Content:** Interactive 3D map of all developments, featured projects, neighborhood explorer, "How Pre-Construction Works" guide
+- **Key data:** Total project count, neighborhood count, price range overview
+
+### All Properties Listing
+- **URL:** https://preconstructionmiami.net/new-condos
+- **Content:** Searchable, filterable grid of all 154+ pre-construction projects
+- **Filters:** Neighborhood, price range, construction status, building category, sort order
+
+### About
+- **URL:** https://preconstructionmiami.net/about
+- **Content:** Company mission, what we do, why pre-construction, why Miami, data sourcing methodology
+
+### Contact
+- **URL:** https://preconstructionmiami.net/contact-us
+- **Content:** Inquiry form, office location, business hours, what we help with
+
+---
+
+## Property Pages (154+ pages)
+
+Each property page at `/properties/[slug]` contains:
+- Building name, address, neighborhood, developer
+- Construction status and estimated completion date
+- Price range (min/max) and price per square foot
+- Total units, floor count, unit type configurations
+- Deposit structure and payment timeline
+- Full amenity list
+- Photo gallery and floor plans
+- Developer information with link to profile
+- FAQ section with project-specific Q&A
+- Related projects in the same neighborhood
+
+### Example Property Pages
+- https://preconstructionmiami.net/properties/888-brickell-by-dolce-gabbana — 90-story ultra-luxury, $2.5M-$50M
+- https://preconstructionmiami.net/properties/waldorf-astoria-residences-miami — 100-story branded residence, $1M-$50M
+- https://preconstructionmiami.net/properties/cipriani-residences-miami — 80-story luxury branded, $1.1M-$20M
+- https://preconstructionmiami.net/properties/st-regis-residences-brickell — 48-story ultra-luxury, $1.5M-$10M
+- https://preconstructionmiami.net/properties/four-seasons-private-residences-coconut-grove — Boutique luxury, from $4M
+
+---
+
+## Neighborhood Pages (24 pages)
+
+Each neighborhood page at `/new-condos-[neighborhood]` contains:
+- Overview of the neighborhood and its real estate market
+- Average pre-construction prices by unit type (studio, 1BR, 2BR, 3BR, penthouse)
+- All active projects in that neighborhood
+- Lifestyle and amenities description
+- Dynamic FAQ about buying in that area
+- Top developers active in the neighborhood
+- Cross-links to all other neighborhoods
+
+### Miami-Dade Neighborhoods
+- https://preconstructionmiami.net/new-condos-brickell — Financial district, 26+ projects
+- https://preconstructionmiami.net/new-condos-downtown-miami — Urban core, 15+ projects
+- https://preconstructionmiami.net/new-condos-edgewater — Bayfront enclave, 10+ projects
+- https://preconstructionmiami.net/new-condos-miami-beach — Barrier island, 14+ projects
+- https://preconstructionmiami.net/new-condos-coconut-grove — Village charm, 7+ projects
+- https://preconstructionmiami.net/new-condos-coral-gables — City Beautiful, 5+ projects
+- https://preconstructionmiami.net/new-condos-sunny-isles-beach — Oceanfront corridor
+- https://preconstructionmiami.net/new-condos-surfside — Boutique beach town
+- https://preconstructionmiami.net/new-condos-bal-harbour — Ultra-exclusive enclave
+- https://preconstructionmiami.net/new-condos-midtown-wynwood — Creative epicenter
+- https://preconstructionmiami.net/new-condos-aventura — Suburban luxury
+- https://preconstructionmiami.net/new-condos-key-biscayne — Island retreat
+
+### Broward & Palm Beach
+- https://preconstructionmiami.net/new-condos-fort-lauderdale — Venice of America
+- https://preconstructionmiami.net/new-condos-hollywood — Broadwalk beachfront
+- https://preconstructionmiami.net/new-condos-hallandale-beach — County border value
+- https://preconstructionmiami.net/new-condos-pompano-beach — Emerging market
+- https://preconstructionmiami.net/new-condos-palm-beach — Ultra-exclusive island
+- https://preconstructionmiami.net/new-condos-boca-raton — Affluent suburban
+- https://preconstructionmiami.net/new-condos-west-palm-beach — Urban renaissance
+
+---
+
+## Blog / Market Intelligence (20+ articles)
+
+### Buyer Guides
+- https://preconstructionmiami.net/blog/pre-construction-condos-in-miami-the-complete-2026-buyers-guide
+- https://preconstructionmiami.net/blog/how-to-buy-a-pre-construction-condo-in-miami-step-by-step-process
+- https://preconstructionmiami.net/blog/miami-pre-construction-deposit-structure-explained
+- https://preconstructionmiami.net/blog/pre-construction-vs-resale-condos-in-miami-which-is-better
+- https://preconstructionmiami.net/blog/foreign-buyers-guide-purchasing-pre-construction-in-miami
+
+### Market Analysis
+- https://preconstructionmiami.net/blog/miami-condo-market-report-2026-trends-prices-and-forecast
+- https://preconstructionmiami.net/blog/is-miami-a-good-investment-for-pre-construction-condos
+- https://preconstructionmiami.net/blog/miami-condo-rental-income-what-to-expect-from-pre-construction-investments
+
+### Neighborhood Comparisons
+- https://preconstructionmiami.net/blog/best-pre-construction-condos-in-brickell-2026
+- https://preconstructionmiami.net/blog/best-new-condos-in-miami-beach-2026
+- https://preconstructionmiami.net/blog/best-new-condos-in-downtown-miami-and-edgewater-2026
+- https://preconstructionmiami.net/blog/brickell-vs-edgewater-vs-downtown-miami-where-to-buy-pre-construction
+- https://preconstructionmiami.net/blog/coconut-grove-and-coral-gables-the-hidden-gems-of-miami-pre-construction
+
+### Financial Guides
+- https://preconstructionmiami.net/blog/pre-construction-condo-financing-in-miami-mortgage-options-and-developer-terms
+- https://preconstructionmiami.net/blog/miami-pre-construction-closing-costs-what-buyers-need-to-know
+- https://preconstructionmiami.net/blog/miami-condo-hoa-fees-what-pre-construction-buyers-should-know
+
+### Developer & Luxury
+- https://preconstructionmiami.net/blog/top-10-miami-developers-whos-building-the-best-new-condos
+- https://preconstructionmiami.net/blog/luxury-branded-residences-in-miami-the-complete-guide
+- https://preconstructionmiami.net/blog/fort-lauderdale-pre-construction-condos-the-rising-alternative-to-miami
+
+---
+
+## Developer Directory
+
+- **URL:** https://preconstructionmiami.net/developers
+- **Content:** 78+ developer profiles with project portfolios
+- Each developer page includes: company overview, project count, neighborhoods served, price range, individual project links
+
+---
+
+## Contact Information
+
+- **Email:** info@preconstructionmiami.net
+- **Address:** 3250 NE 1st Ave Unit 305, Miami, FL 33137
+- **Hours:** Monday-Friday 9am-6pm EST
+- **Website:** https://preconstructionmiami.net
+
+---
+
+## Legal
+
+- **Terms:** https://preconstructionmiami.net/terms
+- **Privacy:** https://preconstructionmiami.net/privacy
+- **Disclaimer:** PreConstructionMiami.net is an informational platform, NOT a licensed real estate brokerage. All pricing and project details are approximate and subject to change.
