@@ -48,7 +48,7 @@ export default function FloorPlans({
           <div className="grid grid-cols-2 gap-3 p-4 filter blur-md pointer-events-none select-none">
             {floorPlans.slice(0, 4).map((fp, i) => (
               <div key={i} className="aspect-[3/4] bg-surface2 rounded-xl overflow-hidden">
-                <img src={fp.url} alt="" className="w-full h-full object-cover" />
+                <img src={fp.url} alt={fp.label || `${projectName} floor plan preview ${i + 1}`} className="w-full h-full object-cover" />
               </div>
             ))}
           </div>

@@ -143,7 +143,7 @@ export function generateArticleSchema(post: {
 }) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'BlogPosting',
     headline: post.title,
     url: `https://preconstructionmiami.net/blog/${post.slug}`,
     ...(post.excerpt && { description: post.excerpt }),

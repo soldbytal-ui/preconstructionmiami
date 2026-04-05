@@ -6,20 +6,20 @@ import { supabase } from '@/lib/supabase';
 import { generateBreadcrumbSchema } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Miami Pre-Construction Blog | Market Reports, Guides & Tips',
+  title: 'Miami Pre-Construction Blog | Market Reports & Guides',
   description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, neighborhood comparisons, investment analysis, and more.',
   alternates: {
     canonical: 'https://preconstructionmiami.net/blog',
   },
   openGraph: {
-    title: 'Miami Pre-Construction Blog | Market Reports, Guides & Tips',
+    title: 'Miami Pre-Construction Blog | Market Reports & Guides',
     description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, neighborhood comparisons, and investment analysis.',
     url: 'https://preconstructionmiami.net/blog',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Miami Pre-Construction Blog | Market Reports, Guides & Tips',
+    title: 'Miami Pre-Construction Blog | Market Reports & Guides',
     description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, and investment analysis.',
   },
 };
