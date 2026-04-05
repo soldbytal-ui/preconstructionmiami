@@ -31,6 +31,11 @@ export default async function DevelopersPage() {
     .select('*, projects:projects(id, name, slug, priceMin, priceMax, neighborhood:neighborhoods(name))')
     .order('name');
 
+  // Filter to only show developers with at least 1 project
+  const devsWithProjects = (developers || []).filter(
+    (d: any) => d.projects && d.projects.length > 0
+  );
+
   const breadcrumb = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
     { name: 'Developers', url: 'https://preconstructionmiami.net/developers' },
@@ -42,11 +47,6 @@ export default async function DevelopersPage() {
       url: `https://preconstructionmiami.net/developers/${d.slug}`,
       position: i + 1,
     }))
-  );
-
-  // Filter to only show developers with at least 1 project
-  const devsWithProjects = (developers || []).filter(
-    (d: any) => d.projects && d.projects.length > 0
   );
 
   return (
