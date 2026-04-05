@@ -2,8 +2,17 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | PreConstructionMiami.net',
+  title: 'Terms of Service',
   description: 'Terms of Service for PreConstructionMiami.net. Read our terms governing the use of our informational real estate platform.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | PreConstructionMiami.net',
+    description: 'Terms of Service governing the use of PreConstructionMiami.net informational real estate platform.',
+    url: 'https://preconstructionmiami.net/terms',
+    type: 'website',
+  },
 };
 
 export default function TermsPage() {

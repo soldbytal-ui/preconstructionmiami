@@ -5,6 +5,10 @@ export function generateLocalBusinessSchema() {
     name: 'PreConstructionMiami.net',
     description: 'Miami\'s premier pre-construction condo marketplace. Access 200+ new developments across South Florida.',
     url: 'https://preconstructionmiami.net',
+    logo: 'https://preconstructionmiami.net/og-image.png',
+    image: 'https://preconstructionmiami.net/og-image.png',
+    telephone: '+1-305-000-0000',
+    email: 'info@preconstructionmiami.net',
     address: {
       '@type': 'PostalAddress',
       streetAddress: '3250 NE 1st Ave Unit 305',
@@ -13,6 +17,11 @@ export function generateLocalBusinessSchema() {
       postalCode: '33137',
       addressCountry: 'US',
     },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 25.8095,
+      longitude: -80.1918,
+    },
     areaServed: [
       { '@type': 'City', name: 'Miami', containedInPlace: { '@type': 'State', name: 'Florida' } },
       { '@type': 'County', name: 'Miami-Dade County' },
@@ -20,7 +29,40 @@ export function generateLocalBusinessSchema() {
       { '@type': 'County', name: 'Palm Beach County' },
     ],
     priceRange: '$300K - $50M+',
+    openingHoursSpecification: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '09:00',
+      closes: '18:00',
+    },
+    sameAs: [],
     knowsAbout: ['pre-construction condos', 'Miami real estate', 'new construction', 'luxury condominiums', 'South Florida developments'],
+  };
+}
+
+export function generateOrganizationSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'PreConstructionMiami.net',
+    url: 'https://preconstructionmiami.net',
+    logo: 'https://preconstructionmiami.net/og-image.png',
+    description: 'South Florida\'s most comprehensive pre-construction condo marketplace connecting buyers and investors with 200+ new developments.',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '3250 NE 1st Ave Unit 305',
+      addressLocality: 'Miami',
+      addressRegion: 'FL',
+      postalCode: '33137',
+      addressCountry: 'US',
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: 'info@preconstructionmiami.net',
+      contactType: 'customer service',
+      availableLanguage: ['English', 'Spanish'],
+    },
+    sameAs: [],
   };
 }
 
@@ -95,7 +137,9 @@ export function generateArticleSchema(post: {
   slug: string;
   excerpt?: string | null;
   publishedAt?: Date | string | null;
+  updatedAt?: Date | string | null;
   author: string;
+  featuredImage?: string | null;
 }) {
   return {
     '@context': 'https://schema.org',
@@ -104,11 +148,21 @@ export function generateArticleSchema(post: {
     url: `https://preconstructionmiami.net/blog/${post.slug}`,
     ...(post.excerpt && { description: post.excerpt }),
     ...(post.publishedAt && { datePublished: typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toISOString() }),
+    ...(post.updatedAt && { dateModified: typeof post.updatedAt === 'string' ? post.updatedAt : post.updatedAt.toISOString() }),
+    ...(post.featuredImage && { image: post.featuredImage }),
     author: { '@type': 'Organization', name: post.author },
     publisher: {
       '@type': 'Organization',
       name: 'PreConstructionMiami.net',
       url: 'https://preconstructionmiami.net',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://preconstructionmiami.net/og-image.png',
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://preconstructionmiami.net/blog/${post.slug}`,
     },
   };
 }

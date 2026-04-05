@@ -1,16 +1,44 @@
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import InquiryForm from '@/components/projects/InquiryForm';
+import { generateBreadcrumbSchema } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
   description: 'Get in touch with PreConstructionMiami.net. We help buyers and investors navigate Miami pre-construction condos.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net/contact-us',
+  },
+  openGraph: {
+    title: 'Contact PreConstructionMiami.net',
+    description: 'Get in touch with our team. We help buyers and investors navigate Miami pre-construction condos.',
+    url: 'https://preconstructionmiami.net/contact-us',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Contact PreConstructionMiami.net',
+    description: 'Get in touch. We help buyers and investors navigate Miami pre-construction condos.',
+  },
 };
 
 export default function ContactPage() {
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: 'Home', url: 'https://preconstructionmiami.net' },
+    { name: 'Contact Us', url: 'https://preconstructionmiami.net/contact-us' },
+  ]);
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     <div className="container-main pt-24 pb-10">
+      <nav className="text-sm text-text-muted mb-6 flex items-center gap-2">
+        <Link href="/" className="hover:text-accent-green transition-colors">Home</Link>
+        <span className="text-text-muted/30">/</span>
+        <span className="text-text-primary font-medium">Contact Us</span>
+      </nav>
       <div className="mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-text-primary">Contact Us</h1>
         <p className="text-text-muted mt-2">We&apos;d love to hear from you. Reach out and we&apos;ll get back within 24 hours.</p>
@@ -86,5 +114,6 @@ export default function ContactPage() {
         <p className="text-sm text-text-muted mt-3">3250 NE 1st Ave Unit 305, Miami, FL 33137, United States</p>
       </div>
     </div>
+    </>
   );
 }

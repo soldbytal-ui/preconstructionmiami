@@ -44,6 +44,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'website',
       ...(project.mainImageUrl && { images: [{ url: project.mainImageUrl, alt: project.name }] }),
     },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(project.mainImageUrl && { images: [project.mainImageUrl] }),
+    },
   };
 }
 

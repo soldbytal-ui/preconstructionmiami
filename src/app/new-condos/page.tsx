@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import type { Metadata } from 'next';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ProjectFilters from '@/components/projects/ProjectFilters';
+import { generateBreadcrumbSchema } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'New Condos in Miami | Browse All Pre-Construction Projects',
@@ -17,6 +18,11 @@ export const metadata: Metadata = {
     description: 'Browse 200+ new pre-construction condo projects across Miami-Dade, Broward & Palm Beach.',
     url: 'https://preconstructionmiami.net/new-condos',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'New Condos in Miami | Browse All Pre-Construction Projects',
+    description: 'Browse 200+ new pre-construction condo projects across Miami-Dade, Broward & Palm Beach.',
   },
 };
 
@@ -59,7 +65,14 @@ export default async function NewCondosPage({ searchParams }: Props) {
   });
   const total = projects.length;
 
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: 'Home', url: 'https://preconstructionmiami.net' },
+    { name: 'New Condos', url: 'https://preconstructionmiami.net/new-condos' },
+  ]);
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     <div className="container-main pt-24 pb-10">
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-text-primary">
@@ -87,5 +100,6 @@ export default async function NewCondosPage({ searchParams }: Props) {
         </div>
       )}
     </div>
+    </>
   );
 }

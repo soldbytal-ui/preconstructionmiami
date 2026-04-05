@@ -14,15 +14,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const { data: dev } = await supabase
     .from('developers')
-    .select('name')
+    .select('name, description, logoUrl')
     .eq('slug', slug)
     .single();
 
   if (!dev) return { title: 'Developer Not Found' };
 
+  const title = `${dev.name} | Miami Developer Profile`;
+  const description = dev.description
+    ? dev.description.slice(0, 160)
+    : `Explore ${dev.name}'s pre-construction condo portfolio in South Florida. View projects, pricing, and developer track record.`;
+
   return {
-    title: `${dev.name} | Miami Developer Profile`,
-    description: `Explore ${dev.name}'s pre-construction condo portfolio in South Florida. View projects, pricing, and developer track record.`,
+    title,
+    description,
+    alternates: {
+      canonical: `https://preconstructionmiami.net/developers/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://preconstructionmiami.net/developers/${slug}`,
+      type: 'website',
+      ...(dev.logoUrl && { images: [{ url: dev.logoUrl, alt: dev.name }] }),
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
   };
 }
 

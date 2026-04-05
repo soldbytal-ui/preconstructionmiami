@@ -3,10 +3,25 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
+import { generateBreadcrumbSchema } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Miami Pre-Construction Blog | Market Reports, Guides & Tips',
   description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, neighborhood comparisons, investment analysis, and more.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net/blog',
+  },
+  openGraph: {
+    title: 'Miami Pre-Construction Blog | Market Reports, Guides & Tips',
+    description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, neighborhood comparisons, and investment analysis.',
+    url: 'https://preconstructionmiami.net/blog',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Miami Pre-Construction Blog | Market Reports, Guides & Tips',
+    description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, and investment analysis.',
+  },
 };
 
 function cleanKeyword(kw: string | null) {
@@ -89,7 +104,14 @@ export default async function BlogPage() {
   const featured = allPosts[0];
   const rest = allPosts.slice(1);
 
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: 'Home', url: 'https://preconstructionmiami.net' },
+    { name: 'Blog', url: 'https://preconstructionmiami.net/blog' },
+  ]);
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     <div className="container-main pt-24 pb-16">
       {/* Hero Header */}
       <div className="mb-12 max-w-2xl">
@@ -216,5 +238,6 @@ export default async function BlogPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -32,6 +32,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `https://preconstructionmiami.net/new-condos-${n.slug}`,
       type: 'website',
     },
+    twitter: {
+      card: 'summary_large_image',
+      title: n.metaTitle || `New Pre-Construction Condos in ${n.name}`,
+      description: n.metaDescription || `Browse pre-construction condos in ${n.name}.`,
+    },
   };
 }
 

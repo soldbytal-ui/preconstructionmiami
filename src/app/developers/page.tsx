@@ -3,12 +3,26 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
-import { generateBreadcrumbSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, generateItemListSchema } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Miami Pre-Construction Developers | PreConstructionMiami.net',
+  title: 'Miami Pre-Construction Developers',
   description:
     'Explore top pre-construction condo developers in South Florida. Browse developer profiles, project portfolios, and track records from Brickell to Palm Beach.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net/developers',
+  },
+  openGraph: {
+    title: 'Miami Pre-Construction Developers',
+    description: 'Explore top pre-construction condo developers in South Florida. Browse profiles, portfolios, and track records.',
+    url: 'https://preconstructionmiami.net/developers',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Miami Pre-Construction Developers',
+    description: 'Explore top pre-construction condo developers in South Florida.',
+  },
 };
 
 export default async function DevelopersPage() {
@@ -22,6 +36,14 @@ export default async function DevelopersPage() {
     { name: 'Developers', url: 'https://preconstructionmiami.net/developers' },
   ]);
 
+  const itemList = generateItemListSchema(
+    devsWithProjects.map((d: any, i: number) => ({
+      name: d.name,
+      url: `https://preconstructionmiami.net/developers/${d.slug}`,
+      position: i + 1,
+    }))
+  );
+
   // Filter to only show developers with at least 1 project
   const devsWithProjects = (developers || []).filter(
     (d: any) => d.projects && d.projects.length > 0
@@ -30,6 +52,7 @@ export default async function DevelopersPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }} />
       <div className="max-w-7xl mx-auto px-6 pt-28 pb-16">
         {/* Breadcrumb */}
         <nav className="text-sm text-text-muted mb-8 flex items-center gap-2">

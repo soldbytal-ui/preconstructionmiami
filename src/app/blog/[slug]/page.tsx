@@ -68,9 +68,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('slug', slug)
     .single();
   if (!post) return { title: 'Post Not Found' };
+  const title = post.metaTitle || post.title;
+  const description = post.metaDescription || getExcerpt(post) || post.title;
   return {
-    title: post.metaTitle || post.title,
-    description: post.metaDescription || getExcerpt(post) || post.title,
+    title,
+    description,
+    alternates: {
+      canonical: `https://preconstructionmiami.net/blog/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://preconstructionmiami.net/blog/${slug}`,
+      type: 'article',
+      ...(post.publishedAt && { publishedTime: new Date(post.publishedAt).toISOString() }),
+      ...(post.featuredImage && { images: [{ url: post.featuredImage, alt: title }] }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(post.featuredImage && { images: [post.featuredImage] }),
+    },
   };
 }
 

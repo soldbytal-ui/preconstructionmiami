@@ -1,0 +1,54 @@
+# PreConstructionMiami.net
+
+> South Florida's premier marketplace for pre-construction condos. Access 200+ new developments across 24 neighborhoods from Brickell to West Palm Beach.
+
+## About
+
+PreConstructionMiami.net is an informational technology and advertising platform that aggregates publicly available data about pre-construction real estate projects in South Florida. We connect buyers and investors with new developments across Miami-Dade, Broward, and Palm Beach counties.
+
+## Key Pages
+
+- [Homepage](https://preconstructionmiami.net/): Overview of the marketplace with featured projects and interactive 3D map
+- [All Properties](https://preconstructionmiami.net/new-condos): Browse 200+ pre-construction condo projects with filters
+- [Developers](https://preconstructionmiami.net/developers): Explore top pre-construction condo developers in South Florida
+- [Blog](https://preconstructionmiami.net/blog): Expert market analysis, buyer guides, and investment strategies
+- [About](https://preconstructionmiami.net/about): About the platform and our mission
+- [Contact](https://preconstructionmiami.net/contact-us): Get in touch with our team
+
+## Neighborhood Pages
+
+- [Brickell](https://preconstructionmiami.net/new-condos-brickell)
+- [Downtown Miami](https://preconstructionmiami.net/new-condos-downtown-miami)
+- [Edgewater](https://preconstructionmiami.net/new-condos-edgewater)
+- [Miami Beach](https://preconstructionmiami.net/new-condos-miami-beach)
+- [South Beach](https://preconstructionmiami.net/new-condos-south-beach)
+- [Coconut Grove](https://preconstructionmiami.net/new-condos-coconut-grove)
+- [Coral Gables](https://preconstructionmiami.net/new-condos-coral-gables)
+- [Sunny Isles Beach](https://preconstructionmiami.net/new-condos-sunny-isles-beach)
+- [Surfside](https://preconstructionmiami.net/new-condos-surfside)
+- [Bal Harbour](https://preconstructionmiami.net/new-condos-bal-harbour)
+- [Key Biscayne](https://preconstructionmiami.net/new-condos-key-biscayne)
+- [Aventura](https://preconstructionmiami.net/new-condos-aventura)
+- [Fort Lauderdale](https://preconstructionmiami.net/new-condos-fort-lauderdale)
+- [Hollywood](https://preconstructionmiami.net/new-condos-hollywood)
+- [Hallandale Beach](https://preconstructionmiami.net/new-condos-hallandale-beach)
+- [Palm Beach](https://preconstructionmiami.net/new-condos-palm-beach)
+- [Boca Raton](https://preconstructionmiami.net/new-condos-boca-raton)
+- [West Palm Beach](https://preconstructionmiami.net/new-condos-west-palm-beach)
+
+## Topics Covered
+
+- Pre-construction condo pricing and availability in Miami
+- Neighborhood comparisons and market analysis
+- Developer profiles and track records
+- Deposit structures and payment timelines
+- Investment analysis and ROI projections
+- Construction status updates and completion timelines
+- Floor plans and amenity details
+- Miami real estate market trends
+
+## Contact
+
+- Email: info@preconstructionmiami.net
+- Address: 3250 NE 1st Ave Unit 305, Miami, FL 33137
+- Hours: Monday-Friday 9am-6pm EST

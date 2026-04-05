@@ -2,8 +2,17 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | PreConstructionMiami.net',
+  title: 'Privacy Policy',
   description: 'Privacy Policy for PreConstructionMiami.net. Learn how we collect, use, and protect your personal information.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | PreConstructionMiami.net',
+    description: 'Learn how PreConstructionMiami.net collects, uses, and protects your personal information.',
+    url: 'https://preconstructionmiami.net/privacy',
+    type: 'website',
+  },
 };
 
 export default function PrivacyPage() {

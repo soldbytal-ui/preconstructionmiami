@@ -2,14 +2,38 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { generateBreadcrumbSchema, generateOrganizationSchema } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'About Us',
   description: 'PreConstructionMiami.net is Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 200+ developments.',
+  alternates: {
+    canonical: 'https://preconstructionmiami.net/about',
+  },
+  openGraph: {
+    title: 'About PreConstructionMiami.net',
+    description: 'Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 200+ developments.',
+    url: 'https://preconstructionmiami.net/about',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'About PreConstructionMiami.net',
+    description: 'Miami\'s premier marketplace for new construction condos. Connecting buyers with 200+ developments.',
+  },
 };
 
 export default function AboutPage() {
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: 'Home', url: 'https://preconstructionmiami.net' },
+    { name: 'About', url: 'https://preconstructionmiami.net/about' },
+  ]);
+  const orgSchema = generateOrganizationSchema();
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
     <div className="container-main pt-24 pb-10 max-w-4xl">
       <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-8">About PreConstructionMiami.net</h1>
 
@@ -82,5 +106,6 @@ export default function AboutPage() {
         <Link href="/contact-us" className="btn-primary">Get in Touch</Link>
       </div>
     </div>
+    </>
   );
 }
