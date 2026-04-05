@@ -80,10 +80,16 @@ export default async function PropertyDetailPage({ params }: Props) {
     { name: project.name, url: `https://preconstructionmiami.net/properties/${project.slug}` },
   ]);
 
-  const amenities = (project.amenities as string[] | null) || [];
+  // Defensive: amenities may be stored as string, array, or null
+  let amenities: string[] = [];
+  if (Array.isArray(project.amenities)) {
+    amenities = project.amenities;
+  } else if (typeof project.amenities === 'string') {
+    try { amenities = JSON.parse(project.amenities); } catch { amenities = []; }
+  }
   const projectImages = (project.images as any) || {};
-  const galleryImages = (projectImages.gallery || []) as { url: string; alt?: string; type?: string }[];
-  const floorPlanImages = (projectImages.floorPlans || []) as { url: string; label?: string }[];
+  const galleryImages = Array.isArray(projectImages.gallery) ? projectImages.gallery as { url: string; alt?: string; type?: string }[] : [];
+  const floorPlanImages = Array.isArray(projectImages.floorPlans) ? projectImages.floorPlans as { url: string; label?: string }[] : [];
 
   return (
     <>
