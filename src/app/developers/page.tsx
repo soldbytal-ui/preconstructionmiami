@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic';
-
+// fix: moved devsWithProjects before itemList to prevent ReferenceError
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
