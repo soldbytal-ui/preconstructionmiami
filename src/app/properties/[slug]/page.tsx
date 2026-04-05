@@ -173,8 +173,8 @@ export default async function PropertyDetailPage({ params }: Props) {
               </div>
             )}
 
-            {/* Description — renders markdown for SEO content */}
-            {project.description && (
+            {/* Description — single unified content section */}
+            {(project.longDescription || project.description) && (
               <div className="prose prose-invert prose-sm max-w-none
                 prose-headings:text-text-primary prose-headings:font-semibold
                 prose-h2:text-lg prose-h2:mt-10 prose-h2:mb-3 prose-h2:pl-4 prose-h2:border-l-[3px] prose-h2:border-accent-green/60
@@ -199,7 +199,7 @@ export default async function PropertyDetailPage({ params }: Props) {
                     ),
                   }}
                 >
-                  {project.description}
+                  {project.longDescription || project.description}
                 </Markdown>
               </div>
             )}
@@ -230,24 +230,6 @@ export default async function PropertyDetailPage({ params }: Props) {
               <div className="glass-panel rounded-xl p-4">
                 <div className="text-xs text-text-muted uppercase tracking-wider mb-1">Architect</div>
                 <div className="text-text-primary font-medium">{project.architect}</div>
-              </div>
-            )}
-
-            {/* Long SEO Description — only show if different from description */}
-            {project.longDescription && project.longDescription !== project.description && (
-              <div className="prose-content">
-                <div
-                  className="text-text-muted leading-relaxed [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-text-primary [&_h3]:mt-8 [&_h3]:mb-3 [&_a]:text-accent-green [&_a]:hover:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_p]:mb-4 whitespace-pre-line"
-                  dangerouslySetInnerHTML={{
-                    __html: project.longDescription
-                      .replace(/### (.+)/g, '<h3>$1</h3>')
-                      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-                      .replace(/^- (.+)$/gm, '<li>$1</li>')
-                      .replace(/(<li>.*<\/li>\n?)+/gs, '<ul>$&</ul>')
-                      .replace(/\n\n/g, '</p><p>')
-                      .replace(/^(?!<[hula])(.+)$/gm, '<p>$1</p>')
-                  }}
-                />
               </div>
             )}
 
