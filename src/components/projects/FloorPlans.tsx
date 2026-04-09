@@ -31,6 +31,22 @@ export default function FloorPlans({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, projectId, source: 'floor_plan' }),
       });
+
+      // Forward to CRM — silent fail never blocks user
+      fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          phone: '',
+          message: '',
+          project: projectName || '',
+          neighborhood: '',
+          source: `Floor Plan Unlock - ${projectName}`,
+        }),
+      }).catch(() => {});
+
       setUnlocked(true);
     } catch {
       setUnlocked(true);

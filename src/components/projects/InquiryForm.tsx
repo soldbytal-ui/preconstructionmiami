@@ -28,6 +28,22 @@ export default function InquiryForm({
         body: JSON.stringify({ ...data, projectId, neighborhoodId, source }),
       });
       if (!res.ok) throw new Error();
+
+      // Forward to CRM — silent fail never blocks user
+      fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phone: data.phone || '',
+          message: data.message || '',
+          project: projectName || '',
+          neighborhood: neighborhoodId || '',
+          source: projectName ? `Listing Page - ${projectName}` : source === 'contact' ? 'Contact Form' : source === 'neighborhood' ? 'Neighborhood Page' : `Inquiry Form - ${source}`,
+        }),
+      }).catch(() => {});
+
       setStatus('success');
       reset();
     } catch {
