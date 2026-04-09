@@ -33,7 +33,7 @@ export default function FloorPlans({
       });
 
       // Forward to CRM — silent fail never blocks user
-      fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
+      const crmRes = await fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -45,7 +45,11 @@ export default function FloorPlans({
           neighborhood: '',
           source: `Floor Plan Unlock - ${projectName}`,
         }),
-      }).catch(() => {});
+      }).catch(() => null);
+      const crmData = await crmRes?.json().catch(() => ({}));
+      if (crmData?.leadId) {
+        document.cookie = `crm_lid=${crmData.leadId}; max-age=${60*60*24*365}; path=/; SameSite=Lax`;
+      }
 
       setUnlocked(true);
     } catch {

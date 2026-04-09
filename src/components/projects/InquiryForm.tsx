@@ -30,7 +30,7 @@ export default function InquiryForm({
       if (!res.ok) throw new Error();
 
       // Forward to CRM — silent fail never blocks user
-      fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
+      const crmRes = await fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -42,7 +42,11 @@ export default function InquiryForm({
           neighborhood: neighborhoodId || '',
           source: projectName ? `Listing Page - ${projectName}` : source === 'contact' ? 'Contact Form' : source === 'neighborhood' ? 'Neighborhood Page' : `Inquiry Form - ${source}`,
         }),
-      }).catch(() => {});
+      }).catch(() => null);
+      const crmData = await crmRes?.json().catch(() => ({}));
+      if (crmData?.leadId) {
+        document.cookie = `crm_lid=${crmData.leadId}; max-age=${60*60*24*365}; path=/; SameSite=Lax`;
+      }
 
       setStatus('success');
       reset();
