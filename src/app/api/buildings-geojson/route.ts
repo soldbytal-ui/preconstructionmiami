@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { buildTower } from '@/lib/massing';
 
 // Rebuilt at most every 5 minutes and served from the CDN in between.
 export const revalidate = 300;
@@ -50,7 +51,7 @@ export async function GET() {
   const [{ data: projects, error }, { data: neighborhoods }, { data: developers }] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, name, slug, latitude, longitude, floors, totalUnits, priceMin, priceMax, status, category, address, estCompletion, description, mainImageUrl, footprint, neighborhoodId, developerId, featured')
+      .select('id, name, slug, latitude, longitude, floors, totalUnits, priceMin, priceMax, status, category, address, estCompletion, description, mainImageUrl, footprint, neighborhoodId, developerId, featured, heightM, heightIsPublished, massing, hiddenBaseIds')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null),
     supabase.from('neighborhoods').select('id, name, slug'),
@@ -68,6 +69,8 @@ export async function GET() {
   for (const d of developers || []) dev[d.id] = d.name;
 
   const features: any[] = [];
+  const pads: any[] = [];
+  const hiddenBaseIds: number[] = [];
   const lookup: Record<string, any> = {};
 
   for (const p of projects || []) {
@@ -100,17 +103,46 @@ export async function GET() {
       featured: !!p.featured,
     };
 
-    for (const part of massing(ring, drawFloors)) {
-      features.push({
+    // Projects with a recipe get a data-built tower in real tones; the rest
+    // keep the simple status-coloured massing until theirs is done.
+    const realistic = p.massing
+      ? buildTower({ lot: ring, floors: p.floors, heightM: p.heightM ? Number(p.heightM) : null, recipe: p.massing as any })
+      : null;
+
+    if (realistic) {
+      lookup[p.id].realistic = true;
+      for (const part of realistic.parts) {
+        features.push({
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [part.ring] },
+          properties: { id: p.id, status: p.status, base: part.base, height: part.height, color: part.color },
+        });
+      }
+      pads.push({
         type: 'Feature',
-        geometry: { type: 'Polygon', coordinates: [part.ring] },
-        properties: { id: p.id, status: p.status, base: part.base, height: part.height },
+        geometry: { type: 'Polygon', coordinates: [realistic.pad] },
+        properties: { id: p.id, status: p.status },
       });
+      if (Array.isArray(p.hiddenBaseIds)) hiddenBaseIds.push(...(p.hiddenBaseIds as number[]));
+    } else {
+      for (const part of massing(ring, drawFloors)) {
+        features.push({
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [part.ring] },
+          properties: { id: p.id, status: p.status, base: part.base, height: part.height },
+        });
+      }
     }
   }
 
   return NextResponse.json(
-    { type: 'FeatureCollection', features, projects: lookup },
+    {
+      type: 'FeatureCollection',
+      features,
+      projects: lookup,
+      pads: { type: 'FeatureCollection', features: pads },
+      hiddenBaseIds,
+    },
     { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } }
   );
 }

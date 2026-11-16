@@ -18,9 +18,14 @@ export type MapProject = {
   description: string | null;
   mainImageUrl: string | null;
   featured?: boolean;
+  realistic?: boolean;
 };
 
-export type BuildingsData = GeoJSON.FeatureCollection & { projects: Record<string, MapProject> };
+export type BuildingsData = GeoJSON.FeatureCollection & {
+  projects: Record<string, MapProject>;
+  pads?: GeoJSON.FeatureCollection;
+  hiddenBaseIds?: number[];
+};
 
 export const STATUS_HEX: Record<string, string> = {
   PRE_LAUNCH: '#00E5B4',
@@ -90,4 +95,17 @@ export function addCityBuildings(map: any, id: string) {
     },
     labelLayerId
   );
+}
+
+/**
+ * Tower colour: realistic towers carry their own facade colour per band;
+ * everything else is coloured by status.
+ */
+export const TOWER_COLOR_EXPR: any = ['coalesce', ['get', 'color'], STATUS_COLOR_EXPR];
+
+/** Hide base-map buildings that sit on a project's lot, so old and new do not overlap. */
+export function hideBaseBuildings(map: any, layerId: string, ids: number[] | undefined) {
+  if (!map.getLayer(layerId)) return;
+  const base: any = ['==', ['get', 'extrude'], 'true'];
+  map.setFilter(layerId, ids && ids.length ? ['all', base, ['!', ['in', ['id'], ['literal', ids]]]] : base);
 }

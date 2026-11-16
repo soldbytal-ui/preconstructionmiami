@@ -7,7 +7,7 @@ import MapTooltip from './MapTooltip';
 import MapPropertyCard from './MapPropertyCard';
 import {
   type MapProject, type BuildingsData,
-  LEGEND, STATUS_COLOR_EXPR, shortPrice, loadBuildings, addCityBuildings,
+  LEGEND, STATUS_COLOR_EXPR, TOWER_COLOR_EXPR, shortPrice, loadBuildings, addCityBuildings, hideBaseBuildings,
 } from './mapShared';
 
 export type { MapProject } from './mapShared';
@@ -62,8 +62,18 @@ export default function MiamiMap() {
 
   const onLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
-    if (map) addCityBuildings(map, '3d-buildings');
-  }, []);
+    if (map) {
+      (window as any).__pcmMap = map; // handle for automated visual checks
+      addCityBuildings(map, '3d-buildings');
+      hideBaseBuildings(map, '3d-buildings', data?.hiddenBaseIds);
+    }
+  }, [data]);
+
+  // Data can arrive after the map has loaded
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (map && data && map.isStyleLoaded()) hideBaseBuildings(map, '3d-buildings', data.hiddenBaseIds);
+  }, [data]);
 
   const projectAt = useCallback(
     (e: MapMouseEvent): MapProject | null => {
@@ -98,8 +108,8 @@ export default function MiamiMap() {
 
   const activeId = selected?.id || hoveredId;
   const towerColor: any = activeId
-    ? ['case', ['==', ['get', 'id'], activeId], '#ffffff', STATUS_COLOR_EXPR]
-    : STATUS_COLOR_EXPR;
+    ? ['case', ['==', ['get', 'id'], activeId], '#ffffff', TOWER_COLOR_EXPR]
+    : TOWER_COLOR_EXPR;
 
   const labelLayout = {
     'text-field': ['get', 'label'],
@@ -143,6 +153,22 @@ export default function MiamiMap() {
       >
         <NavigationControl position="bottom-right" showCompass={false} />
 
+        {/* Status pad: realistic towers stand on a footprint in their status colour */}
+        {data?.pads && (
+          <Source id="pads-src" type="geojson" data={data.pads}>
+            <Layer id="pad-fill" type="fill" paint={{ 'fill-color': STATUS_COLOR_EXPR, 'fill-opacity': 0.28 }} />
+            <Layer
+              id="pad-line"
+              type="line"
+              paint={{
+                'line-color': STATUS_COLOR_EXPR,
+                'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 16, 4],
+                'line-blur': 1,
+              }}
+            />
+          </Source>
+        )}
+
         {data && (
           <Source id="towers-src" type="geojson" data={data}>
             <Layer
@@ -152,7 +178,7 @@ export default function MiamiMap() {
                 'fill-extrusion-color': towerColor,
                 'fill-extrusion-height': ['get', 'height'],
                 'fill-extrusion-base': ['get', 'base'],
-                'fill-extrusion-opacity': 0.92,
+                'fill-extrusion-opacity': 0.96,
                 'fill-extrusion-vertical-gradient': true,
               }}
             />

@@ -4,7 +4,7 @@ import { useCallback, useRef, useEffect, useState } from 'react';
 import Map, { NavigationControl, Source, Layer, Marker, Popup } from 'react-map-gl/mapbox';
 import type { MapRef, MapMouseEvent } from 'react-map-gl/mapbox';
 import Link from 'next/link';
-import { type MapProject, type BuildingsData, STATUS_COLOR_EXPR, STATUS_HEX, loadBuildings, addCityBuildings } from './mapShared';
+import { type MapProject, type BuildingsData, STATUS_COLOR_EXPR, TOWER_COLOR_EXPR, STATUS_HEX, loadBuildings, addCityBuildings } from './mapShared';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -38,7 +38,7 @@ export default function NeighborhoodMiniMap({
     if (map) addCityBuildings(map, '3d-buildings-mini');
   }, []);
 
-  const colorExpr: any = STATUS_COLOR_EXPR;
+  const colorExpr: any = TOWER_COLOR_EXPR;
 
   const onMapClick = useCallback((e: MapMouseEvent) => {
     const id = e.features?.[0]?.properties?.id;
