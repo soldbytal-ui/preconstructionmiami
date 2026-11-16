@@ -30,6 +30,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  // Signed-out visitors go to the login page instead of an empty dashboard
+  if (!user && pathname !== '/admin/login') {
+    if (typeof window !== 'undefined') router.replace('/admin/login');
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-text-muted text-sm">Redirecting to sign in&hellip;</div>
+      </div>
+    );
+  }
+
   // Show login page without sidebar
   if (pathname === '/admin/login' || !user) {
     return <>{children}</>;
