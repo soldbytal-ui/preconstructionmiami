@@ -28,6 +28,13 @@ function looksLikeSpam(data: z.infer<typeof leadSchema>): boolean {
   const gibberish = (v: string) =>
     /^[A-Za-z]{10,}$/.test(v) && (v.match(/[A-Z]/g) || []).length >= 3 && /[a-z]/.test(v);
   if (gibberish(data.name) && (!data.message || gibberish(data.message))) return true;
+  // Second bot signature: a throwaway Gmail address broken up with dots
+  // ("a.z.o.q.ex.ip16@gmail.com") paired with a name that has no vowels pattern
+  // of a real name ("Vxfs Usscv").
+  const local = data.email.split('@')[0];
+  const dottedGmail = /@gmail\.com$/i.test(data.email) && (local.match(/\./g) || []).length >= 4;
+  const vowelRatio = (data.name.match(/[aeiou]/gi) || []).length / Math.max(1, data.name.replace(/[^a-z]/gi, '').length);
+  if (dottedGmail && vowelRatio < 0.3) return true;
   if (/https?:\/\/|www\./i.test(data.name)) return true;
   if (data.message && (data.message.match(/https?:\/\//gi) || []).length >= 2) return true;
   return false;

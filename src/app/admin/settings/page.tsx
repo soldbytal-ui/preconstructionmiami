@@ -1,9 +1,52 @@
 'use client';
 
+import { useState } from 'react';
+
+function ChangePassword() {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setMsg(null);
+    const res = await fetch('/api/admin/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current, next }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.ok) { setMsg({ ok: true, text: 'Password updated.' }); setCurrent(''); setNext(''); }
+    else setMsg({ ok: false, text: data.error || 'Could not update the password.' });
+  };
+
+  const field = 'w-full bg-surface2 border border-border rounded-lg px-3 py-2 text-sm text-text-primary mt-1 focus:outline-none focus:border-accent-green/50';
+  return (
+    <form onSubmit={submit} className="glass-panel p-5 rounded-xl space-y-4 max-w-md">
+      <h2 className="text-lg font-semibold text-text-primary">Change Password</h2>
+      <label className="block text-xs text-text-muted uppercase tracking-wider">
+        Current password
+        <input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} required className={field} />
+      </label>
+      <label className="block text-xs text-text-muted uppercase tracking-wider">
+        New password (12+ characters)
+        <input type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} required minLength={12} className={field} />
+      </label>
+      {msg && <p className={`text-sm ${msg.ok ? 'text-accent-green' : 'text-red-400'}`}>{msg.text}</p>}
+      <button type="submit" disabled={busy} className="btn-primary text-sm disabled:opacity-60">{busy ? 'Saving…' : 'Update password'}</button>
+    </form>
+  );
+}
+
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
+
+      <ChangePassword />
 
       <div className="glass-panel p-5 rounded-xl space-y-4">
         <h2 className="text-lg font-semibold text-text-primary">Lead Routing</h2>

@@ -324,6 +324,20 @@ export default function LeadsPage() {
                   <button onClick={sendSms} className="bg-accent-blue/10 text-accent-blue text-xs px-3 rounded-lg hover:bg-accent-blue/20">Send</button>
                 </div>
 
+                {isAdmin && (
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm(`Delete ${selected.name}? This cannot be undone.`)) return;
+                      await fetch(`/api/admin/leads?id=${selected.id}`, { method: 'DELETE' });
+                      setLeads((prev: any[]) => prev.filter((l) => l.id !== selected.id));
+                      setSelected(null);
+                    }}
+                    className="w-full text-xs text-red-400/80 hover:text-red-400 border border-red-400/20 hover:border-red-400/40 rounded-lg py-2 transition-colors"
+                  >
+                    Delete lead (spam or test)
+                  </button>
+                )}
+
                 {/* Add Note */}
                 <div className="flex gap-2">
                   <input
