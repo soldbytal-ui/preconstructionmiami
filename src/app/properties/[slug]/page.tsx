@@ -157,6 +157,13 @@ export default async function PropertyDetailPage({ params }: Props) {
               )}
             </div>
 
+            {/* Shown only once the photo source has been confirmed as the developer's own */}
+            {projectImages.credit?.confirmed && (
+              <p className="text-[11px] text-text-muted/60 -mt-5">
+                Renderings courtesy of the developer. Images are artist&apos;s conceptual renderings and may differ from the finished building.
+              </p>
+            )}
+
             {/* Key Specs — 4 glass panels */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[

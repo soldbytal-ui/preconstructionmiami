@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import StatusBadge from './StatusBadge';
 import SafeImage from '@/components/ui/SafeImage';
-import { formatPrice, CATEGORY_LABELS } from '@/lib/utils';
+import { formatPrice, CATEGORY_LABELS, thumbUrl } from '@/lib/utils';
 
 const NEIGHBORHOOD_FALLBACK_IMAGES: Record<string, string> = {
   brickell: 'https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=600&h=400&fit=crop',
@@ -56,8 +56,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     <Link href={`/properties/${project.slug}`} className="card group hover:border-accent-green/30 transition-all">
       <div className="relative h-48 overflow-hidden">
         <SafeImage
-          src={project.mainImageUrl}
+          src={thumbUrl(project.mainImageUrl)}
           fallbackSrc={fallback}
+          width={720}
+          height={480}
           alt={`${project.name} - Pre-Construction in ${project.neighborhood?.name || 'Miami'}`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"

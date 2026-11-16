@@ -51,3 +51,12 @@ export const CATEGORY_LABELS: Record<string, string> = {
   PREMIUM: 'Premium',
   AFFORDABLE_LUXURY: 'Affordable Luxury',
 };
+
+/**
+ * Listing photos stored on our own storage have a 720px-wide copy next to the
+ * full-size one. Cards use it; anything else (hotlinked photos) is returned as is.
+ */
+export function thumbUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  return /\/listing-media\/projects\/[^/]+\/main(-b)?\.webp$/.test(url) ? url.replace(/\.webp$/, '-720.webp') : url;
+}

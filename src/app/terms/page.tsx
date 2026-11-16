@@ -25,7 +25,7 @@ export default function TermsPage() {
       </nav>
 
       <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-2">Terms of Service</h1>
-      <p className="text-sm text-text-muted mb-10">Last updated: April 2026</p>
+      <p className="text-sm text-text-muted mb-10">Last updated: November 2026</p>
 
       <div className="space-y-8 text-text-muted leading-relaxed">
         <section>
@@ -138,7 +138,19 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-text-primary mb-3">12. Contact</h2>
+          <h2 className="text-xl font-semibold text-text-primary mb-3">12. Images and Renderings</h2>
+          <p>
+            Project images shown on the Platform are artist&apos;s renderings and marketing materials published by the respective developers and are displayed to identify and describe their projects. All rights remain with their owners. Renderings are conceptual and may differ from the completed building.
+          </p>
+          <p className="mt-3">
+            If you own the rights to an image on the Platform and would like it credited differently or removed, send the page address through our{' '}
+            <Link href="/contact-us" className="text-accent-green hover:underline">contact form</Link>{' '}
+            and we will act on the request promptly.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-text-primary mb-3">13. Contact</h2>
           <p>
             For questions about these Terms of Service, please <Link href="/contact-us" className="text-accent-green hover:underline">contact us</Link>.
           </p>
