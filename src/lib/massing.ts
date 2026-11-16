@@ -25,6 +25,11 @@ export type Recipe = {
   bands?: 'glass' | 'balcony';
   /** Podium treatment: mostly solid wall, or glazed. */
   podiumStyle?: { wall?: string; glass?: string; solid?: boolean };
+  /**
+   * Volumes traced from filed drawings (design-review plans). When present they
+   * replace the computed tower: each is a real outline with a real base and top.
+   */
+  filed?: { source?: string; volumes: { ring: [number, number][]; baseM: number; topM: number; kind?: 'tower' | 'podium' }[] };
   /** Hand-entered adjustments. Never filled by the vision model. */
   manual?: {
     offsetAlong?: number; // -1..1 along the lot's long axis (positive = east / north)
@@ -133,6 +138,31 @@ export function buildTower(input: {
     return r;
   };
   const world = (lx: number, ly: number): Pt => [box.cx + lx * box.ux + ly * box.vx, box.cy + lx * box.uy + ly * box.vy];
+
+  // ---- Filed drawings win over everything computed
+  if (recipe.filed?.volumes?.length) {
+    const out: Part[] = [];
+    const ps = recipe.podiumStyle || {};
+    for (const v of recipe.filed.volumes) {
+      if (!v.ring || v.ring.length < 4 || !(v.topM > v.baseM)) continue;
+      const open = v.ring.slice(0, -1);
+      const cx = open.reduce((a, q) => a + q[0], 0) / open.length;
+      const cy = open.reduce((a, q) => a + q[1], 0) / open.length;
+      const grow = (f: number): [number, number][] => v.ring.map(([x, y]) => [cx + (x - cx) * f, cy + (y - cy) * f]);
+      const podium = v.kind === 'podium';
+      const fhTarget = podium ? PODIUM_FLOOR_M : RESIDENTIAL_FLOOR_M;
+      const n = Math.max(1, Math.round((v.topM - v.baseM) / (fhTarget * (podium ? 1 : 2))));
+      const fh = (v.topM - v.baseM) / n;
+      for (let i = 0; i < n; i++) {
+        const b = v.baseM + i * fh;
+        const line = Math.min(0.5, fh * 0.12);
+        const last = i === n - 1;
+        out.push({ ring: v.ring, base: b, height: b + fh - line, color: podium ? ps.wall || colors.accent : colors.glass });
+        out.push({ ring: grow(last && !podium ? 1.02 : 1.008), base: b + fh - line, height: b + fh, color: last && !podium ? colors.accent : colors.slab });
+      }
+    }
+    if (out.length) return { parts: out, pad: close(pts) };
+  }
 
   const floors = input.floors && input.floors > 0 ? input.floors : 8;
   const podiumFloors = recipe.podium ? Math.min(recipe.podiumFloors || 4, Math.max(1, floors - 2)) : 0;

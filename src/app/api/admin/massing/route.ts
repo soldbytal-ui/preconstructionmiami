@@ -45,6 +45,8 @@ function cleanRecipe(input: any) {
     ...(input.podiumStyle && typeof input.podiumStyle === 'object'
       ? { podiumStyle: { solid: !!input.podiumStyle.solid, ...(hex(input.podiumStyle.wall) ? { wall: hex(input.podiumStyle.wall) } : {}), ...(hex(input.podiumStyle.glass) ? { glass: hex(input.podiumStyle.glass) } : {}) } }
       : {}),
+    // Volumes traced from filed drawings are kept as they are (they are data, not a recipe choice)
+    ...(input.filed && Array.isArray(input.filed.volumes) ? { filed: input.filed } : {}),
     ...(Object.keys(manual).length ? { manual } : {}),
   };
 }
