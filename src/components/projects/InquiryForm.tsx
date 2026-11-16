@@ -1,9 +1,9 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
-type FormData = { name: string; email: string; phone: string; message: string };
+type FormData = { name: string; email: string; phone: string; message: string; company?: string };
 
 export default function InquiryForm({
   projectId,
@@ -18,6 +18,7 @@ export default function InquiryForm({
 }) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const mountedAt = useRef(Date.now());
 
   const onSubmit = async (data: FormData) => {
     setStatus('loading');
@@ -25,28 +26,9 @@ export default function InquiryForm({
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, projectId, neighborhoodId, source }),
+        body: JSON.stringify({ ...data, projectId, neighborhoodId, source, elapsedMs: Date.now() - mountedAt.current }),
       });
       if (!res.ok) throw new Error();
-
-      // Forward to CRM — silent fail never blocks user
-      const crmRes = await fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          phone: data.phone || '',
-          message: data.message || '',
-          project: projectName || '',
-          neighborhood: neighborhoodId || '',
-          source: projectName ? `Listing Page - ${projectName}` : source === 'contact' ? 'Contact Form' : source === 'neighborhood' ? 'Neighborhood Page' : `Inquiry Form - ${source}`,
-        }),
-      }).catch(() => null);
-      const crmData = await crmRes?.json().catch(() => ({}));
-      if (crmData?.leadId) {
-        document.cookie = `crm_lid=${crmData.leadId}; max-age=${60*60*24*365}; path=/; SameSite=Lax`;
-      }
 
       setStatus('success');
       reset();
@@ -59,7 +41,7 @@ export default function InquiryForm({
     return (
       <div className="bg-accent-green/10 border border-accent-green/20 rounded-2xl p-6 text-center">
         <h3 className="text-accent-green font-semibold text-lg mb-2">Thank you!</h3>
-        <p className="text-text-muted text-sm">We&apos;ve received your inquiry and will be in touch shortly.</p>
+        <p className="text-text-muted text-sm">Your inquiry has been received. A licensed local real estate professional will be in touch shortly.</p>
         <button onClick={() => setStatus('idle')} className="mt-4 text-sm text-accent-green underline">Send another inquiry</button>
       </div>
     );
@@ -70,7 +52,15 @@ export default function InquiryForm({
       <h3 className="text-xl font-semibold text-text-primary">
         {projectName ? `Inquire About ${projectName}` : 'Get More Information'}
       </h3>
-      <p className="text-sm text-text-muted">Fill out the form below and we&apos;ll get back to you within 24 hours.</p>
+      <p className="text-sm text-text-muted">Fill out the form below and a licensed local agent will follow up, usually within 24 hours.</p>
+
+      {/* Honeypot: hidden from people, tempting to bots */}
+      <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+        <label>
+          Company
+          <input {...register('company')} type="text" tabIndex={-1} autoComplete="off" />
+        </label>
+      </div>
 
       <div>
         <input

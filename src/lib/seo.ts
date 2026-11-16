@@ -1,9 +1,9 @@
 export function generateLocalBusinessSchema() {
   return {
     '@context': 'https://schema.org',
-    '@type': 'RealEstateAgent',
+    '@type': 'Organization',
     name: 'PreConstructionMiami.net',
-    description: 'Miami\'s premier pre-construction condo marketplace. Access 200+ new developments across South Florida.',
+    description: 'Miami\'s premier pre-construction condo marketplace. Access 150+ new developments across South Florida.',
     url: 'https://preconstructionmiami.net',
     logo: 'https://preconstructionmiami.net/og-image.png',
     image: 'https://preconstructionmiami.net/og-image.png',
@@ -46,7 +46,7 @@ export function generateOrganizationSchema() {
     name: 'PreConstructionMiami.net',
     url: 'https://preconstructionmiami.net',
     logo: 'https://preconstructionmiami.net/og-image.png',
-    description: 'South Florida\'s most comprehensive pre-construction condo marketplace connecting buyers and investors with 200+ new developments.',
+    description: 'South Florida\'s most comprehensive pre-construction condo marketplace connecting buyers and investors with 150+ new developments.',
     address: {
       '@type': 'PostalAddress',
       streetAddress: '3250 NE 1st Ave Unit 305',
@@ -71,7 +71,7 @@ export function generateWebSiteSchema() {
     '@type': 'WebSite',
     name: 'PreConstructionMiami.net',
     url: 'https://preconstructionmiami.net',
-    description: 'South Florida\'s premier marketplace for pre-construction condos. Access 200+ new developments across 24 neighborhoods.',
+    description: 'South Florida\'s premier marketplace for pre-construction condos. Access 150+ new developments across South Florida.',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
@@ -196,7 +196,7 @@ export function generateHowToSchema() {
         '@type': 'HowToStep',
         position: 1,
         name: 'Browse Projects',
-        text: 'Explore 200+ pre-construction developments across South Florida with detailed specs, pricing, and floor plans.',
+        text: 'Explore 150+ pre-construction developments across South Florida with detailed specs, pricing, and floor plans.',
         url: 'https://preconstructionmiami.net/new-condos',
       },
       {

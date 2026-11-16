@@ -1,9 +1,11 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
 // fix: moved devsWithProjects before itemList to prevent ReferenceError
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { generateBreadcrumbSchema, generateItemListSchema } from '@/lib/seo';
+import DevLogo from '@/components/ui/DevLogo';
 
 export const metadata: Metadata = {
   title: 'Miami Pre-Construction Developers',
@@ -100,11 +102,7 @@ export default async function DevelopersPage() {
                 {/* Logo / Initials */}
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-green/20 to-accent-blue/20 flex items-center justify-center flex-shrink-0">
-                    {dev.logoUrl ? (
-                      <img src={dev.logoUrl} alt={dev.name} className="w-10 h-10 object-contain" />
-                    ) : (
-                      <span className="text-accent-green font-semibold text-lg">{initials}</span>
-                    )}
+                    <DevLogo src={dev.logoUrl} name={dev.name} imgClassName="w-10 h-10 object-contain" initialsClassName="text-accent-green font-semibold text-lg" />
                   </div>
                   <div>
                     <h2 className="text-text-primary font-semibold group-hover:text-accent-green transition-colors line-clamp-1">
@@ -127,7 +125,7 @@ export default async function DevelopersPage() {
                 {/* Neighborhood tags */}
                 {neighborhoods.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
-                    {neighborhoods.slice(0, 4).map((n: string) => (
+                    {(neighborhoods as string[]).slice(0, 4).map((n) => (
                       <span
                         key={n}
                         className="text-xs bg-surface2 border border-border text-text-muted px-2 py-0.5 rounded-full"

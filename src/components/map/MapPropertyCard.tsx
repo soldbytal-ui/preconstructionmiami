@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import type { MapProject } from './MiamiMap';
+import type { MapProject } from './mapShared';
+import SafeImage from '@/components/ui/SafeImage';
 
 const STATUS_LABELS: Record<string, string> = {
   PRE_LAUNCH: 'Pre-Launch',
@@ -46,11 +47,7 @@ export default function MapPropertyCard({ project: p, onClose }: Props) {
 
         {/* Image placeholder */}
         <div className="h-48 bg-gradient-to-br from-surface2 to-surface flex items-center justify-center relative">
-          {p.mainImageUrl ? (
-            <img src={p.mainImageUrl} alt={p.name} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-5xl font-light text-text-muted/30">{p.name[0]}</span>
-          )}
+          <SafeImage src={p.mainImageUrl} alt={p.name} fallbackLabel={p.name} className="w-full h-full object-cover" />
           <div className="absolute bottom-3 left-3">
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[p.status] || 'bg-accent-gray/20 text-accent-gray'}`}>
               {STATUS_LABELS[p.status] || p.status}

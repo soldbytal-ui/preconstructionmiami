@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  transpilePackages: ['deck.gl', '@deck.gl/core', '@deck.gl/layers', '@deck.gl/mapbox', '@deck.gl/react'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },

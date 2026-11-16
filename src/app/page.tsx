@@ -1,49 +1,32 @@
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
+// Rebuilt at most every 5 minutes; served from the CDN in between.
+export const revalidate = 300;
 
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice } from '@/lib/utils';
 import { generateLocalBusinessSchema, generateWebSiteSchema, generateHowToSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import DynamicMap from '@/components/map/DynamicMap';
 
 export default async function HomePage() {
-  // Create Supabase client with fetch cache disabled — Next.js 14 caches fetch by default
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fnyrtptmcazhmoztmuay.supabase.co',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZueXJ0cHRtY2F6aG1venRtdWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NjE3MDEsImV4cCI6MjA5MDMzNzcwMX0.g-xX5_3KjesxPDcs390w2c7J35PKN0niRzaTFRcHRiI',
-    {
-      global: {
-        fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }),
-      },
-    }
-  );
-
   const featuredRes = await supabase
     .from('projects')
-    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .select(CARD_COLUMNS)
     .eq('featured', true)
     .order('priceMin', { ascending: false })
     .limit(6);
 
-  const mapRes = await supabase
-    .from('projects')
-    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
-    .not('latitude', 'is', null);
-
   const neighborhoodRes = await supabase
     .from('neighborhoods')
-    .select('*, projects(count)')
+    .select('id, name, slug, avgPriceStudio, projects(count)')
     .order('displayOrder', { ascending: true })
     .limit(12);
 
   const countRes = await supabase.from('projects').select('*', { count: 'exact', head: true });
   const nhCountRes = await supabase.from('neighborhoods').select('*', { count: 'exact', head: true });
 
-  const featured = featuredRes.data || [];
-  const mapProjects = mapRes.data || [];
+  const featured: any[] = featuredRes.data || [];
   const neighborhoods = neighborhoodRes.data || [];
   const projectCount = countRes.count || 0;
   const neighborhoodCount = nhCountRes.count || 0;
@@ -73,42 +56,41 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
 
       {/* Hero — 3D Map */}
-      <section className="relative h-[75vh] w-full">
-        <DynamicMap projects={mapProjects} />
+      <section className="relative w-full md:h-[78vh]">
+        <div className="relative h-[62vh] md:h-full w-full">
+          <DynamicMap />
 
-        {/* Bottom gradient fade */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-bg to-transparent pointer-events-none z-10" />
-
-        {/* Animated scroll-down chevron */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center animate-bounce">
-          <svg className="w-6 h-6 text-text-muted/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          {/* Keeps the menu readable over map labels */}
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-bg via-bg/70 to-transparent pointer-events-none z-10" />
+          {/* Bottom gradient fade */}
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-bg to-transparent pointer-events-none z-10" />
         </div>
 
-        {/* Overlay stats panel */}
-        <div className="absolute bottom-28 left-8 z-10 glass-panel rounded-2xl p-6 max-w-md">
-          <h1 className="text-2xl md:text-3xl font-semibold text-text-primary leading-tight mb-4">
-            Miami&apos;s Premier<br />
-            <span className="text-accent-green">Pre-Construction</span> Marketplace
-          </h1>
-          <div className="grid grid-cols-3 gap-4 mb-5">
-            <div>
-              <div className="text-accent-green font-mono text-xl font-semibold">{totalProjects}+</div>
-              <div className="text-text-muted text-xs mt-0.5">Projects</div>
+        {/* Stats panel: overlays the map on desktop, sits under it on phones */}
+        <div className="relative z-10 px-4 mt-3 md:mt-0 md:px-0 md:absolute md:bottom-16 md:left-8">
+          <div className="glass-panel rounded-2xl p-5 md:p-6 md:max-w-md">
+            <h1 className="text-2xl md:text-3xl font-semibold text-text-primary leading-tight mb-4">
+              Miami&apos;s Premier<br />
+              <span className="text-accent-green">Pre-Construction</span> Marketplace
+            </h1>
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              <div>
+                <div className="text-accent-green font-mono text-lg md:text-xl font-semibold">{totalProjects}</div>
+                <div className="text-text-muted text-xs mt-0.5">Projects</div>
+              </div>
+              <div>
+                <div className="text-accent-green font-mono text-lg md:text-xl font-semibold">{totalNeighborhoods}</div>
+                <div className="text-text-muted text-xs mt-0.5">Neighborhoods</div>
+              </div>
+              <div>
+                <div className="text-accent-green font-mono text-lg md:text-xl font-semibold whitespace-nowrap">$300K&ndash;$50M</div>
+                <div className="text-text-muted text-xs mt-0.5">Price Range</div>
+              </div>
             </div>
-            <div>
-              <div className="text-accent-green font-mono text-xl font-semibold">{totalNeighborhoods}+</div>
-              <div className="text-text-muted text-xs mt-0.5">Neighborhoods</div>
-            </div>
-            <div>
-              <div className="text-accent-green font-mono text-xl font-semibold">$300K-$50M+</div>
-              <div className="text-text-muted text-xs mt-0.5">Price Range</div>
-            </div>
+            <Link href="/new-condos" className="btn-primary inline-flex items-center gap-2 text-sm">
+              Browse All Properties &rarr;
+            </Link>
           </div>
-          <Link href="/new-condos" className="btn-primary inline-flex items-center gap-2 text-sm">
-            Browse All Properties &rarr;
-          </Link>
         </div>
       </section>
 
@@ -178,7 +160,7 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { step: '01', title: 'Browse', desc: 'Explore 200+ pre-construction developments across South Florida with detailed specs, pricing, and floor plans.' },
+              { step: '01', title: 'Browse', desc: `Explore ${totalProjects} pre-construction developments across South Florida with detailed specs, pricing, and floor plans.` },
               { step: '02', title: 'Reserve', desc: 'Secure your preferred unit with a reservation deposit, typically $10K-$50K. Lock in pre-construction pricing.' },
               { step: '03', title: 'Track', desc: 'Monitor construction milestones and make scheduled deposit payments (typically 50% total before completion).' },
               { step: '04', title: 'Move In', desc: 'Receive your keys to a brand-new home. Close with a mortgage or cash for the remaining balance.' },
@@ -207,7 +189,7 @@ export default async function HomePage() {
               Browse Projects
             </Link>
             <Link href="/contact-us" className="btn-secondary text-lg px-8 py-4">
-              Speak with an Expert
+              Connect with a Local Agent
             </Link>
           </div>
         </div>

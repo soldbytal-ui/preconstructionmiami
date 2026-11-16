@@ -1,5 +1,7 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
 
 export async function GET(request: Request) {
@@ -27,7 +29,11 @@ export async function GET(request: Request) {
 
     if (status) query = query.eq('status', status);
     if (priority) query = query.eq('priority', priority);
-    if (search) query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+    if (search) {
+      // Strip characters that have meaning in PostgREST filter syntax
+      const term = search.replace(/[,()%*\\]/g, ' ').trim().slice(0, 80);
+      if (term) query = query.or(`name.ilike.%${term}%,email.ilike.%${term}%`);
+    }
 
     const { data, error } = await query;
     if (error) throw error;
@@ -51,8 +57,13 @@ export async function PATCH(request: Request) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { id, ...updates } = body;
+    const { id } = body;
     if (!id) return NextResponse.json({ error: 'Lead ID required' }, { status: 400 });
+
+    // Only these fields may be changed through the API
+    const EDITABLE = ['status', 'priority', 'notes', 'dealValue', 'assignedAgentId', 'phone', 'name', 'email', 'contactedAt'];
+    const updates: Record<string, any> = {};
+    for (const key of EDITABLE) if (key in body) updates[key] = body[key];
 
     // Agents can only update their assigned leads
     if (session.role !== 'admin') {

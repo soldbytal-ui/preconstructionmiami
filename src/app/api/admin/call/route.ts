@@ -1,5 +1,7 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
 
 export async function POST(request: Request) {
@@ -17,23 +19,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // TODO: Implement Twilio Proxy call
-    // const twilioClient = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    // const proxyService = twilioClient.proxy.v1.services(process.env.TWILIO_PROXY_SERVICE_SID);
-    // ... create session, add participants, initiate call
-
-    // Log the call activity
-    await supabase.from('deal_activities').insert({
-      leadId,
-      agentId: session.id,
-      type: 'call',
-      content: `Call initiated to ${lead.name}`,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Call initiated (Twilio integration pending — add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PROXY_SERVICE_SID to env)',
-    });
+    // Twilio is not wired in yet. Say so rather than logging an activity that never happened.
+    return NextResponse.json(
+      { success: false, error: 'Calling from the CRM is not connected yet. Use the number on the lead for now.' },
+      { status: 501 }
+    );
   } catch (error) {
     console.error('Call error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

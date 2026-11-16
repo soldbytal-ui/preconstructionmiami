@@ -1,6 +1,6 @@
 'use client';
 
-import type { MapProject } from './MiamiMap';
+import type { MapProject } from './mapShared';
 
 const STATUS_LABELS: Record<string, string> = {
   PRE_LAUNCH: 'Pre-Launch',

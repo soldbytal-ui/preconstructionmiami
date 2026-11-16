@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Contact PreConstructionMiami.net',
-    description: 'Get in touch with our team. We help buyers and investors navigate Miami pre-construction condos.',
+    description: 'Have a question about a Miami pre-construction project? Send an inquiry and a licensed local real estate professional will follow up.',
     url: 'https://preconstructionmiami.net/contact-us',
     type: 'website',
   },

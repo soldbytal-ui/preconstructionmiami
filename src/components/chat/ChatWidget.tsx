@@ -120,25 +120,6 @@ export default function ChatWidget() {
         body: JSON.stringify({ ...leadData, source: 'chat_assistant' }),
       });
 
-      // Forward to CRM — silent fail never blocks user
-      const crmRes = await fetch('https://preconstruction-crm.vercel.app/api/leads/inbound', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: leadData.name,
-          email: leadData.email,
-          phone: leadData.phone || '',
-          message: '',
-          project: '',
-          neighborhood: '',
-          source: 'AI Chat Assistant',
-        }),
-      }).catch(() => null);
-      const crmData = await crmRes?.json().catch(() => ({}));
-      if (crmData?.leadId) {
-        document.cookie = `crm_lid=${crmData.leadId}; max-age=${60*60*24*365}; path=/; SameSite=Lax`;
-      }
-
       setLeadSubmitted(true);
       setShowLeadForm(false);
     } catch {}

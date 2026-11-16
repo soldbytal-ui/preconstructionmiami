@@ -1,5 +1,7 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
 
 export async function POST(request: Request) {
@@ -16,21 +18,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // TODO: Implement Twilio SMS
-    // const twilioClient = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    // await twilioClient.messages.create({ body: message, to: lead.phone, from: process.env.TWILIO_PHONE_NUMBER });
-
-    await supabase.from('deal_activities').insert({
-      leadId,
-      agentId: session.id,
-      type: 'sms',
-      content: message,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'SMS sent (Twilio integration pending)',
-    });
+    // Twilio is not wired in yet. Say so rather than logging an activity that never happened.
+    return NextResponse.json(
+      { success: false, error: 'Texting from the CRM is not connected yet. Use the number on the lead for now.' },
+      { status: 501 }
+    );
   } catch (error) {
     console.error('SMS error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

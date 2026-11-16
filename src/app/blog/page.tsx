@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
 
 import Link from 'next/link';
 import type { Metadata } from 'next';

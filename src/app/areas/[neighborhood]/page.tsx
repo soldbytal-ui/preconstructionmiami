@@ -1,9 +1,15 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
+// Pages are generated on first visit, then cached (ISR).
+export async function generateStaticParams() {
+  return [];
+}
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
+import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice } from '@/lib/utils';
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
@@ -54,7 +60,7 @@ export default async function NeighborhoodPage({ params }: Props) {
   const [{ data: projects }, { data: allNeighborhoods }] = await Promise.all([
     supabase
       .from('projects')
-      .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+      .select(CARD_COLUMNS)
       .eq('neighborhoodId', neighborhood.id)
       .order('priceMin', { ascending: true }),
     supabase
@@ -103,7 +109,7 @@ export default async function NeighborhoodPage({ params }: Props) {
     },
     {
       question: `When will new condos in ${neighborhood.name} be completed?`,
-      answer: `Most pre-construction condos currently selling in ${neighborhood.name} have estimated completion dates between 2026 and 2029. Completion timelines vary by project — some developments in ${neighborhood.name} are already under construction while others are in pre-construction sales. Contact us for project-specific timelines.`,
+      answer: `Most pre-construction condos currently selling in ${neighborhood.name} have estimated completion dates between ${new Date().getFullYear()} and ${new Date().getFullYear() + 4}. Completion timelines vary by project — some developments in ${neighborhood.name} are already under construction while others are in pre-construction sales. Contact us for project-specific timelines.`,
     },
   ];
 
@@ -169,7 +175,7 @@ export default async function NeighborhoodPage({ params }: Props) {
               ? `${projectCount} active ${projectCount === 1 ? 'development' : 'developments'} available.`
               : 'New developments coming soon.'}
             {neighborhood.avgPriceStudio && ` Starting from ${formatPrice(neighborhood.avgPriceStudio)}.`}
-            {' '}Updated for 2025-2028.
+            {' '}Updated for {new Date().getFullYear()}&ndash;{new Date().getFullYear() + 3}.
           </p>
         </div>
       </section>

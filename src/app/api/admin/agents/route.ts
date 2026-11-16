@@ -1,5 +1,7 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
 import { getSession, hashPassword } from '@/lib/auth';
 
 export async function GET() {
@@ -85,14 +87,19 @@ export async function PATCH(request: Request) {
     if (!session || session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await request.json();
-    const { id, password, ...updates } = body;
+    const { id, password } = body;
     if (!id) return NextResponse.json({ error: 'Agent ID required' }, { status: 400 });
+
+    const EDITABLE = ['name', 'email', 'phone', 'avatarUrl', 'bio', 'licenseNumber', 'brokerage', 'neighborhoods', 'role', 'isActive'];
+    const updates: Record<string, any> = {};
+    for (const key of EDITABLE) if (key in body) updates[key] = body[key];
+    if (typeof updates.email === 'string') updates.email = updates.email.toLowerCase();
 
     if (password) {
       updates.passwordHash = await hashPassword(password);
     }
 
-    const { data, error } = await supabase.from('agents').update(updates).eq('id', id).select().single();
+    const { data, error } = await supabase.from('agents').update(updates).eq('id', id).select('id, name, email, phone, role, isActive').single();
     if (error) throw error;
 
     return NextResponse.json(data);

@@ -1,12 +1,19 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
+// Pages are generated on first visit, then cached (ISR).
+export async function generateStaticParams() {
+  return [];
+}
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
+import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice, formatPriceRange } from '@/lib/utils';
 import { generateBreadcrumbSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
+import DevLogo from '@/components/ui/DevLogo';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -59,7 +66,7 @@ export default async function DeveloperProfilePage({ params }: Props) {
 
   const { data: projects } = await supabase
     .from('projects')
-    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .select(CARD_COLUMNS)
     .eq('developerId', developer.id)
     .order('name');
 
@@ -107,13 +114,7 @@ export default async function DeveloperProfilePage({ params }: Props) {
         {/* Header */}
         <div className="flex items-start gap-6 mb-8">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-green/20 to-accent-blue/20 flex items-center justify-center flex-shrink-0">
-            {developer.logoUrl ? (
-              <img src={developer.logoUrl} alt={developer.name} className="w-14 h-14 object-contain" />
-            ) : (
-              <span className="text-accent-green font-bold text-2xl">
-                {developer.name.split(/[\s,&]+/).filter((w: string) => w.length > 0).slice(0, 2).map((w: string) => w[0].toUpperCase()).join('')}
-              </span>
-            )}
+            <DevLogo src={developer.logoUrl} name={developer.name} imgClassName="w-14 h-14 object-contain" initialsClassName="text-accent-green font-bold text-2xl" />
           </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-semibold text-text-primary">{developer.name}</h1>

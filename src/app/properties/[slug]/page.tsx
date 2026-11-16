@@ -1,15 +1,22 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
+// Pages are generated on first visit, then cached (ISR).
+export async function generateStaticParams() {
+  return [];
+}
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
+import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice, formatPriceRange, STATUS_LABELS, CATEGORY_LABELS } from '@/lib/utils';
 import { generateRealEstateListingSchema, generateBreadcrumbSchema } from '@/lib/seo';
 import Markdown from 'react-markdown';
 import StatusBadge from '@/components/projects/StatusBadge';
 import InquiryForm from '@/components/projects/InquiryForm';
 import ProjectCard from '@/components/projects/ProjectCard';
+import SafeImage from '@/components/ui/SafeImage';
 import ImageGallery from '@/components/projects/ImageGallery';
 import FloorPlans from '@/components/projects/FloorPlans';
 
@@ -65,7 +72,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   const { data: relatedProjects } = await supabase
     .from('projects')
-    .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
+    .select(CARD_COLUMNS)
     .eq('neighborhoodId', project.neighborhoodId)
     .neq('id', project.id)
     .limit(3);
@@ -88,7 +95,7 @@ export default async function PropertyDetailPage({ params }: Props) {
     try { amenities = JSON.parse(project.amenities); } catch { amenities = []; }
   }
   const projectImages = (project.images as any) || {};
-  const galleryImages = Array.isArray(projectImages.gallery) ? projectImages.gallery as { url: string; alt?: string; type?: string }[] : [];
+  const galleryImages = Array.isArray(projectImages.gallery) ? projectImages.gallery as { url: string; alt?: string; type?: 'rendering' | 'photo' | 'aerial' }[] : [];
   const floorPlanImages = Array.isArray(projectImages.floorPlans) ? projectImages.floorPlans as { url: string; label?: string }[] : [];
 
   return (
@@ -101,7 +108,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         <nav className="text-sm text-text-muted mb-8 flex items-center gap-2 flex-wrap">
           <Link href="/" className="hover:text-accent-green transition-colors">Home</Link>
           <span className="text-text-muted/40">/</span>
-          <Link href="/pre-construction" className="hover:text-accent-green transition-colors">Properties</Link>
+          <Link href="/new-condos" className="hover:text-accent-green transition-colors">Properties</Link>
           {project.neighborhood && (
             <>
               <span className="text-text-muted/40">/</span>
@@ -137,7 +144,14 @@ export default async function PropertyDetailPage({ params }: Props) {
             {/* Image placeholder */}
             <div className="bg-gradient-to-br from-surface2 to-surface rounded-2xl h-64 md:h-96 flex items-center justify-center overflow-hidden border border-border">
               {project.mainImageUrl ? (
-                <img src={project.mainImageUrl} alt={project.name} className="w-full h-full object-cover" />
+                <SafeImage
+                  src={project.mainImageUrl}
+                  alt={`${project.name} rendering`}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  fallbackLabel={project.name}
+                />
               ) : (
                 <span className="text-text-muted/20 text-7xl font-light">{project.name[0]}</span>
               )}

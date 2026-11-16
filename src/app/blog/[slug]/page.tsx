@@ -1,4 +1,9 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
+// Pages are generated on first visit, then cached (ISR).
+export async function generateStaticParams() {
+  return [];
+}
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ChatWidget from '@/components/chat/ChatWidget';
-import CRMTracker from '@/components/CRMTracker';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
     default: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
     template: '%s | PreConstructionMiami.net',
   },
-  description: 'Access 200+ pre-construction condo developments across Miami and South Florida. From $300K to $50M+. Brickell, Miami Beach, Downtown, Edgewater & more.',
+  description: 'Access 150+ pre-construction condo developments across Miami and South Florida. From $300K to $50M+. Brickell, Miami Beach, Downtown, Edgewater & more.',
   alternates: {
     canonical: 'https://preconstructionmiami.net',
   },
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
     url: 'https://preconstructionmiami.net',
     siteName: 'PreConstructionMiami.net',
     title: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
-    description: 'Access 200+ pre-construction condo developments across Miami and South Florida.',
+    description: 'Access 150+ pre-construction condo developments across Miami and South Florida.',
     images: [
       {
         url: '/og-image.png',
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
-    description: 'Access 200+ pre-construction condo developments across Miami and South Florida.',
+    description: 'Access 150+ pre-construction condo developments across Miami and South Florida.',
     images: ['/og-image.png'],
   },
   robots: {
@@ -67,7 +66,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="min-h-screen">{children}</main>
         <Footer />
         <ChatWidget />
-        <CRMTracker />
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// Cached and refreshed in the background every 5 minutes.
+export const revalidate = 300;
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -6,20 +7,20 @@ import { generateBreadcrumbSchema, generateOrganizationSchema } from '@/lib/seo'
 
 export const metadata: Metadata = {
   title: 'About Us',
-  description: 'PreConstructionMiami.net is Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 200+ developments.',
+  description: 'PreConstructionMiami.net is Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 150+ developments.',
   alternates: {
     canonical: 'https://preconstructionmiami.net/about',
   },
   openGraph: {
     title: 'About PreConstructionMiami.net',
-    description: 'Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 200+ developments.',
+    description: 'Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 150+ developments.',
     url: 'https://preconstructionmiami.net/about',
     type: 'website',
   },
   twitter: {
     card: 'summary',
     title: 'About PreConstructionMiami.net',
-    description: 'Miami\'s premier marketplace for new construction condos. Connecting buyers with 200+ developments.',
+    description: 'Miami\'s premier marketplace for new construction condos. Connecting buyers with 150+ developments.',
   },
 };
 
@@ -41,7 +42,7 @@ export default function AboutPage() {
         <div className="glass-panel p-8">
           <p className="text-text-muted text-lg leading-relaxed">
             PreConstructionMiami.net is South Florida&apos;s most comprehensive pre-construction condo marketplace.
-            We connect buyers and investors with 200+ new developments across Miami-Dade, Broward, and Palm Beach counties
+            We connect buyers and investors with 150+ new developments across Miami-Dade, Broward, and Palm Beach counties
             -- from ultra-luxury branded residences in Brickell to emerging value plays in Edgewater and beyond.
           </p>
         </div>

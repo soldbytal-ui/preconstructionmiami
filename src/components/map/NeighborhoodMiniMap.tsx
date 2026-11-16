@@ -2,21 +2,13 @@
 
 import { useCallback, useRef, useEffect, useState } from 'react';
 import Map, { NavigationControl, Source, Layer, Marker, Popup } from 'react-map-gl/mapbox';
-import type { MapRef, MapLayerMouseEvent } from 'react-map-gl/mapbox';
+import type { MapRef, MapMouseEvent } from 'react-map-gl/mapbox';
 import Link from 'next/link';
+import { type MapProject, type BuildingsData, STATUS_COLOR_EXPR, STATUS_HEX, loadBuildings, addCityBuildings } from './mapShared';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-type MiniProject = {
-  id: string;
-  name: string;
-  slug: string;
-  latitude: number;
-  longitude: number;
-  floors: number;
-  status: string;
-  priceMin: number | null;
-};
+type MiniProject = MapProject;
 
 export default function NeighborhoodMiniMap({
   center,
@@ -28,86 +20,32 @@ export default function NeighborhoodMiniMap({
   neighborhoodId: string;
 }) {
   const mapRef = useRef<MapRef>(null);
-  const [geojsonData, setGeojsonData] = useState<any>(null);
-  const [projects, setProjects] = useState<MiniProject[]>([]);
+  const [geojsonData, setGeojsonData] = useState<BuildingsData | null>(null);
   const [selectedProject, setSelectedProject] = useState<MiniProject | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
   useEffect(() => {
-    fetch('/api/buildings-geojson')
-      .then((res) => res.json())
-      .then((data) => {
-        setGeojsonData(data);
-        const projs: MiniProject[] = [];
-        for (const f of data.features || []) {
-          const p = f.properties;
-          if (p) {
-            projs.push({
-              id: p.id, name: p.name, slug: p.slug,
-              latitude: p.latitude, longitude: p.longitude,
-              floors: p.floors, status: p.status, priceMin: p.priceMin,
-            });
-          }
-        }
-        setProjects(projs);
-      })
-      .catch(console.error);
+    let alive = true;
+    loadBuildings().then((d) => { if (alive) setGeojsonData(d); });
+    return () => { alive = false; };
   }, [neighborhoodId]);
+
+  const projects: MiniProject[] = geojsonData ? Object.values(geojsonData.projects) : [];
 
   const onLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
-    if (!map) return;
-    const layers = map.getStyle()?.layers;
-    if (!layers) return;
-    const labelLayerId = layers.find(
-      (layer: any) => layer.type === 'symbol' && layer.layout?.['text-field']
-    )?.id;
-
-    if (!map.getLayer('3d-buildings-mini')) {
-      map.addLayer({
-        id: '3d-buildings-mini',
-        source: 'composite',
-        'source-layer': 'building',
-        filter: ['==', 'extrude', 'true'],
-        type: 'fill-extrusion',
-        minzoom: 12,
-        paint: {
-          'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'height'], 0, '#16181e', 50, '#1e2028', 100, '#252730'],
-          'fill-extrusion-height': ['get', 'height'],
-          'fill-extrusion-base': ['get', 'min_height'],
-          'fill-extrusion-opacity': 0.7,
-        },
-      }, labelLayerId);
-    }
+    if (map) addCityBuildings(map, '3d-buildings-mini');
   }, []);
 
-  const colorExpr: any = [
-    'match', ['get', 'status'],
-    'PRE_LAUNCH', '#00E5B4', 'PRE_CONSTRUCTION', '#00E5B4',
-    'UNDER_CONSTRUCTION', '#38B6FF', 'NEAR_COMPLETION', '#FF7A3D',
-    'COMPLETED', '#8A9098', '#8A9098',
-  ];
+  const colorExpr: any = STATUS_COLOR_EXPR;
 
-  const onMapClick = useCallback((e: MapLayerMouseEvent) => {
-    const f = e.features?.[0];
-    if (f?.properties) {
-      const p = f.properties;
-      setSelectedProject({
-        id: p.id, name: p.name, slug: p.slug,
-        latitude: p.latitude, longitude: p.longitude,
-        floors: p.floors, status: p.status, priceMin: p.priceMin,
-      });
-    } else {
-      setSelectedProject(null);
-    }
-  }, []);
+  const onMapClick = useCallback((e: MapMouseEvent) => {
+    const id = e.features?.[0]?.properties?.id;
+    setSelectedProject((id && geojsonData?.projects[id]) || null);
+  }, [geojsonData]);
 
-  const statusColor = (status: string) => {
-    if (status === 'PRE_LAUNCH' || status === 'PRE_CONSTRUCTION') return '#00E5B4';
-    if (status === 'UNDER_CONSTRUCTION') return '#38B6FF';
-    if (status === 'NEAR_COMPLETION') return '#FF7A3D';
-    return '#8A9098';
-  };
+  const statusColor = (status: string) => STATUS_HEX[status] || '#8A9098';
 
   return (
     <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-border relative">
@@ -125,6 +63,7 @@ export default function NeighborhoodMiniMap({
         onLoad={onLoad}
         onClick={onMapClick}
         interactiveLayerIds={geojsonData ? ['mini-extrusions'] : []}
+        cooperativeGestures={isTouch}
         attributionControl={false}
       >
         <NavigationControl position="bottom-right" showCompass={false} />
@@ -132,22 +71,12 @@ export default function NeighborhoodMiniMap({
         {geojsonData && (
           <Source id="mini-buildings" type="geojson" data={geojsonData}>
             <Layer
-              id="mini-glow"
-              type="fill-extrusion"
-              paint={{
-                'fill-extrusion-color': colorExpr,
-                'fill-extrusion-height': ['*', ['get', 'floors'], 4.5],
-                'fill-extrusion-base': 0,
-                'fill-extrusion-opacity': 0.1,
-              }}
-            />
-            <Layer
               id="mini-extrusions"
               type="fill-extrusion"
               paint={{
                 'fill-extrusion-color': colorExpr,
-                'fill-extrusion-height': ['*', ['get', 'floors'], 4],
-                'fill-extrusion-base': 0,
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'base'],
                 'fill-extrusion-opacity': 0.9,
               }}
             />
@@ -190,7 +119,7 @@ export default function NeighborhoodMiniMap({
             <div className="p-3 min-w-[180px]">
               <h4 className="text-sm font-semibold text-text-primary leading-tight">{selectedProject.name}</h4>
               <p className="text-xs text-text-muted mt-1">
-                {selectedProject.floors} floors
+                {selectedProject.floors ? `${selectedProject.floors} floors` : 'New development'}
                 {selectedProject.priceMin && selectedProject.priceMin >= 1000000
                   ? ` · From $${(selectedProject.priceMin / 1000000).toFixed(1)}M`
                   : selectedProject.priceMin ? ` · From $${(selectedProject.priceMin / 1000).toFixed(0)}K` : ''}

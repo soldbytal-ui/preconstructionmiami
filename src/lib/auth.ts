@@ -1,9 +1,23 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
-import { supabase } from './supabase';
+import { createHmac } from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'pcm-admin-secret-key-change-in-production';
+/**
+ * Signing secret for admin sessions. Uses JWT_SECRET when set. Otherwise it is
+ * derived from a server-only credential so that it is never a value that
+ * appears in the repository. With no server secret at all, sign-in is disabled
+ * rather than falling back to a guessable key.
+ */
+function resolveSecret(): string | null {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  const seed = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ANTHROPIC_API_KEY;
+  if (!seed) return null;
+  return createHmac('sha256', seed).update('pcm-admin-session-v1').digest('hex');
+}
+
+const JWT_SECRET = resolveSecret();
+export const authConfigured = Boolean(JWT_SECRET);
 
 export type AgentSession = {
   id: string;
@@ -13,12 +27,14 @@ export type AgentSession = {
 };
 
 export function signToken(payload: AgentSession): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  if (!JWT_SECRET) throw new Error('Admin sign-in is not configured');
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d', algorithm: 'HS256' });
 }
 
 export function verifyToken(token: string): AgentSession | null {
+  if (!JWT_SECRET) return null;
   try {
-    return jwt.verify(token, JWT_SECRET) as AgentSession;
+    return jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as AgentSession;
   } catch {
     return null;
   }

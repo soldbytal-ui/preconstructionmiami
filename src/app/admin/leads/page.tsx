@@ -72,28 +72,41 @@ export default function LeadsPage() {
     setActivities(Array.isArray(acts) ? acts : []);
   };
 
-  const initiateCall = async (leadId: string) => {
-    await fetch('/api/admin/call', {
+  // Masked calling/texting through Twilio is not connected yet. For the admin
+  // (who can see the number) these open the phone's dialer / messages app and
+  // log the touch so the lead history stays accurate.
+  const logActivity = async (type: string, content: string) => {
+    if (!selected) return;
+    await fetch('/api/admin/activities', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ leadId }),
+      body: JSON.stringify({ leadId: selected.id, type, content }),
     });
-    if (selected) {
-      const acts = await fetch(`/api/admin/activities?leadId=${selected.id}`).then(r => r.json());
-      setActivities(Array.isArray(acts) ? acts : []);
-    }
+    const acts = await fetch(`/api/admin/activities?leadId=${selected.id}`).then(r => r.json());
+    setActivities(Array.isArray(acts) ? acts : []);
+  };
+
+  const canDial = user?.role === 'admin' && !!selected?.phone && !selected.phone.startsWith('***');
+
+  const initiateCall = async () => {
+    if (!selected) return;
+    if (!canDial) { alertNotConnected(); return; }
+    window.location.href = `tel:${selected.phone.replace(/[^+\d]/g, '')}`;
+    await logActivity('call', `Called ${selected.name}`);
   };
 
   const sendSms = async () => {
     if (!smsText.trim() || !selected) return;
-    await fetch('/api/admin/sms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ leadId: selected.id, message: smsText }),
-    });
+    if (!canDial) { alertNotConnected(); return; }
+    window.location.href = `sms:${selected.phone.replace(/[^+\d]/g, '')}?&body=${encodeURIComponent(smsText)}`;
+    await logActivity('sms', smsText);
     setSmsText('');
-    const acts = await fetch(`/api/admin/activities?leadId=${selected.id}`).then(r => r.json());
-    setActivities(Array.isArray(acts) ? acts : []);
+  };
+
+  const [notice, setNotice] = useState('');
+  const alertNotConnected = () => {
+    setNotice('Masked calling and texting is not connected yet. Ask the admin to reach out to this lead.');
+    setTimeout(() => setNotice(''), 6000);
   };
 
   const isAdmin = user?.role === 'admin';
@@ -230,7 +243,7 @@ export default function LeadsPage() {
                 {/* Action Buttons */}
                 <div className="flex gap-2">
                   <button
-                    onClick={() => initiateCall(selected.id)}
+                    onClick={() => initiateCall()}
                     className="flex-1 bg-accent-green/10 text-accent-green text-xs font-medium py-2 rounded-lg hover:bg-accent-green/20 transition-colors"
                   >
                     📞 Click to Call
@@ -242,6 +255,8 @@ export default function LeadsPage() {
                     💬 Text
                   </button>
                 </div>
+
+                {notice && <p className="text-xs text-accent-orange bg-accent-orange/10 rounded-lg p-2">{notice}</p>}
 
                 {/* Status + Priority + Agent */}
                 <div className="grid grid-cols-2 gap-2">
@@ -300,7 +315,7 @@ export default function LeadsPage() {
                 <div className="flex gap-2">
                   <input
                     id="sms-input"
-                    placeholder="Send SMS..."
+                    placeholder="Write a text..."
                     value={smsText}
                     onChange={e => setSmsText(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && sendSms()}

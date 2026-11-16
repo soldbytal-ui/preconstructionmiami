@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import StatusBadge from './StatusBadge';
+import SafeImage from '@/components/ui/SafeImage';
 import { formatPrice, CATEGORY_LABELS } from '@/lib/utils';
 
 const NEIGHBORHOOD_FALLBACK_IMAGES: Record<string, string> = {
@@ -49,16 +50,14 @@ type ProjectCardProps = {
 };
 
 export default function ProjectCard({ project }: ProjectCardProps) {
-  const imageUrl =
-    project.mainImageUrl ||
-    NEIGHBORHOOD_FALLBACK_IMAGES[project.neighborhood?.slug || ''] ||
-    DEFAULT_FALLBACK;
+  const fallback = NEIGHBORHOOD_FALLBACK_IMAGES[project.neighborhood?.slug || ''] || DEFAULT_FALLBACK;
 
   return (
     <Link href={`/properties/${project.slug}`} className="card group hover:border-accent-green/30 transition-all">
       <div className="relative h-48 overflow-hidden">
-        <img
-          src={imageUrl}
+        <SafeImage
+          src={project.mainImageUrl}
+          fallbackSrc={fallback}
           alt={`${project.name} - Pre-Construction in ${project.neighborhood?.name || 'Miami'}`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"

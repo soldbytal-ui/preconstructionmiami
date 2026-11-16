@@ -1,10 +1,19 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { signToken, verifyPassword, verifyToken } from '@/lib/auth';
+import { supabaseAdmin as supabase } from '@/lib/supabase';
+import { signToken, verifyPassword, verifyToken, authConfigured } from '@/lib/auth';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
+    if (!authConfigured) {
+      return NextResponse.json({ error: 'Admin sign-in is not configured. Set JWT_SECRET.' }, { status: 503 });
+    }
+    if (!rateLimit(`login:${clientIp(request)}`, 8, 15 * 60_000)) {
+      return NextResponse.json({ error: 'Too many attempts. Try again in a few minutes.' }, { status: 429 });
+    }
     const { email, password } = await request.json();
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
@@ -43,7 +52,7 @@ export async function POST(request: Request) {
     cookieStore.set('admin_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     });
