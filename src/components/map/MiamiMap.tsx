@@ -53,7 +53,8 @@ export default function MiamiMap() {
     const v = new URLSearchParams(window.location.search).get('look');
     if (v === 'classic') return null;
     if (v && ['dusk', 'dawn', 'day', 'night'].includes(v)) return v;
-    return null; // classic dark map stays the default until the lit version is approved
+    // Lit city with shadows on computers; phones keep the lighter classic map
+    return window.matchMedia('(pointer: coarse)').matches ? null : 'night';
   });
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
   const mapRef = useRef<MapRef>(null);
@@ -182,7 +183,8 @@ export default function MiamiMap() {
     'text-justify': 'auto',
     'symbol-sort-key': ['get', 'rank'],
   } as any;
-  const labelPaint = {
+  const labelPaint: any = {
+    ...(look ? { 'text-emissive-strength': 1 } : {}),
     'text-color': '#F0EDE8',
     'text-halo-color': 'rgba(10, 12, 15, 0.92)',
     'text-halo-width': 1.6,
@@ -195,7 +197,7 @@ export default function MiamiMap() {
         initialViewState={{
           longitude: -80.1915,
           latitude: 25.772,
-          zoom: isTouch ? 12.9 : 13.9,
+          zoom: isTouch ? 12.9 : 14.6,
           pitch: 60,
           bearing: -20,
           // Keep the skyline clear of the headline card on wide screens
@@ -224,7 +226,7 @@ export default function MiamiMap() {
           <Source id="pads-src" type="geojson" data={data.pads}>
             {/* On the lit base map, clear the existing buildings and trees off each project's lot */}
             {look && <Layer id="pad-clip" {...({ type: 'clip', layout: { 'clip-layer-types': ['model', 'symbol'] } } as any)} />}
-            <Layer id="pad-fill" type="fill" paint={{ 'fill-color': STATUS_COLOR_EXPR, 'fill-opacity': 0.28 }} />
+            <Layer id="pad-fill" type="fill" paint={{ 'fill-color': STATUS_COLOR_EXPR, 'fill-opacity': look ? 0.45 : 0.28, ...(look ? { 'fill-emissive-strength': look === 'night' ? 1 : 0.5 } : {}) } as any} />
             <Layer
               id="pad-line"
               type="line"
@@ -232,7 +234,8 @@ export default function MiamiMap() {
                 'line-color': STATUS_COLOR_EXPR,
                 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 16, 4],
                 'line-blur': 1,
-              }}
+                ...(look ? { 'line-emissive-strength': look === 'night' ? 1 : 0.5 } : {}),
+              } as any}
             />
           </Source>
         )}
@@ -265,9 +268,10 @@ export default function MiamiMap() {
               paint={{
                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 4, 14, 14, 18, 30],
                 'circle-color': STATUS_COLOR_EXPR,
-                'circle-opacity': 0.22,
+                'circle-opacity': look ? 0.5 : 0.22,
                 'circle-blur': 1,
-              }}
+                ...(look ? { 'circle-emissive-strength': look === 'night' ? 1 : 0.5 } : {}),
+              } as any}
             />
             <Layer
               id="signature-labels"
@@ -280,7 +284,7 @@ export default function MiamiMap() {
             <Layer
               id="project-labels"
               type="symbol"
-              minzoom={14.3}
+              minzoom={15.1}
               filter={['==', ['get', 'signature'], 0]}
               layout={labelLayout}
               paint={labelPaint}
