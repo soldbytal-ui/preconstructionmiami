@@ -11,7 +11,7 @@ import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice, formatPriceRange } from '@/lib/utils';
-import { generateBreadcrumbSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, fitTitle, DEFAULT_OG } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import DevLogo from '@/components/ui/DevLogo';
 
@@ -33,12 +33,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `Explore ${dev.name}'s pre-construction condo portfolio in South Florida. View projects, pricing, and developer track record.`;
 
   return {
-    title,
+    title: { absolute: fitTitle(title) },
     description,
     alternates: {
       canonical: `https://preconstructionmiami.net/developers/${slug}`,
     },
     openGraph: {
+      images: DEFAULT_OG,
       title,
       description,
       url: `https://preconstructionmiami.net/developers/${slug}`,

@@ -4,17 +4,18 @@ export const revalidate = 300;
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
-import { generateBreadcrumbSchema, generateItemListSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, generateItemListSchema, DEFAULT_OG } from '@/lib/seo';
 import DevLogo from '@/components/ui/DevLogo';
 
 export const metadata: Metadata = {
-  title: 'Miami Pre-Construction Developers',
+  title: { absolute: 'Miami Pre-Construction Developers | PreConstructionMiami' },
   description:
     'Explore top pre-construction condo developers in South Florida. Browse developer profiles, project portfolios, and track records from Brickell to Palm Beach.',
   alternates: {
     canonical: 'https://preconstructionmiami.net/developers',
   },
   openGraph: {
+      images: DEFAULT_OG,
     title: 'Miami Pre-Construction Developers',
     description: 'Explore top pre-construction condo developers in South Florida. Browse profiles, portfolios, and track records.',
     url: 'https://preconstructionmiami.net/developers',

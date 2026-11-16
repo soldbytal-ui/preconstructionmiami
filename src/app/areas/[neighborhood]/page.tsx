@@ -11,7 +11,7 @@ import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice } from '@/lib/utils';
-import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, generateFAQSchema, fitTitle, fitDesc, DEFAULT_OG, generateProjectListSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import InquiryForm from '@/components/projects/InquiryForm';
 import DynamicNeighborhoodMap from '@/components/map/DynamicNeighborhoodMap';
@@ -27,12 +27,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single();
   if (!n) return { title: 'Neighborhood Not Found' };
   return {
-    title: n.metaTitle || `New Pre-Construction Condos in ${n.name} | PreConstructionMiami.net`,
-    description: n.metaDescription || `Browse pre-construction condos in ${n.name}. Find new developments, pricing, floor plans, and completion dates.`,
+    title: { absolute: fitTitle(`New Pre-Construction Condos in ${n.name} | Prices & Floor Plans`) },
+    description: fitDesc(n.metaDescription) || `Browse pre-construction condos in ${n.name}. Find new developments, pricing, floor plans, and completion dates.`,
     alternates: {
       canonical: `https://preconstructionmiami.net/new-condos-${n.slug}`,
     },
     openGraph: {
+      images: DEFAULT_OG,
       title: n.metaTitle || `New Pre-Construction Condos in ${n.name}`,
       description: n.metaDescription || `Browse pre-construction condos in ${n.name}.`,
       url: `https://preconstructionmiami.net/new-condos-${n.slug}`,
@@ -156,6 +157,12 @@ export default async function NeighborhoodPage({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      {projectList.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProjectListSchema(`New pre-construction condos in ${neighborhood.name}`, projectList as any)) }}
+        />
+      )}
 
       {/* Hero */}
       <section className="bg-surface py-16 md:py-24 border-b border-border">

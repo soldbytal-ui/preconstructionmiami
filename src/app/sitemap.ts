@@ -18,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase.from('projects').select('slug, updatedAt'),
     supabase.from('neighborhoods').select('slug, updatedAt'),
     supabase.from('blog_posts').select('slug, updatedAt').not('publishedAt', 'is', null),
-    supabase.from('developers').select('slug, updatedAt'),
+    supabase.from('developers').select('slug, updatedAt, projects(count)'),
   ]);
 
   return [
@@ -49,7 +49,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     })),
-    ...(developers || []).map((d: any) => ({
+    // Developer pages with no listed projects are left out: there is nothing on them to rank
+    ...(developers || []).filter((d: any) => (d.projects?.[0]?.count || 0) > 0).map((d: any) => ({
       url: `${baseUrl}/developers/${d.slug}`,
       lastModified: toW3CDate(d.updatedAt),
       changeFrequency: 'monthly' as const,

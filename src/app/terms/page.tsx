@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { DEFAULT_OG } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     canonical: 'https://preconstructionmiami.net/terms',
   },
   openGraph: {
+      images: DEFAULT_OG,
     title: 'Terms of Service | PreConstructionMiami.net',
     description: 'Terms of Service governing the use of PreConstructionMiami.net informational real estate platform.',
     url: 'https://preconstructionmiami.net/terms',

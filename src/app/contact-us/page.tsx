@@ -4,7 +4,7 @@ export const revalidate = 300;
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import InquiryForm from '@/components/projects/InquiryForm';
-import { generateBreadcrumbSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, DEFAULT_OG } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     canonical: 'https://preconstructionmiami.net/contact-us',
   },
   openGraph: {
+      images: DEFAULT_OG,
     title: 'Contact PreConstructionMiami.net',
     description: 'Have a question about a Miami pre-construction project? Send an inquiry and a licensed local real estate professional will follow up.',
     url: 'https://preconstructionmiami.net/contact-us',

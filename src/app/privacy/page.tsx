@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { DEFAULT_OG } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
     canonical: 'https://preconstructionmiami.net/privacy',
   },
   openGraph: {
+      images: DEFAULT_OG,
     title: 'Privacy Policy | PreConstructionMiami.net',
     description: 'Learn how PreConstructionMiami.net collects, uses, and protects your personal information.',
     url: 'https://preconstructionmiami.net/privacy',

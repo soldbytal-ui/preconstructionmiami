@@ -8,9 +8,10 @@ export async function generateStaticParams() {
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import blogRedirects from '@/lib/blog-redirects.json';
 import Markdown from 'react-markdown';
 import { supabase } from '@/lib/supabase';
-import { generateArticleSchema, generateBreadcrumbSchema } from '@/lib/seo';
+import { generateArticleSchema, generateBreadcrumbSchema, fitTitle, fitDesc, DEFAULT_OG } from '@/lib/seo';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -74,14 +75,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single();
   if (!post) return { title: 'Post Not Found' };
   const title = post.metaTitle || post.title;
-  const description = post.metaDescription || getExcerpt(post) || post.title;
+  const description = fitDesc(post.metaDescription || getExcerpt(post) || post.title);
   return {
-    title,
+    title: { absolute: fitTitle(title) },
     description,
     alternates: {
       canonical: `https://preconstructionmiami.net/blog/${slug}`,
     },
     openGraph: {
+      images: DEFAULT_OG,
       title,
       description,
       url: `https://preconstructionmiami.net/blog/${slug}`,
@@ -197,9 +199,14 @@ export default async function BlogPostPage({ params }: Props) {
             ">
               <Markdown
                 components={{
+                  // The page already has its H1; a heading-1 inside the article becomes an H2
+                  h1: ({ children }) => <h2>{children}</h2>,
                   a: ({ href, children }) => {
                     if (href?.startsWith('/')) {
-                      return <Link href={href}>{children}</Link>;
+                      // Older articles link to short addresses; point straight at the real page
+                      const short = href.match(/^\/blog\/([^/?#]+)/)?.[1];
+                      const fixed = short && (blogRedirects as Record<string, string>)[short] ? `/blog/${(blogRedirects as Record<string, string>)[short]}` : href === '/contact' ? '/contact-us' : href;
+                      return <Link href={fixed}>{children}</Link>;
                     }
                     return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
                   },

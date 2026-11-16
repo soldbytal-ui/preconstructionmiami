@@ -1,3 +1,42 @@
+const BRAND = 'PreConstructionMiami';
+
+/** Default social preview image, used wherever a page has no image of its own. */
+export const DEFAULT_OG = [{ url: '/og-image.png', width: 1200, height: 630, alt: 'PreConstructionMiami.net' }];
+
+/** Plain text from markdown, for meta descriptions and structured data. */
+export function plainText(md: string | null | undefined): string {
+  return (md || '')
+    .replace(/^#{1,6}\s+.*$/gm, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`>#]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Meta description that fits what search results show (about 155 characters). */
+export function fitDesc(text: string | null | undefined, max = 155): string {
+  const t = plainText(text);
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  return cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:.\s]+$/, '') + '…';
+}
+
+/**
+ * Page title that fits in a search result (60 characters). Adds the brand only
+ * when there is room, and drops trailing segments before cutting anything off.
+ */
+export function fitTitle(base: string): string {
+  let segs = base.replace(/[*_`]/g, '').trim().split(' | ').map((x) => x.trim()).filter((x) => x && !/preconstructionmiami/i.test(x));
+  while (segs.length > 1 && segs.join(' | ').length > 60) segs = segs.slice(0, -1);
+  const core = segs.join(' | ');
+  return core.length + BRAND.length + 3 <= 60 ? `${core} | ${BRAND}` : core;
+}
+
+/** First title option that fits. */
+export function pickTitle(options: string[]): string {
+  return options.find((o) => o.length <= 60) || options[options.length - 1];
+}
+
 export function generateLocalBusinessSchema() {
   return {
     '@context': 'https://schema.org',
@@ -5,7 +44,7 @@ export function generateLocalBusinessSchema() {
     name: 'PreConstructionMiami.net',
     description: 'Miami\'s premier pre-construction condo marketplace. Access 150+ new developments across South Florida.',
     url: 'https://preconstructionmiami.net',
-    logo: 'https://preconstructionmiami.net/og-image.png',
+    logo: 'https://preconstructionmiami.net/icon.png',
     image: 'https://preconstructionmiami.net/og-image.png',
     email: 'info@preconstructionmiami.net',
     address: {
@@ -45,7 +84,7 @@ export function generateOrganizationSchema() {
     '@type': 'Organization',
     name: 'PreConstructionMiami.net',
     url: 'https://preconstructionmiami.net',
-    logo: 'https://preconstructionmiami.net/og-image.png',
+    logo: 'https://preconstructionmiami.net/icon.png',
     description: 'South Florida\'s most comprehensive pre-construction condo marketplace connecting buyers and investors with 150+ new developments.',
     address: {
       '@type': 'PostalAddress',
@@ -107,23 +146,41 @@ export function generateRealEstateListingSchema(project: {
   totalUnits?: number | null;
   floors?: number | null;
   estCompletion?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  images?: any;
   neighborhood?: { name: string } | null;
+  developer?: { name: string } | null;
 }) {
+  const url = `https://preconstructionmiami.net/properties/${project.slug}`;
+  const parts = (project.address || '').split(',').map((x) => x.trim()).filter(Boolean);
+  const zip = (project.address || '').match(/\b(3[0-4]\d{3})\b/)?.[1];
+  const city = parts.length > 1 ? parts[1].replace(/\bFL\b.*$/i, '').trim() : '';
+  const gallery: string[] = Array.isArray(project.images?.gallery) ? project.images.gallery.map((g: any) => g?.url).filter(Boolean).slice(0, 6) : [];
+  const images = Array.from(new Set([project.mainImageUrl, ...gallery].filter(Boolean)));
+  const iso = (d?: string | null) => (d ? new Date(d.endsWith('Z') ? d : d + 'Z').toISOString() : undefined);
+  const address = project.address
+    ? {
+        '@type': 'PostalAddress',
+        streetAddress: parts[0],
+        addressLocality: city || project.neighborhood?.name || 'Miami',
+        addressRegion: 'FL',
+        ...(zip && { postalCode: zip }),
+        addressCountry: 'US',
+      }
+    : undefined;
   return {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
+    '@id': url,
     name: project.name,
-    description: project.description?.slice(0, 300) || `${project.name} - New pre-construction development in Miami`,
-    url: `https://preconstructionmiami.net/properties/${project.slug}`,
-    ...(project.address && {
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: project.address,
-        addressLocality: project.neighborhood?.name || 'Miami',
-        addressRegion: 'FL',
-        addressCountry: 'US',
-      },
-    }),
+    description: fitDesc(project.description, 300) || `${project.name} is a new pre-construction development in South Florida.`,
+    url,
+    ...(iso(project.createdAt) && { datePosted: iso(project.createdAt) }),
+    ...(iso(project.updatedAt) && { dateModified: iso(project.updatedAt) }),
+    ...(images.length && { image: images }),
     ...(project.priceMin && {
       offers: {
         '@type': 'AggregateOffer',
@@ -133,9 +190,32 @@ export function generateRealEstateListingSchema(project: {
         availability: 'https://schema.org/PreSale',
       },
     }),
-    ...(project.mainImageUrl && { image: project.mainImageUrl }),
-    ...(project.totalUnits && { numberOfAccommodationUnits: project.totalUnits }),
-    ...(project.floors && { numberOfFloors: project.floors }),
+    // The building itself, so search engines and AI assistants can read its facts
+    about: {
+      '@type': 'ApartmentComplex',
+      name: project.name,
+      ...(address && { address }),
+      ...(project.latitude && project.longitude && { geo: { '@type': 'GeoCoordinates', latitude: project.latitude, longitude: project.longitude } }),
+      ...(project.totalUnits && { numberOfAccommodationUnits: project.totalUnits }),
+      ...(project.floors && { additionalProperty: [{ '@type': 'PropertyValue', name: 'Storeys', value: project.floors }, ...(project.estCompletion ? [{ '@type': 'PropertyValue', name: 'Estimated completion', value: project.estCompletion }] : [])] }),
+      ...(project.developer?.name && { brand: { '@type': 'Organization', name: project.developer.name } }),
+    },
+  };
+}
+
+/** A list of listings, so engines can see what a hub page links to. */
+export function generateProjectListSchema(name: string, projects: { name: string; slug: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    numberOfItems: projects.length,
+    itemListElement: projects.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: p.name,
+      url: `https://preconstructionmiami.net/properties/${p.slug}`,
+    })),
   };
 }
 

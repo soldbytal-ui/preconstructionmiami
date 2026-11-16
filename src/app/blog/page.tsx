@@ -4,15 +4,16 @@ export const revalidate = 300;
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
-import { generateBreadcrumbSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, DEFAULT_OG } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Miami Pre-Construction Blog | Market Reports & Guides',
+  title: { absolute: 'Miami Pre-Construction Blog: Market Reports & Guides' },
   description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, neighborhood comparisons, investment analysis, and more.',
   alternates: {
     canonical: 'https://preconstructionmiami.net/blog',
   },
   openGraph: {
+      images: DEFAULT_OG,
     title: 'Miami Pre-Construction Blog | Market Reports & Guides',
     description: 'Expert insights on Miami pre-construction condos. Buyer guides, market reports, neighborhood comparisons, and investment analysis.',
     url: 'https://preconstructionmiami.net/blog',

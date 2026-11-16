@@ -3,7 +3,7 @@ export const revalidate = 300;
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { generateBreadcrumbSchema, generateOrganizationSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, generateOrganizationSchema, DEFAULT_OG } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     canonical: 'https://preconstructionmiami.net/about',
   },
   openGraph: {
+      images: DEFAULT_OG,
     title: 'About PreConstructionMiami.net',
     description: 'Miami\'s premier marketplace for new construction condos. We help buyers access pre-launch pricing across 150+ developments.',
     url: 'https://preconstructionmiami.net/about',

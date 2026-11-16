@@ -1,3 +1,5 @@
+const blogRedirects = require('./src/lib/blog-redirects.json');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
@@ -27,6 +29,8 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Short blog addresses used inside older articles
+      ...Object.entries(blogRedirects).map(([from, to]) => ({ source: `/blog/${from}`, destination: `/blog/${to}`, permanent: true })),
       // Existing redirects
       { source: '/pre-construction', destination: '/new-condos', permanent: true },
       { source: '/pre-construction/:slug', destination: '/properties/:slug', permanent: true },

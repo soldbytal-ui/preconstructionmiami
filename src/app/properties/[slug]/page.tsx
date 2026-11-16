@@ -11,7 +11,7 @@ import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice, formatPriceRange, STATUS_LABELS, CATEGORY_LABELS } from '@/lib/utils';
-import { generateRealEstateListingSchema, generateBreadcrumbSchema } from '@/lib/seo';
+import { generateRealEstateListingSchema, generateBreadcrumbSchema, fitDesc, pickTitle, DEFAULT_OG } from '@/lib/seo';
 import Markdown from 'react-markdown';
 import StatusBadge from '@/components/projects/StatusBadge';
 import InquiryForm from '@/components/projects/InquiryForm';
@@ -33,18 +33,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!project) return { title: 'Project Not Found' };
 
   const area = project.neighborhood?.name || 'Miami';
-  const title = project.metaTitle || `${project.name} | Pre-Construction in ${area}`;
+  const n = project.name;
+  const title = pickTitle([
+    `${n} | Pre-Construction Condos in ${area}`,
+    `${n} | Pre-Construction in ${area}`,
+    `${n} | New Condos in ${area}`,
+    `${n} | Pre-Construction Condos`,
+    n,
+  ]);
   const description =
-    project.metaDescription ||
-    project.description?.slice(0, 160) ||
+    fitDesc(project.metaDescription) ||
+    fitDesc(project.description) ||
     `${project.name} - New pre-construction development in ${area}. ${project.priceMin ? `From ${formatPrice(project.priceMin)}.` : ''} ${project.totalUnits ? `${project.totalUnits} residences.` : ''}`;
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: `https://preconstructionmiami.net/properties/${slug}`,
     },
     openGraph: {
+      images: DEFAULT_OG,
       title,
       description,
       url: `https://preconstructionmiami.net/properties/${slug}`,

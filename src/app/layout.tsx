@@ -8,10 +8,10 @@ import './globals.css';
 export const metadata: Metadata = {
   metadataBase: new URL('https://preconstructionmiami.net'),
   title: {
-    default: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
-    template: '%s | PreConstructionMiami.net',
+    default: 'Pre-Construction Condos in Miami | PreConstructionMiami',
+    template: '%s | PreConstructionMiami',
   },
-  description: 'Access 150+ pre-construction condo developments across Miami and South Florida. From $300K to $50M+. Brickell, Miami Beach, Downtown, Edgewater & more.',
+  description: 'Browse 150+ pre-construction condos across Miami and South Florida on a 3D map. Prices from $300K. Brickell, Miami Beach, Edgewater and more.',
   alternates: {
     canonical: 'https://preconstructionmiami.net',
   },

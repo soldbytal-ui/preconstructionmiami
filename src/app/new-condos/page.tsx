@@ -7,15 +7,16 @@ import { CARD_COLUMNS } from '@/lib/queries';
 import type { Metadata } from 'next';
 import ProjectCard from '@/components/projects/ProjectCard';
 import ProjectFilters from '@/components/projects/ProjectFilters';
-import { generateBreadcrumbSchema } from '@/lib/seo';
+import { generateBreadcrumbSchema, DEFAULT_OG, generateProjectListSchema } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'New Condos in Miami | Browse All Pre-Construction Projects',
+  title: { absolute: 'New Condos in Miami | All Pre-Construction Projects' },
   description: 'Browse 150+ new pre-construction condo projects across Miami-Dade, Broward & Palm Beach. Filter by neighborhood, price, status, and category.',
   alternates: {
     canonical: 'https://preconstructionmiami.net/new-condos',
   },
   openGraph: {
+      images: DEFAULT_OG,
     title: 'New Condos in Miami | Browse All Pre-Construction Projects',
     description: 'Browse 150+ new pre-construction condo projects across Miami-Dade, Broward & Palm Beach.',
     url: 'https://preconstructionmiami.net/new-condos',
@@ -86,6 +87,10 @@ export default async function NewCondosPage({ searchParams }: Props) {
   return (
     <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProjectListSchema('New pre-construction condos in Miami and South Florida', pageProjects as any)) }}
+    />
     <div className="container-main pt-24 pb-10">
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-text-primary">
