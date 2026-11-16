@@ -47,6 +47,14 @@ export default function MiamiMap() {
   const [area, setArea] = useState<string>('Brickell & Downtown');
   const stopOrbit = useRef(false);
   const [ready, setReady] = useState(false);
+  // Base map look. ?look=dusk|dawn|day|night|classic in the address overrides it.
+  const [look] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const v = new URLSearchParams(window.location.search).get('look');
+    if (v === 'classic') return null;
+    if (v && ['dusk', 'dawn', 'day', 'night'].includes(v)) return v;
+    return null; // classic dark map stays the default until the lit version is approved
+  });
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
   const mapRef = useRef<MapRef>(null);
 
@@ -80,10 +88,12 @@ export default function MiamiMap() {
     if (map) {
       (window as any).__pcmMap = map; // handle for automated visual checks
       setReady(true);
-      addCityBuildings(map, '3d-buildings');
-      hideBaseBuildings(map, '3d-buildings', data?.hiddenBaseIds);
+      if (!look) {
+        addCityBuildings(map, '3d-buildings');
+        hideBaseBuildings(map, '3d-buildings', data?.hiddenBaseIds);
+      }
     }
-  }, [data]);
+  }, [data, look]);
 
   // Data can arrive after the map has loaded
   useEffect(() => {
@@ -194,7 +204,8 @@ export default function MiamiMap() {
             : undefined,
         }}
         mapboxAccessToken={MAPBOX_TOKEN}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
+        mapStyle={look ? 'mapbox://styles/mapbox/standard' : 'mapbox://styles/mapbox/dark-v11'}
+        {...(look ? { config: { basemap: { lightPreset: look, showPointOfInterestLabels: false, showTransitLabels: false } } } : {})}
         onLoad={onLoad}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
@@ -211,6 +222,8 @@ export default function MiamiMap() {
         {/* Status pad: realistic towers stand on a footprint in their status colour */}
         {data?.pads && (
           <Source id="pads-src" type="geojson" data={data.pads}>
+            {/* On the lit base map, clear the existing buildings and trees off each project's lot */}
+            {look && <Layer id="pad-clip" {...({ type: 'clip', layout: { 'clip-layer-types': ['model', 'symbol'] } } as any)} />}
             <Layer id="pad-fill" type="fill" paint={{ 'fill-color': STATUS_COLOR_EXPR, 'fill-opacity': 0.28 }} />
             <Layer
               id="pad-line"
@@ -233,8 +246,10 @@ export default function MiamiMap() {
                 'fill-extrusion-color': towerColor,
                 'fill-extrusion-height': ['get', 'height'],
                 'fill-extrusion-base': ['get', 'base'],
-                'fill-extrusion-opacity': 0.96,
+                'fill-extrusion-opacity': look ? 1 : 0.96,
                 'fill-extrusion-vertical-gradient': true,
+                // Under night lighting the new towers stay bright against the existing city
+                ...(look ? { 'fill-extrusion-emissive-strength': look === 'night' ? 0.7 : look === 'day' ? 0 : 0.4 } : {}),
               }}
             />
           </Source>
