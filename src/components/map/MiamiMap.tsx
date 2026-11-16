@@ -25,6 +25,18 @@ const SIGNATURE_SLUGS = new Set([
 
 type HoverInfo = { x: number; y: number; object: MapProject } | null;
 
+const AREAS = [
+  { name: 'Brickell & Downtown', lng: -80.1915, lat: 25.772, zoom: 14.2, bearing: -20 },
+  { name: 'Edgewater & Midtown', lng: -80.1895, lat: 25.8015, zoom: 14.4, bearing: -15 },
+  { name: 'Miami Beach', lng: -80.1315, lat: 25.795, zoom: 13.6, bearing: 20 },
+  { name: 'Coconut Grove', lng: -80.2395, lat: 25.7305, zoom: 14.6, bearing: 0 },
+  { name: 'Coral Gables', lng: -80.2585, lat: 25.748, zoom: 14.4, bearing: 0 },
+  { name: 'Surfside & Bay Harbor', lng: -80.127, lat: 25.884, zoom: 14.4, bearing: 15 },
+  { name: 'Sunny Isles & Aventura', lng: -80.127, lat: 25.945, zoom: 13.6, bearing: 15 },
+  { name: 'Fort Lauderdale', lng: -80.118, lat: 26.123, zoom: 13.2, bearing: 0 },
+  { name: 'Palm Beach', lng: -80.051, lat: 26.708, zoom: 13.8, bearing: 0 },
+] as const;
+
 export default function MiamiMap() {
   const [data, setData] = useState<BuildingsData | null>(null);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>(null);
@@ -32,6 +44,9 @@ export default function MiamiMap() {
   const [selected, setSelected] = useState<MapProject | null>(null);
   // This component only ever renders in the browser (see DynamicMap), so the
   // pointer type can be read up front.
+  const [area, setArea] = useState<string>('Brickell & Downtown');
+  const stopOrbit = useRef(false);
+  const [ready, setReady] = useState(false);
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
   const mapRef = useRef<MapRef>(null);
 
@@ -64,6 +79,7 @@ export default function MiamiMap() {
     const map = mapRef.current?.getMap();
     if (map) {
       (window as any).__pcmMap = map; // handle for automated visual checks
+      setReady(true);
       addCityBuildings(map, '3d-buildings');
       hideBaseBuildings(map, '3d-buildings', data?.hiddenBaseIds);
     }
@@ -92,6 +108,7 @@ export default function MiamiMap() {
   const onMouseLeave = useCallback(() => { setHoveredId(null); setHoverInfo(null); }, []);
 
   const onClick = useCallback((e: MapMouseEvent) => {
+    stopOrbit.current = true;
     const p = projectAt(e);
     if (!p) { setSelected(null); return; }
     setSelected(p);
@@ -105,6 +122,40 @@ export default function MiamiMap() {
       essential: true,
     });
   }, [projectAt]);
+
+  // Quick jumps between districts
+  const flyToArea = useCallback((a: (typeof AREAS)[number]) => {
+    stopOrbit.current = true;
+    setArea(a.name);
+    setSelected(null);
+    mapRef.current?.getMap()?.flyTo({ center: [a.lng, a.lat], zoom: a.zoom, pitch: 60, bearing: a.bearing, duration: 2200, essential: true });
+  }, []);
+
+  // A slow drift around the skyline until the visitor touches the map
+  useEffect(() => {
+    if (!data || !ready || isTouch) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    let raf = 0;
+    let last = performance.now();
+    const stop = () => { stopOrbit.current = true; };
+    const events = ['mousedown', 'wheel', 'touchstart', 'dragstart', 'keydown'] as const;
+    events.forEach((ev) => map.getCanvas().addEventListener(ev, stop, { passive: true }));
+    const tick = (now: number) => {
+      if (stopOrbit.current) return;
+      const dt = Math.min(64, now - last);
+      last = now;
+      if (!document.hidden && !map.isMoving()) map.setBearing(map.getBearing() + dt * 0.0012);
+      raf = requestAnimationFrame(tick);
+    };
+    const start = window.setTimeout(() => { last = performance.now(); raf = requestAnimationFrame(tick); }, 2500);
+    return () => {
+      window.clearTimeout(start);
+      cancelAnimationFrame(raf);
+      events.forEach((ev) => map.getCanvas().removeEventListener(ev, stop));
+    };
+  }, [data, ready, isTouch]);
 
   const activeId = selected?.id || hoveredId;
   const towerColor: any = activeId
@@ -134,9 +185,13 @@ export default function MiamiMap() {
         initialViewState={{
           longitude: -80.1915,
           latitude: 25.772,
-          zoom: isTouch ? 12.9 : 13.6,
-          pitch: 58,
+          zoom: isTouch ? 12.9 : 13.9,
+          pitch: 60,
           bearing: -20,
+          // Keep the skyline clear of the headline card on wide screens
+          padding: !isTouch && typeof window !== 'undefined' && window.innerWidth >= 1024
+            ? { left: 460, top: 60, right: 0, bottom: 0 }
+            : undefined,
         }}
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/mapbox/dark-v11"
@@ -229,6 +284,25 @@ export default function MiamiMap() {
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* District quick jumps */}
+      <div className="absolute left-0 right-0 bottom-3 z-10 pl-3 pr-16 lg:pr-3 pointer-events-none">
+        <div className="mx-auto max-w-max flex gap-1.5 overflow-x-auto pointer-events-auto glass-panel rounded-full px-1.5 py-1.5 [scrollbar-width:none]">
+          {AREAS.map((a) => (
+            <button
+              key={a.name}
+              type="button"
+              onClick={() => flyToArea(a)}
+              aria-pressed={area === a.name}
+              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] transition-colors ${
+                area === a.name ? 'bg-accent-green text-bg' : 'text-text-muted hover:text-text-primary hover:bg-white/5'
+              }`}
+            >
+              {a.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {hoverInfo && !selected && <MapTooltip info={hoverInfo} />}
