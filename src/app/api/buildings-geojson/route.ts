@@ -47,6 +47,11 @@ function massing(ring: Ring, floors: number): { ring: Ring; base: number; height
   return [{ ring, base: 0, height: h }];
 }
 
+// Six decimals is about 10 cm on the ground: plenty for a tower, and it keeps the file small.
+const r6 = (n: number) => Math.round(n * 1e6) / 1e6;
+const r1 = (n: number) => Math.round(n * 10) / 10;
+const slim = (ring: number[][]) => ring.map(([x, y]) => [r6(x), r6(y)]);
+
 export async function GET() {
   const [{ data: projects, error }, { data: neighborhoods }, { data: developers }] = await Promise.all([
     supabase
@@ -114,13 +119,13 @@ export async function GET() {
       for (const part of realistic.parts) {
         features.push({
           type: 'Feature',
-          geometry: { type: 'Polygon', coordinates: [part.ring] },
-          properties: { id: p.id, status: p.status, base: part.base, height: part.height, color: part.color },
+          geometry: { type: 'Polygon', coordinates: [slim(part.ring)] },
+          properties: { id: p.id, status: p.status, base: r1(part.base), height: r1(part.height), color: part.color },
         });
       }
       pads.push({
         type: 'Feature',
-        geometry: { type: 'Polygon', coordinates: [realistic.pad] },
+        geometry: { type: 'Polygon', coordinates: [slim(realistic.pad)] },
         properties: { id: p.id, status: p.status },
       });
       if (Array.isArray(p.hiddenBaseIds)) hiddenBaseIds.push(...(p.hiddenBaseIds as number[]));
@@ -128,8 +133,8 @@ export async function GET() {
       for (const part of massing(ring, drawFloors)) {
         features.push({
           type: 'Feature',
-          geometry: { type: 'Polygon', coordinates: [part.ring] },
-          properties: { id: p.id, status: p.status, base: part.base, height: part.height },
+          geometry: { type: 'Polygon', coordinates: [slim(part.ring)] },
+          properties: { id: p.id, status: p.status, base: r1(part.base), height: r1(part.height) },
         });
       }
     }
