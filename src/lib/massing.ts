@@ -126,6 +126,8 @@ export function buildTower(input: {
   floors: number | null;
   heightM: number | null;
   recipe: Recipe;
+  /** Most floor bands to draw per tower. Lower keeps the map file small for towers not yet matched to their design. */
+  maxBands?: number;
 }): { parts: Part[]; pad: [number, number][] } | null {
   const { lot, recipe } = input;
   if (!lot || lot.length < 4) return null;
@@ -151,7 +153,7 @@ export function buildTower(input: {
       const grow = (f: number): [number, number][] => v.ring.map(([x, y]) => [cx + (x - cx) * f, cy + (y - cy) * f]);
       const podium = v.kind === 'podium';
       const fhTarget = podium ? PODIUM_FLOOR_M : RESIDENTIAL_FLOOR_M;
-      const n = Math.max(1, Math.round((v.topM - v.baseM) / (fhTarget * (podium ? 1 : 2))));
+      const n = Math.min(podium ? 6 : 30, Math.max(1, Math.round((v.topM - v.baseM) / (fhTarget * (podium ? 1 : 2)))));
       const fh = (v.topM - v.baseM) / n;
       for (let i = 0; i < n; i++) {
         const b = v.baseM + i * fh;
@@ -223,7 +225,7 @@ export function buildTower(input: {
     const centre: Pt = [ox + slot, oy];
 
     // Floors are grouped so even a 100-storey tower stays light to draw
-    const group = Math.max(1, Math.ceil(tFloors / 48));
+    const group = Math.max(1, Math.ceil(tFloors / (input.maxBands || 48)));
     const fh = tH / tFloors;
     const crownFrom = recipe.crown === 'stepped' ? 0.9 : recipe.crown === 'spire' ? 0.93 : 2;
     const blocks = shape === 'offset-blocks' ? Math.max(2, recipe.blocks || 6) : 0;

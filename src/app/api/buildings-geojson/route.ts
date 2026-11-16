@@ -52,11 +52,18 @@ const r6 = (n: number) => Math.round(n * 1e6) / 1e6;
 const r1 = (n: number) => Math.round(n * 10) / 10;
 const slim = (ring: number[][]) => ring.map(([x, y]) => [r6(x), r6(y)]);
 
+function lotAreaM2(ring: number[][]): number {
+  const k = 111320 * Math.cos((ring[0][1] * Math.PI) / 180);
+  let a = 0;
+  for (let i = 0; i < ring.length - 1; i++) a += ring[i][0] * k * ring[i + 1][1] * 110540 - ring[i + 1][0] * k * ring[i][1] * 110540;
+  return Math.abs(a) / 2;
+}
+
 export async function GET() {
   const [{ data: projects, error }, { data: neighborhoods }, { data: developers }] = await Promise.all([
     supabase
       .from('projects')
-      .select('id, name, slug, latitude, longitude, floors, totalUnits, priceMin, priceMax, status, category, address, estCompletion, description, mainImageUrl, footprint, neighborhoodId, developerId, featured, heightM, heightIsPublished, massing, hiddenBaseIds')
+      .select('id, name, slug, latitude, longitude, floors, totalUnits, priceMin, priceMax, status, category, address, estCompletion, description, mainImageUrl, footprint, neighborhoodId, developerId, featured, heightM, heightIsPublished, massing, massingConfirmed, hiddenBaseIds')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null),
     supabase.from('neighborhoods').select('id, name, slug'),
@@ -110,8 +117,11 @@ export async function GET() {
 
     // Projects with a recipe get a data-built tower in real tones; the rest
     // keep the simple status-coloured massing until theirs is done.
+    const matched = Boolean(p.massingConfirmed || (p.massing as any)?.filed);
+    // A tower not yet matched to its design never gets a podium spread over a very large lot.
+    const recipe = p.massing && !matched && lotAreaM2(ring) > 5500 ? { ...(p.massing as any), podium: false } : (p.massing as any);
     const realistic = p.massing
-      ? buildTower({ lot: ring, floors: p.floors, heightM: p.heightM ? Number(p.heightM) : null, recipe: p.massing as any })
+      ? buildTower({ lot: ring, floors: p.floors, heightM: p.heightM ? Number(p.heightM) : null, recipe, maxBands: matched ? 30 : 12 })
       : null;
 
     if (realistic) {
