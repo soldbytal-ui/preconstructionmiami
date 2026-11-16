@@ -17,6 +17,14 @@ export type Recipe = {
   blocks?: number;
   crown?: 'flat' | 'stepped' | 'spire';
   colors?: { glass?: string; slab?: string; accent?: string };
+  /** Solid frame: end walls and/or a roof cap in one colour (e.g. concrete side walls around glass). */
+  frame?: { ends?: boolean; top?: boolean; color?: string };
+  /** A recessed vertical strip of balconies on the front face. side: 1 or -1 picks which long face. */
+  notch?: { width?: number; depth?: number; side?: 1 | -1; color?: string };
+  /** Facade rhythm: 'glass' = curtain wall with fine lines, 'balcony' = bold projecting slabs. */
+  bands?: 'glass' | 'balcony';
+  /** Podium treatment: mostly solid wall, or glazed. */
+  podiumStyle?: { wall?: string; glass?: string; solid?: boolean };
   /** Hand-entered adjustments. Never filled by the vision model. */
   manual?: {
     offsetAlong?: number; // -1..1 along the lot's long axis (positive = east / north)
@@ -80,6 +88,13 @@ function orientedBox(pts: Pt[]) {
   return { cx: best.cx, cy: best.cy, ux, uy, vx: -uy, vy: ux, long, short };
 }
 
+/** Lighten (+) or darken (-) a hex colour. */
+function shade(hex: string, amt: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = (v: number) => Math.max(0, Math.min(255, Math.round(amt >= 0 ? v + (255 - v) * amt : v * (1 + amt))));
+  return '#' + [ch(n >> 16), ch((n >> 8) & 255), ch(n & 255)].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
 function scaleAbout(pts: Pt[], f: number): Pt[] {
   const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
   const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
@@ -133,10 +148,19 @@ export function buildTower(input: {
     const ring = scaleAbout(pts, 0.94);
     const lip = scaleAbout(pts, 0.955);
     const fh = podiumH / podiumFloors;
+    const ps = recipe.podiumStyle || {};
+    const wall = ps.wall || colors.accent;
+    const pGlass = ps.glass || colors.glass;
     for (let i = 0; i < podiumFloors; i++) {
       const b = i * fh;
-      parts.push({ ring: close(ring), base: b, height: b + fh - 0.7, color: i === 0 ? colors.glass : colors.accent });
-      parts.push({ ring: close(lip), base: b + fh - 0.7, height: b + fh, color: colors.slab });
+      if (ps.solid) {
+        // Solid base: glazed ground floor, then wall with a fine shadow line per floor
+        parts.push({ ring: close(ring), base: b, height: b + fh - 0.25, color: i === 0 ? pGlass : wall });
+        parts.push({ ring: close(scaleAbout(pts, 0.93)), base: b + fh - 0.25, height: b + fh, color: i === podiumFloors - 1 ? wall : shade(wall, -0.18) });
+      } else {
+        parts.push({ ring: close(ring), base: b, height: b + fh - 0.7, color: i === 0 ? pGlass : wall });
+        parts.push({ ring: close(lip), base: b + fh - 0.7, height: b + fh, color: colors.slab });
+      }
     }
   }
 
@@ -200,11 +224,48 @@ export function buildTower(input: {
         scale *= step; glass = colors.accent; slab = colors.accent;
       }
 
-      const outline = (extra: number) =>
-        plate(shape, (tl / 2) * scale * extra, (W / 2) * scale * extra).map(([x, y]) => world(centre[0] + dx + x, centre[1] + dy + y));
-      const slabT = Math.min(0.65, n * fh * 0.22);
-      parts.push({ ring: close(outline(1)), base: b, height: top - slabT, color: glass });
-      parts.push({ ring: close(outline(1.025)), base: top - slabT, height: top, color: slab });
+      const hl = (tl / 2) * scale, hw = (W / 2) * scale;
+      const boxy = shape !== 'curved';
+      const frame = recipe.frame || {};
+      const frameColor = frame.color || colors.accent;
+      const endT = frame.ends && boxy ? Math.max(1.2, hl * 0.09) : 0; // thickness of each solid end wall
+      const nt = recipe.notch && boxy ? recipe.notch : null;
+      const nW = nt ? hl * 2 * Math.min(0.5, nt.width || 0.2) : 0;
+      const nD = nt ? hw * 2 * Math.min(0.4, nt.depth || 0.14) : 0;
+      const nS = nt?.side === -1 ? -1 : 1;
+
+      // Floor plate in the tower's own axes; optional recess on one long face
+      const local = (extra: number): Pt[] => {
+        const L = (hl - endT) * extra, D = hw * extra;
+        if (!boxy) return plate(shape, hl * extra, hw * extra);
+        if (!nt) return [[-L, -D], [L, -D], [L, D], [-L, D]];
+        const y = nS * D, yi = nS * (D - nD);
+        const p: Pt[] = [[-L, -nS * D], [L, -nS * D], [L, y], [nW / 2, y], [nW / 2, yi], [-nW / 2, yi], [-nW / 2, y], [-L, y]];
+        return nS === 1 ? p : p.reverse();
+      };
+      const place = (p: Pt[]) => p.map(([x, y]) => world(centre[0] + dx + x, centre[1] + dy + y));
+
+      const balcony = recipe.bands === 'balcony';
+      const slabT = balcony ? Math.min(0.9, n * fh * 0.3) : Math.min(0.4, n * fh * 0.13);
+      const isCap = frame.top && f + n >= tFloors && frac < crownFrom;
+      parts.push({ ring: close(place(local(1))), base: b, height: top - slabT, color: isCap ? frameColor : glass });
+      parts.push({ ring: close(place(local(balcony ? 1.04 : 1.012))), base: top - slabT, height: top, color: isCap ? frameColor : slab });
+
+      // Recessed balcony stack inside the notch: dark void with a slab edge per floor
+      if (nt) {
+        const y0 = nS * (hw - nD), y1 = nS * (hw - nD * 0.12);
+        const strip: Pt[] = [[-nW / 2, y0], [nW / 2, y0], [nW / 2, y1], [-nW / 2, y1]];
+        parts.push({ ring: close(place(strip)), base: top - Math.max(0.5, slabT), height: top, color: nt.color || colors.slab });
+      }
+
+      // Solid end walls run the full height in the frame colour
+      if (endT > 0) {
+        for (const sx of [-1, 1]) {
+          const x0 = sx * (hl - endT), x1 = sx * hl * 1.004;
+          const wallBox: Pt[] = [[x0, -hw * 1.004], [x1, -hw * 1.004], [x1, hw * 1.004], [x0, hw * 1.004]];
+          parts.push({ ring: close(place(wallBox)), base: b, height: top, color: frameColor });
+        }
+      }
     }
   }
 

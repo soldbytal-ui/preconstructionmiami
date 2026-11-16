@@ -35,6 +35,16 @@ function cleanRecipe(input: any) {
       slab: hex(input.colors?.slab) || '#E6E8EA',
       accent: hex(input.colors?.accent) || '#9AA3AB',
     },
+    ...(input.frame && typeof input.frame === 'object'
+      ? { frame: { ends: !!input.frame.ends, top: !!input.frame.top, ...(hex(input.frame.color) ? { color: hex(input.frame.color) } : {}) } }
+      : {}),
+    ...(input.notch && typeof input.notch === 'object'
+      ? { notch: { width: num(input.notch.width, 0.05, 0.5) || 0.2, depth: num(input.notch.depth, 0.03, 0.4) || 0.14, side: input.notch.side === -1 ? -1 : 1, ...(hex(input.notch.color) ? { color: hex(input.notch.color) } : {}) } }
+      : {}),
+    ...(input.bands === 'balcony' || input.bands === 'glass' ? { bands: input.bands } : {}),
+    ...(input.podiumStyle && typeof input.podiumStyle === 'object'
+      ? { podiumStyle: { solid: !!input.podiumStyle.solid, ...(hex(input.podiumStyle.wall) ? { wall: hex(input.podiumStyle.wall) } : {}), ...(hex(input.podiumStyle.glass) ? { glass: hex(input.podiumStyle.glass) } : {}) } }
+      : {}),
     ...(Object.keys(manual).length ? { manual } : {}),
   };
 }
