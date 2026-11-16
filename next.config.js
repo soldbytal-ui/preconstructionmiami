@@ -31,6 +31,8 @@ const nextConfig = {
     return [
       // Short blog addresses used inside older articles
       ...Object.entries(blogRedirects).map(([from, to]) => ({ source: `/blog/${from}`, destination: `/blog/${to}`, permanent: true })),
+      // Listings removed from the site
+      { source: '/properties/riva-fort-lauderdale', destination: '/new-condos-fort-lauderdale', permanent: true },
       // Existing redirects
       { source: '/pre-construction', destination: '/new-condos', permanent: true },
       { source: '/pre-construction/:slug', destination: '/properties/:slug', permanent: true },
