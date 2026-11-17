@@ -1,5 +1,6 @@
 'use client';
 
+import MapSkeleton from './MapSkeleton';
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import Map, { NavigationControl, Source, Layer } from 'react-map-gl/mapbox';
 import type { MapMouseEvent, MapRef } from 'react-map-gl/mapbox';
@@ -47,6 +48,9 @@ export default function MiamiMap() {
   const [area, setArea] = useState<string>('Brickell & Downtown');
   const stopOrbit = useRef(false);
   const [ready, setReady] = useState(false);
+  // The placeholder stays over the canvas until the first complete frame, then fades
+  const [painted, setPainted] = useState(false);
+  const [veilGone, setVeilGone] = useState(false);
   // Base map look. ?look=dusk|dawn|day|night|classic in the address overrides it.
   const [look] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -89,6 +93,9 @@ export default function MiamiMap() {
     if (map) {
       (window as any).__pcmMap = map; // handle for automated visual checks
       setReady(true);
+      const reveal = () => { setPainted(true); window.setTimeout(() => setVeilGone(true), 800); };
+      // 'load' means the first full frame is on screen
+      requestAnimationFrame(reveal);
       if (!look) {
         addCityBuildings(map, '3d-buildings');
         hideBaseBuildings(map, '3d-buildings', data?.hiddenBaseIds);
@@ -192,6 +199,7 @@ export default function MiamiMap() {
 
   return (
     <div className="relative w-full h-full">
+      {!veilGone && <div className="absolute inset-0 z-10 pointer-events-none"><MapSkeleton fading={painted} /></div>}
       <Map
         ref={mapRef}
         initialViewState={{
