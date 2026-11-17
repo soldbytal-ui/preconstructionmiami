@@ -46,7 +46,9 @@ export default function MiamiWorld() {
   const [selected, setSelected] = useState<MapProject | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [floor, setFloor] = useState(10);
-  const [view, setView] = useState<{ bearing: number } | null>(null);
+  const [view, setView] = useState<{ bearing: number; pitch?: number } | null>(null);
+  const [mix, setMix] = useState<{ water: number; existing: number; future: number; open: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; bearing: number; pitch: number } | null>(null);
   const [area, setArea] = useState(0);
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
@@ -90,6 +92,10 @@ export default function MiamiWorld() {
     (window as any).__pcmWorld = map;
     map.setFog({ color: '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 } as any);
     map.setLight({ anchor: 'map', position: [1.4, 210, 38], intensity: 0.55, color: '#ffffff' } as any);
+    // Make the bay and ocean read as water, not as pale land
+    for (const l of map.getStyle()?.layers || []) {
+      if (l.type === 'fill' && ((l as any)['source-layer'] === 'water' || l.id === 'water')) map.setPaintProperty(l.id, 'fill-color', '#B5D6EC');
+    }
     if (!map.getLayer('city')) {
       const labelId = (map.getStyle()?.layers || []).find((l: any) => l.type === 'symbol' && l.layout?.['text-field'])?.id;
       map.addLayer(
@@ -149,16 +155,69 @@ export default function MiamiWorld() {
   };
 
   // Stand inside the tower at the chosen floor and look out
-  const lookFrom = useCallback((bearing: number) => {
+  const lookFrom = useCallback((bearing: number, pitch = 84) => {
     const map = mapRef.current?.getMap();
     if (!map || !selected) return;
     const cam = map.getFreeCameraOptions();
     cam.position = mapboxgl.MercatorCoordinate.fromLngLat([selected.longitude, selected.latitude], Math.max(6, eyeM) + 1.6);
-    cam.setPitchBearing(84, bearing); // near-level gaze, slightly down toward the city
+    cam.setPitchBearing(pitch, bearing); // 84 is a near-level gaze, slightly down toward the city
     map.setFreeCameraOptions(cam);
   }, [selected, eyeM]);
 
-  useEffect(() => { if (view) lookFrom(view.bearing); }, [view, lookFrom]);
+  useEffect(() => { if (view) lookFrom(view.bearing, view.pitch); }, [view, lookFrom]);
+
+  // Drag (or swipe) to look around from the floor
+  const onLookDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!view) return;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    drag.current = { x: e.clientX, y: e.clientY, bearing: view.bearing, pitch: view.pitch ?? 84 };
+  };
+  const lookAt = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current!;
+    return {
+      bearing: d.bearing - (e.clientX - d.x) * 0.22,
+      pitch: Math.max(55, Math.min(88, d.pitch + (e.clientY - d.y) * 0.12)),
+    };
+  };
+  const onLookMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return;
+    const v = lookAt(e);
+    lookFrom(v.bearing, v.pitch);
+  };
+  const onLookUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return;
+    const v = lookAt(e);
+    drag.current = null;
+    setView(v);
+  };
+
+  // What fills the view in this direction: sample the screen and see what each point lands on
+  useEffect(() => {
+    if (!view) { setMix(null); return; }
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    let cancelled = false;
+    const measure = () => {
+      if (cancelled || drag.current) return;
+      const c = map.getCanvas();
+      const w = c.clientWidth, h = c.clientHeight;
+      const waterLayers = (map.getStyle()?.layers || []).filter((l: any) => l['source-layer'] === 'water' || l.id === 'water').map((l: any) => l.id);
+      const n = { water: 0, existing: 0, future: 0, open: 0 };
+      const COLS = 28, ROWS = 14;
+      for (let i = 0; i < COLS; i++) for (let j = 0; j < ROWS; j++) {
+        const pt: [number, number] = [((i + 0.5) / COLS) * w, ((j + 0.5) / ROWS) * h];
+        if (map.queryRenderedFeatures(pt, { layers: ['w-towers'] }).length) n.future++;
+        else if (map.getLayer('city') && map.queryRenderedFeatures(pt, { layers: ['city'] }).length) n.existing++;
+        else if (waterLayers.length && map.queryRenderedFeatures(pt, { layers: waterLayers }).length) n.water++;
+        else n.open++;
+      }
+      const t = COLS * ROWS;
+      setMix({ water: Math.round((n.water / t) * 100), existing: Math.round((n.existing / t) * 100), future: Math.round((n.future / t) * 100), open: Math.round((n.open / t) * 100) });
+    };
+    map.once('idle', measure);
+    const fallback = window.setTimeout(measure, 2500);
+    return () => { cancelled = true; window.clearTimeout(fallback); map.off('idle', measure); };
+  }, [view, floor]);
 
   const exitView = () => {
     setView(null);
@@ -292,15 +351,40 @@ export default function MiamiWorld() {
       {/* View-from-floor mode */}
       {selected && view && (
         <>
+          <div
+            className="absolute inset-0 z-[5] cursor-grab active:cursor-grabbing touch-none"
+            onPointerDown={onLookDown}
+            onPointerMove={onLookMove}
+            onPointerUp={onLookUp}
+            onPointerCancel={() => { drag.current = null; }}
+            aria-label="Drag to look around"
+          />
           <div className="absolute top-4 right-4 z-10 w-[min(320px,calc(100%-2rem))] rounded-2xl bg-white shadow-xl border border-black/5 p-4 space-y-3">
             <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#E3F7F2] text-[#00755E]">Floor {floor} · about {eyeM} m up</span>
             <h2 className="text-lg font-semibold leading-tight">{selected.name}</h2>
-            <p className="text-sm text-[#3d4852]">Looking {compass(view.bearing)}</p>
+            <p className="text-sm text-[#3d4852]">Looking {compass(view.bearing)} · drag the view to look around</p>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={() => setView({ bearing: view.bearing - 30 })} className="rounded-xl border border-black/10 py-2 text-sm">← Turn left</button>
               <button onClick={() => setView({ bearing: view.bearing + 30 })} className="rounded-xl border border-black/10 py-2 text-sm">Turn right →</button>
             </div>
             <input type="range" min={1} max={Math.max(2, selFloors)} value={Math.min(floor, selFloors)} onChange={(e) => setFloor(Number(e.target.value))} className="w-full accent-[#00A886]" aria-label="Floor" />
+            {mix && (
+              <div>
+                <p className="text-[11px] font-medium text-[#3d4852] mb-1.5">What fills this view</p>
+                <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-[#eef1f4]">
+                  <span style={{ width: `${mix.water}%`, background: '#4FA3D9' }} />
+                  <span style={{ width: `${mix.open}%`, background: '#D5DEE5' }} />
+                  <span style={{ width: `${mix.existing}%`, background: '#8E9AA6' }} />
+                  <span style={{ width: `${mix.future}%`, background: OFFPLAN }} />
+                </div>
+                <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-[#3d4852]">
+                  <li><span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: '#4FA3D9' }} />Water {mix.water}%</li>
+                  <li><span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: '#D5DEE5' }} />Sky and open land {mix.open}%</li>
+                  <li><span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: '#8E9AA6' }} />Existing buildings {mix.existing}%</li>
+                  <li><span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: OFFPLAN }} />Future buildings {mix.future}%</li>
+                </ul>
+              </div>
+            )}
             <button onClick={exitView} className="w-full rounded-xl py-2.5 text-sm font-semibold text-white" style={{ background: OFFPLAN }}>Back to map</button>
             <p className="text-[11px] text-[#7a8791] leading-snug">
               For illustration only. Shown from the centre of the building at this floor, not a specific residence. Buildings, heights and views are approximate and not guaranteed. Always confirm with the developer.
