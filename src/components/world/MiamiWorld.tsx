@@ -80,6 +80,10 @@ export default function MiamiWorld() {
   const [mix, setMix] = useState<{ water: number; existing: number; future: number; open: number } | null>(null);
   const drag = useRef<{ x: number; y: number; bearing: number; pitch: number } | null>(null);
   const [area, setArea] = useState(0);
+  // Time of day for the sun: Miami clock hour, and June (5) or December (11)
+  const [sunHour, setSunHour] = useState(13);
+  const [sunMonth, setSunMonth] = useState(5);
+  const [loaded, setLoaded] = useState(false);
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
   useEffect(() => {
@@ -120,6 +124,7 @@ export default function MiamiWorld() {
     const map = mapRef.current?.getMap();
     if (!map) return;
     (window as any).__pcmWorld = map;
+    setLoaded(true);
     map.setFog({ color: '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 } as any);
     map.setLight({ anchor: 'map', position: [1.4, 210, 38], intensity: 0.55, color: '#ffffff' } as any);
     // Make the bay and ocean read as water, not as pale land
@@ -265,6 +270,33 @@ export default function MiamiWorld() {
   // In view mode the tower you are standing in is hidden so it does not block the view
   const towerFilter: any = view && selected ? ['!=', ['get', 'id'], selected.id] : ['has', 'id'];
   const towerColor: any = active ? ['case', ['==', ['get', 'id'], active], ['case', ['==', ['get', 'c'], OFFPLAN_SOFT], '#B8F0E3', '#00C9A0'], ['get', 'c']] : ['get', 'c'];
+  // Move the light with the chosen time, so each facade brightens and darkens as it would through the day
+  const sun = useMemo(() => {
+    const c = AREAS[area].center;
+    const utc = sunHour + (sunMonth === 5 ? 4 : 5); // Miami is UTC-4 in June, UTC-5 in December
+    return sunAt(c[1], c[0], new Date(Date.UTC(2026, sunMonth, 21, Math.floor(utc), Math.round((utc % 1) * 60))));
+  }, [area, sunHour, sunMonth]);
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!loaded || !map) return;
+    const up = sun.alt > 0;
+    const low = Math.max(0, Math.min(1, sun.alt / 18)); // 0 at the horizon, 1 once the sun is well up
+    const mix = (a: number, b: number) => Math.round(a + (b - a) * low);
+    const color = up ? `rgb(255, ${mix(236, 255)}, ${mix(214, 255)})` : '#aebbd8';
+    map.setLight({
+      anchor: 'map',
+      // Keep the light off vertical so walls, not only roofs, catch it at midday
+      position: [1.5, up ? sun.az : 0, up ? Math.min(80, Math.max(32, 90 - sun.alt)) : 20],
+      intensity: up ? 0.38 + 0.17 * low : 0.15,
+      color,
+    } as any);
+    map.setFog(
+      (up
+        ? { color: low < 1 ? `rgb(${mix(243, 230)}, ${mix(214, 237)}, ${mix(190, 242)})` : '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 }
+        : { color: '#3a4763', 'high-color': '#1f2a44', 'horizon-blend': 0.1, 'space-color': '#141c30', 'star-intensity': 0.4 }) as any
+    );
+  }, [loaded, sun]);
+
   const compass = (b: number) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((b % 360) + 360) % 360) / 45) % 8];
 
   return (
@@ -329,6 +361,23 @@ export default function MiamiWorld() {
             <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-[#f1f3f5] border border-black/15" /> Existing buildings</li>
             <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: OFFPLAN }} /> Pre-construction and under construction</li>
           </ul>
+          <div className="mt-3 pt-3 border-t border-black/5">
+            <div className="flex items-center justify-between text-xs text-[#3d4852]">
+              <span className="font-medium">Sun</span>
+              <span>{`${Math.floor(sunHour)}:${sunHour % 1 ? '30' : '00'}`} · {sun.alt > 0 ? `${compass(sun.az)} sky, ${Math.round(sun.alt)}° up` : 'below the horizon'}</span>
+            </div>
+            <input
+              type="range" min={5} max={21} step={0.5} value={sunHour}
+              onChange={(e) => setSunHour(Number(e.target.value))}
+              aria-label="Time of day"
+              className="mt-1.5 w-full accent-[#0f9d7a]"
+            />
+            <div className="mt-1.5 flex gap-1.5">
+              {[[5, 'June'], [11, 'December']].map(([m, label]) => (
+                <button key={label as string} onClick={() => setSunMonth(m as number)} className={`flex-1 rounded-md px-2 py-1 text-[11px] border ${sunMonth === m ? 'bg-[#1c2530] text-white border-[#1c2530]' : 'bg-white text-[#3d4852] border-black/10'}`}>{label}</button>
+              ))}
+            </div>
+          </div>
           <p className="mt-3 text-[11px] text-[#7a8791] leading-snug">Click a green tower for details and the view from any floor.</p>
         </div>
       )}
