@@ -40,6 +40,36 @@ function heightOf(data: BuildingsData, id: string): number {
   return top;
 }
 
+/** Sun direction for a place and time (standard low-precision solar formulas). */
+function sunAt(lat: number, lng: number, date: Date): { alt: number; az: number } {
+  const rad = Math.PI / 180;
+  const d = date.getTime() / 86400000 + 2440587.5 - 2451545; // days since J2000
+  const g = (357.529 + 0.98560028 * d) * rad;
+  const q = 280.459 + 0.98564736 * d;
+  const L = (q + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * rad;
+  const e = (23.439 - 0.00000036 * d) * rad;
+  const ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
+  const dec = Math.asin(Math.sin(e) * Math.sin(L));
+  const gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+  const ha = ((gmst * 15 + lng) * rad - ra);
+  const la = lat * rad;
+  const alt = Math.asin(Math.sin(la) * Math.sin(dec) + Math.cos(la) * Math.cos(dec) * Math.cos(ha));
+  const az = Math.atan2(-Math.sin(ha), Math.tan(dec) * Math.cos(la) - Math.sin(la) * Math.cos(ha));
+  return { alt: alt / rad, az: ((az / rad) % 360 + 360) % 360 };
+}
+
+/** Hours of direct sun on a facade facing `bearing`, before any shading by other buildings. */
+function sunHours(lat: number, lng: number, bearing: number, month: number): number {
+  let minutes = 0;
+  for (let m = 0; m < 1440; m += 10) {
+    const s = sunAt(lat, lng, new Date(Date.UTC(2026, month, 21, 0, m)));
+    if (s.alt <= 2) continue;
+    const diff = Math.abs(((s.az - bearing + 540) % 360) - 180);
+    if (diff < 80) minutes += 10;
+  }
+  return Math.round((minutes / 60) * 2) / 2;
+}
+
 export default function MiamiWorld() {
   const mapRef = useRef<MapRef>(null);
   const [data, setData] = useState<BuildingsData | null>(null);
@@ -385,6 +415,10 @@ export default function MiamiWorld() {
                 </ul>
               </div>
             )}
+            <p className="text-[11px] text-[#3d4852] leading-snug">
+              <span className="font-medium">Direct sun on this side:</span>{' '}
+              about {sunHours(selected.latitude, selected.longitude, view.bearing, 5)} h a day in June, {sunHours(selected.latitude, selected.longitude, view.bearing, 11)} h in December, before shading by other buildings.
+            </p>
             <button onClick={exitView} className="w-full rounded-xl py-2.5 text-sm font-semibold text-white" style={{ background: OFFPLAN }}>Back to map</button>
             <p className="text-[11px] text-[#7a8791] leading-snug">
               For illustration only. Shown from the centre of the building at this floor, not a specific residence. Buildings, heights and views are approximate and not guaranteed. Always confirm with the developer.
