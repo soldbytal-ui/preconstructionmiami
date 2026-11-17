@@ -175,6 +175,22 @@ export default function MiamiMap() {
     };
   }, [data, ready, isTouch]);
 
+  // On the lit map, charcoal and black towers disappear into the dark city, so lift them
+  // toward a steel blue while keeping their own banding contrast.
+  const towersData = useMemo(() => {
+    if (!data || !look) return data;
+    const lift = (hex: string) => {
+      if (typeof hex !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
+      const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      if (lum >= 0.34) return hex;
+      const t = Math.min(0.6, (0.34 - lum) * 1.9 + 0.18); // darker colours move further
+      const mix = (c: number, to: number) => Math.round(c + (to - c) * t);
+      return '#' + [mix(r, 0x6f), mix(g, 0x8a), mix(b, 0xa6)].map((v) => v.toString(16).padStart(2, '0')).join('');
+    };
+    return { ...data, features: data.features.map((f: any) => ({ ...f, properties: { ...f.properties, color: lift(f.properties.color) } })) };
+  }, [data, look]);
+
   const activeId = selected?.id || hoveredId;
   const towerColor: any = activeId
     ? ['case', ['==', ['get', 'id'], activeId], '#ffffff', TOWER_COLOR_EXPR]
@@ -249,7 +265,7 @@ export default function MiamiMap() {
         )}
 
         {ready && data && (
-          <Source id="towers-src" type="geojson" data={data} tolerance={0} buffer={64}>
+          <Source id="towers-src" type="geojson" data={towersData as any} tolerance={0} buffer={64}>
             <Layer
               id="towers"
               type="fill-extrusion"
