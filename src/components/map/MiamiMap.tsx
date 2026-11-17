@@ -197,7 +197,8 @@ export default function MiamiMap() {
     : TOWER_COLOR_EXPR;
 
   const labelLayout = {
-    'text-field': ['get', 'label'],
+    // On the lit map the ground pad can sit behind a neighbouring building, so each label carries its status colour
+    'text-field': look ? ['format', '● ', { 'text-color': STATUS_COLOR_EXPR }, ['get', 'label'], {}] : ['get', 'label'],
     'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 16, 13],
     'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
     'text-max-width': 11,
@@ -249,11 +250,12 @@ export default function MiamiMap() {
         {ready && data?.pads && (
           <Source id="pads-src" type="geojson" data={data.pads}>
             {/* On the lit base map, clear the existing buildings and trees off each project's lot */}
-            {look && <Layer id="pad-clip" {...({ type: 'clip', layout: { 'clip-layer-types': ['model', 'symbol'] } } as any)} />}
-            <Layer id="pad-fill" type="fill" paint={{ 'fill-color': STATUS_COLOR_EXPR, 'fill-opacity': look ? 0.45 : 0.28, ...(look ? { 'fill-emissive-strength': look === 'night' ? 1 : 0.5 } : {}) } as any} />
+            {look && <Layer id="pad-clip" {...({ type: 'clip', layout: { 'clip-layer-types': ['model', 'symbol'], 'clip-layer-scope': ['basemap'] } } as any)} />}
+            <Layer id="pad-fill" type="fill" {...(look ? ({ slot: 'middle' } as any) : {})} paint={{ 'fill-color': STATUS_COLOR_EXPR, 'fill-opacity': look ? 0.45 : 0.28, ...(look ? { 'fill-emissive-strength': look === 'night' ? 1 : 0.5 } : {}) } as any} />
             <Layer
               id="pad-line"
               type="line"
+              {...(look ? ({ slot: 'middle' } as any) : {})}
               paint={{
                 'line-color': STATUS_COLOR_EXPR,
                 'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 16, 4],
@@ -288,6 +290,7 @@ export default function MiamiMap() {
             <Layer
               id="tower-glow"
               type="circle"
+              {...(look ? ({ slot: 'middle' } as any) : {})}
               beforeId={ready && data ? 'towers' : undefined}
               paint={{
                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 4, 14, 14, 18, 30],
