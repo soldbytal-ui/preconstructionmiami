@@ -33,6 +33,9 @@ const nextConfig = {
       ...Object.entries(blogRedirects).map(([from, to]) => ({ source: `/blog/${from}`, destination: `/blog/${to}`, permanent: true })),
       // Listings removed from the site
       { source: '/properties/riva-fort-lauderdale', destination: '/new-condos-fort-lauderdale', permanent: true },
+      { source: '/properties/gale-fort-lauderdale', destination: '/new-condos-fort-lauderdale', permanent: true },
+      { source: '/properties/solemar-residences', destination: '/new-condos-hollywood', permanent: true },
+      { source: '/properties/alba-palm-beach', destination: '/new-condos-palm-beach', permanent: true },
       // Existing redirects
       { source: '/pre-construction', destination: '/new-condos', permanent: true },
       { source: '/pre-construction/:slug', destination: '/properties/:slug', permanent: true },
