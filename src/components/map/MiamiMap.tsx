@@ -220,7 +220,7 @@ export default function MiamiMap() {
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
         onClick={onClick}
-        interactiveLayerIds={data ? ['towers'] : []}
+        interactiveLayerIds={ready && data ? ['towers'] : []}
         cursor={hoveredId ? 'pointer' : 'grab'}
         cooperativeGestures={isTouch}
         maxPitch={70}
@@ -230,7 +230,7 @@ export default function MiamiMap() {
         <NavigationControl position="bottom-right" showCompass={false} />
 
         {/* Status pad: realistic towers stand on a footprint in their status colour */}
-        {data?.pads && (
+        {ready && data?.pads && (
           <Source id="pads-src" type="geojson" data={data.pads}>
             {/* On the lit base map, clear the existing buildings and trees off each project's lot */}
             {look && <Layer id="pad-clip" {...({ type: 'clip', layout: { 'clip-layer-types': ['model', 'symbol'] } } as any)} />}
@@ -248,8 +248,8 @@ export default function MiamiMap() {
           </Source>
         )}
 
-        {data && (
-          <Source id="towers-src" type="geojson" data={data}>
+        {ready && data && (
+          <Source id="towers-src" type="geojson" data={data} tolerance={0} buffer={64}>
             <Layer
               id="towers"
               type="fill-extrusion"
@@ -266,13 +266,13 @@ export default function MiamiMap() {
           </Source>
         )}
 
-        {labels && (
+        {ready && labels && (
           <Source id="labels-src" type="geojson" data={labels}>
             {/* Soft glow on the ground under each project */}
             <Layer
               id="tower-glow"
               type="circle"
-              beforeId={data ? 'towers' : undefined}
+              beforeId={ready && data ? 'towers' : undefined}
               paint={{
                 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 4, 14, 14, 18, 30],
                 'circle-color': STATUS_COLOR_EXPR,
