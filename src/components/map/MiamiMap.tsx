@@ -6,6 +6,7 @@ import Map, { NavigationControl, Source, Layer } from 'react-map-gl/mapbox';
 import type { MapMouseEvent, MapRef } from 'react-map-gl/mapbox';
 import MapTooltip from './MapTooltip';
 import MapPropertyCard from './MapPropertyCard';
+import { useAccount } from '@/components/account/AccountProvider';
 import {
   type MapProject, type BuildingsData,
   LEGEND, STATUS_COLOR_EXPR, TOWER_COLOR_EXPR, shortPrice, loadBuildings, addCityBuildings, hideBaseBuildings,
@@ -46,6 +47,19 @@ export default function MiamiMap() {
   // This component only ever renders in the browser (see DynamicMap), so the
   // pointer type can be read up front.
   const [area, setArea] = useState<string>('Brickell & Downtown');
+  // After a visitor has opened a few towers, offer a free account once per visit.
+  const { ready: accountsReady, user: accountUser, openSignup } = useAccount();
+  const openedCount = useRef(0);
+  const nudge = useCallback(() => {
+    if (!accountsReady || accountUser) return;
+    openedCount.current += 1;
+    if (openedCount.current < 5) return;
+    try {
+      if (sessionStorage.getItem('pcm_map_ask') === '1') return;
+      sessionStorage.setItem('pcm_map_ask', '1');
+    } catch { return; }
+    openSignup({ source: 'map', reason: 'Keep track of the towers you like' });
+  }, [accountsReady, accountUser, openSignup]);
   const stopOrbit = useRef(false);
   const [ready, setReady] = useState(false);
   // The placeholder stays over the canvas until the first complete frame, then fades
@@ -131,6 +145,7 @@ export default function MiamiMap() {
     if (!p) { setSelected(null); return; }
     setSelected(p);
     setHoverInfo(null);
+    nudge();
     const map = mapRef.current?.getMap();
     map?.flyTo({
       center: [p.longitude, p.latitude],
@@ -139,7 +154,7 @@ export default function MiamiMap() {
       duration: 1400,
       essential: true,
     });
-  }, [projectAt]);
+  }, [projectAt, nudge]);
 
   // Quick jumps between districts
   const flyToArea = useCallback((a: (typeof AREAS)[number]) => {

@@ -3,6 +3,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ChatWidget from '@/components/chat/ChatWidget';
 import PublicOnly from '@/components/layout/PublicOnly';
+import AccountProvider from '@/components/account/AccountProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -65,9 +66,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className="bg-bg text-text-primary">
-        <PublicOnly><Navbar /></PublicOnly>
-        <main className="min-h-screen">{children}</main>
-        <PublicOnly><Footer /></PublicOnly>
+        <AccountProvider>
+          <PublicOnly><Navbar /></PublicOnly>
+          <main className="min-h-screen">{children}</main>
+          <PublicOnly><Footer /></PublicOnly>
+        </AccountProvider>
         <PublicOnly><ChatWidget /></PublicOnly>
       </body>
     </html>

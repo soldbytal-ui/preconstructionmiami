@@ -15,6 +15,7 @@ import { generateRealEstateListingSchema, generateBreadcrumbSchema, fitDesc, pic
 import Markdown from 'react-markdown';
 import StatusBadge from '@/components/projects/StatusBadge';
 import InquiryForm from '@/components/projects/InquiryForm';
+import FollowButton from '@/components/account/FollowButton';
 import ProjectCard from '@/components/projects/ProjectCard';
 import SafeImage from '@/components/ui/SafeImage';
 import ImageGallery from '@/components/projects/ImageGallery';
@@ -147,6 +148,7 @@ export default async function PropertyDetailPage({ params }: Props) {
                   by <Link href={`/developers/${project.developer.slug}`} className="text-text-primary font-medium hover:text-accent-green transition-colors">{project.developer.name}</Link>
                 </p>
               )}
+              <FollowButton projectId={project.id} projectName={project.name} className="mt-4" />
             </div>
 
             {/* Image placeholder */}
@@ -303,7 +305,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <div className="sticky top-24">
+            <div className="sticky top-24 scroll-mt-24" id="inquire">
               <InquiryForm projectId={project.id} projectName={project.name} />
 
               {/* Form disclaimer */}

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import AccountLink from '@/components/account/AccountLink';
 
 const NEIGHBORHOODS = [
   { name: 'Brickell', slug: 'brickell' },
@@ -94,6 +95,7 @@ export default function Navbar() {
           <Link href="/developers" className="btn-ghost text-sm">Developers</Link>
           <Link href="/blog" className="btn-ghost text-sm">Blog</Link>
           <Link href="/about" className="btn-ghost text-sm">About</Link>
+          <AccountLink className="btn-ghost text-sm" />
           <Link href="/contact-us" className="btn-primary text-sm !py-2 !px-4 ml-2">Contact Us</Link>
         </div>
 
@@ -115,6 +117,7 @@ export default function Navbar() {
             <Link href="/developers" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Developers</Link>
             <Link href="/blog" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Blog</Link>
             <Link href="/about" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">About</Link>
+            <AccountLink className="block w-full text-left py-2.5 text-text-muted hover:text-accent-green transition-colors" />
             <div className="pt-2 border-t border-border mt-2">
               <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Neighborhoods</p>
               <div className="grid grid-cols-2 gap-1">

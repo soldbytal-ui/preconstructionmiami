@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { MapProject } from './mapShared';
 import SafeImage from '@/components/ui/SafeImage';
 import { thumbUrl } from '@/lib/utils';
+import FollowButton from '@/components/account/FollowButton';
 
 const STATUS_LABELS: Record<string, string> = {
   PRE_LAUNCH: 'Pre-Launch',
@@ -115,6 +116,7 @@ export default function MapPropertyCard({ project: p, onClose }: Props) {
           )}
 
           {/* CTA */}
+          <FollowButton projectId={p.id} projectName={p.name} source="map" className="w-full" />
           <Link
             href={`/properties/${p.slug}`}
             className="btn-primary w-full text-sm"

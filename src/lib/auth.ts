@@ -66,3 +66,30 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, 10);
 }
+
+/* ---- Visitor accounts (separate from admin sessions) ---- */
+
+export type UserSession = { uid: string };
+
+export function signUserToken(uid: string, purpose: 'session' | 'link', expiresIn: string): string {
+  if (!JWT_SECRET) throw new Error('Accounts are not configured');
+  return jwt.sign({ uid }, JWT_SECRET, { expiresIn, algorithm: 'HS256', audience: `pcm-user-${purpose}` } as jwt.SignOptions);
+}
+
+export function verifyUserToken(token: string, purpose: 'session' | 'link'): UserSession | null {
+  if (!JWT_SECRET) return null;
+  try {
+    const d = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'], audience: `pcm-user-${purpose}` }) as { uid?: string };
+    return d.uid ? { uid: d.uid } : null;
+  } catch {
+    return null;
+  }
+}
+
+export const USER_COOKIE = 'pcm_user';
+
+export async function getUserSession(): Promise<UserSession | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(USER_COOKIE)?.value;
+  return token ? verifyUserToken(token, 'session') : null;
+}
