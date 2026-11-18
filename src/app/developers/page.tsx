@@ -102,10 +102,8 @@ export default async function DevelopersPage() {
               >
                 {/* Logo / Initials */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-green/20 to-accent-blue/20 flex items-center justify-center flex-shrink-0">
-                    <DevLogo src={dev.logoUrl} name={dev.name} imgClassName="w-10 h-10 object-contain" initialsClassName="text-accent-green font-semibold text-lg" />
-                  </div>
-                  <div>
+                  <DevLogo src={dev.logoUrl} name={dev.name} size={(dev.logoUrl || '').includes(',') ? 48 : 64} />
+                  <div className="min-w-0">
                     <h2 className="text-text-primary font-semibold group-hover:text-accent-green transition-colors line-clamp-1">
                       {dev.name}
                     </h2>

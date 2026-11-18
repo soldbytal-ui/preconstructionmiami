@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `https://preconstructionmiami.net/developers/${slug}`,
       type: 'website',
-      ...(dev.logoUrl && { images: [{ url: dev.logoUrl, alt: dev.name }] }),
+      ...(dev.logoUrl && { images: [{ url: dev.logoUrl.split(',')[0], alt: dev.name }] }),
     },
     twitter: {
       card: 'summary',
@@ -114,9 +114,7 @@ export default async function DeveloperProfilePage({ params }: Props) {
 
         {/* Header */}
         <div className="flex items-start gap-6 mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-green/20 to-accent-blue/20 flex items-center justify-center flex-shrink-0">
-            <DevLogo src={developer.logoUrl} name={developer.name} imgClassName="w-14 h-14 object-contain" initialsClassName="text-accent-green font-bold text-2xl" />
-          </div>
+          <DevLogo src={developer.logoUrl} name={developer.name} size={80} initialsClassName="text-accent-green font-bold text-2xl" />
           <div>
             <h1 className="text-3xl md:text-4xl font-semibold text-text-primary">{developer.name}</h1>
             <div className="flex items-center gap-4 mt-2 text-sm text-text-muted flex-wrap">
