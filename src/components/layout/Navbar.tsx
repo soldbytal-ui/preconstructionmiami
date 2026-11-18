@@ -65,6 +65,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-1">
           <Link href="/new-condos" className="btn-ghost text-sm">Properties</Link>
           <Link href="/miami-3d" className="btn-ghost text-sm">Miami 3D</Link>
+          <Link href="/tallest-buildings" className="btn-ghost text-sm">Tallest</Link>
           <div
             className="relative"
             onMouseEnter={() => { if (hoodTimeoutRef.current) clearTimeout(hoodTimeoutRef.current); setHoodOpen(true); }}
@@ -110,6 +111,7 @@ export default function Navbar() {
           <div className="container-main py-4 space-y-1">
             <Link href="/new-condos" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Properties</Link>
             <Link href="/miami-3d" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Miami 3D</Link>
+            <Link href="/tallest-buildings" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Tallest buildings</Link>
             <Link href="/developers" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Developers</Link>
             <Link href="/blog" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Blog</Link>
             <Link href="/about" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">About</Link>
