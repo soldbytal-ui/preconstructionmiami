@@ -35,7 +35,8 @@ export default async function TallestBuildingsPage() {
   const all = (await getSkyline()).filter((t) => t.status !== 'COMPLETED');
   const ranked = all.slice(0, 50);
   const lineup = all.slice(0, 40);
-  const tallest = all[0];
+  // The headline names the tallest tower whose height is a filed or announced figure, not an estimate or a ceiling
+  const tallest = all.find((t) => t.heightSource === 'published') || all[0];
   const over200 = all.filter((t) => t.heightM >= 200).length;
   const building = all.filter((t) => t.status === 'UNDER_CONSTRUCTION' || t.status === 'NEAR_COMPLETION').length;
   const published = all.filter((t) => t.heightSource === 'published').length;
@@ -140,8 +141,8 @@ export default async function TallestBuildingsPage() {
         <div className="mt-3 space-y-3 leading-relaxed text-text-muted">
           <p>
             {published} of these heights come from a filed or announced figure, such as a Federal Aviation Administration filing or the
-            developer&apos;s own plans. The rest are marked &ldquo;about&rdquo;: we work them out from the storey count, and they will be replaced as
-            real figures are published.
+            developer&apos;s own plans. The rest are marked &ldquo;about&rdquo;: they are either worked out from the storey count or are the
+            maximum height the aviation authority has cleared, which the finished design may not reach.
           </p>
           <p>
             The silhouettes are the same models you can fly around on the{' '}
