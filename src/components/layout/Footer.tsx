@@ -37,8 +37,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div className="md:col-span-1">
             <Link href="/" className="inline-block mb-4">
-              <span className="text-accent-green font-semibold text-xl">PRECONSTRUCTION</span>
-              <span className="text-text-primary font-light text-xl ml-1">MIAMI</span>
+              <span className="font-display font-extrabold text-[22px] tracking-[-0.035em] text-text-primary">preconstruction miami<span className="text-coral">.</span></span>
             </Link>
             <p className="text-sm text-text-muted leading-relaxed">
               South Florida&apos;s premier marketplace for pre-construction condos. Access 130+ new developments across 24 neighborhoods from Brickell to West Palm Beach.

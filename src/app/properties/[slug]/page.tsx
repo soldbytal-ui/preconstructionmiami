@@ -141,7 +141,7 @@ export default async function PropertyDetailPage({ params }: Props) {
                   {CATEGORY_LABELS[project.category] || project.category}
                 </span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-semibold text-text-primary">{project.name}</h1>
+              <h1 className="text-4xl md:text-6xl leading-[0.95] tracking-[-0.045em] text-text-primary">{project.name}</h1>
               {project.address && <p className="text-text-muted mt-2">{project.address}</p>}
               {project.developer && (
                 <p className="text-text-muted mt-1">

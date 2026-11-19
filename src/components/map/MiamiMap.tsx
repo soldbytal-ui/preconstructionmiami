@@ -230,7 +230,7 @@ export default function MiamiMap() {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="theme-dark relative w-full h-full">
       {!veilGone && <div className="absolute inset-0 z-10 pointer-events-none"><MapSkeleton fading={painted} /></div>}
       <Map
         ref={mapRef}

@@ -71,7 +71,7 @@ export default function SkylineLineup({ towers, total }: { towers: SkylineTower[
         </div>
       </div>
 
-      <div className="relative overflow-x-auto overscroll-x-contain" style={{ background: 'linear-gradient(180deg, #0A0C0F 0%, #0f141b 55%, #172230 100%)' }}>
+      <div className="theme-dark relative overflow-x-auto overscroll-x-contain" style={{ background: 'linear-gradient(180deg, #0A0C0F 0%, #0f141b 55%, #172230 100%)' }}>
         <div className="relative min-w-max px-6 md:px-10">
           {/* Height lines, shared by every tower */}
           <div className="pointer-events-none absolute left-0 right-0 top-0" style={{ height: STAGE_PX }} aria-hidden>

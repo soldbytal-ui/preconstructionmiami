@@ -37,7 +37,7 @@ export default function AboutPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
     <div className="container-main pt-24 pb-10 max-w-4xl">
-      <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-8">About PreConstructionMiami.net</h1>
+      <h1 className="text-4xl md:text-6xl leading-[0.95] tracking-[-0.045em] text-text-primary mb-8">About PreConstructionMiami.net</h1>
 
       <div className="space-y-8">
         <div className="glass-panel p-8">

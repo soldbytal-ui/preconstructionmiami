@@ -53,7 +53,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const fallback = NEIGHBORHOOD_FALLBACK_IMAGES[project.neighborhood?.slug || ''] || DEFAULT_FALLBACK;
 
   return (
-    <Link href={`/properties/${project.slug}`} className="card group hover:border-accent-green/30 transition-all">
+    <Link href={`/properties/${project.slug}`} className="card group">
       <div className="relative h-48 overflow-hidden">
         <SafeImage
           src={thumbUrl(project.mainImageUrl)}
@@ -73,7 +73,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <StatusBadge status={project.status} />
         </div>
         <div className="absolute top-3 right-3">
-          <span className="bg-bg/80 backdrop-blur-sm text-text-muted text-xs font-medium px-2 py-1 rounded border border-border">
+          <span className="bg-surface/95 text-text-primary text-xs font-medium px-2.5 py-1 rounded-full border border-border">
             {CATEGORY_LABELS[project.category] || project.category}
           </span>
         </div>

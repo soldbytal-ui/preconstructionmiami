@@ -4,22 +4,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: '#0A0C0F',
-        surface: '#111317',
-        surface2: '#181B20',
-        border: 'rgba(255,255,255,0.07)',
-        'text-primary': '#F0EDE8',
-        'text-muted': 'rgba(240,237,232,0.45)',
+        // Colours are CSS variables so a section can opt into the night palette with .theme-dark
+        bg: 'rgb(var(--c-bg) / <alpha-value>)',
+        surface: 'rgb(var(--c-surface) / <alpha-value>)',
+        surface2: 'rgb(var(--c-surface2) / <alpha-value>)',
+        border: 'rgb(var(--c-border) / <alpha-value>)',
+        'text-primary': 'rgb(var(--c-text) / <alpha-value>)',
+        'text-muted': 'rgb(var(--c-muted) / <alpha-value>)',
         accent: {
-          green: '#00E5B4',
-          blue: '#38B6FF',
-          orange: '#FF7A3D',
+          green: 'rgb(var(--c-accent) / <alpha-value>)',
+          blue: 'rgb(var(--c-accent2) / <alpha-value>)',
+          orange: 'rgb(var(--c-accent3) / <alpha-value>)',
           gray: '#8A9098',
         },
+        ink: '#111B33',
+        coral: '#E8563F',
+        bay: '#1E7A72',
+        sun: '#D99A22',
       },
       fontFamily: {
-        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
-        mono: ['"DM Mono"', 'ui-monospace', 'monospace'],
+        sans: ['"Instrument Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+        mono: ['"Instrument Sans"', 'system-ui', 'sans-serif'],
       },
       backdropBlur: {
         glass: '14px',

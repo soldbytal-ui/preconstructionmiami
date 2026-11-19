@@ -54,13 +54,12 @@ export default function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 h-14 transition-all duration-300 ${
-        scrolled || !isHome ? 'glass-panel' : 'bg-transparent'
+        'glass-panel !border-x-0 !border-t-0'
       }`}
     >
       <div className="container-main h-full flex items-center justify-between">
         <Link href="/" className="flex items-center gap-1.5">
-          <span className="text-accent-green font-semibold text-lg tracking-tight">PRECONSTRUCTION</span>
-          <span className="text-text-primary font-light text-lg">MIAMI</span>
+          <span className="font-display font-extrabold text-[19px] sm:text-[21px] tracking-[-0.035em] text-text-primary whitespace-nowrap">preconstruction miami<span className="text-coral">.</span></span>
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
@@ -109,14 +108,14 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden glass-panel border-t border-border">
+        <div className="md:hidden bg-bg border-y border-border max-h-[calc(100vh-56px)] overflow-y-auto">
           <div className="container-main py-4 space-y-1">
-            <Link href="/new-condos" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Properties</Link>
-            <Link href="/miami-3d" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Miami 3D</Link>
-            <Link href="/tallest-buildings" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Tallest buildings</Link>
-            <Link href="/developers" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Developers</Link>
-            <Link href="/blog" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">Blog</Link>
-            <Link href="/about" className="block py-2.5 text-text-muted hover:text-accent-green transition-colors">About</Link>
+            <Link href="/new-condos" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Properties</Link>
+            <Link href="/miami-3d" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Miami 3D</Link>
+            <Link href="/tallest-buildings" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Tallest buildings</Link>
+            <Link href="/developers" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Developers</Link>
+            <Link href="/blog" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Blog</Link>
+            <Link href="/about" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">About</Link>
             <AccountLink className="block w-full text-left py-2.5 text-text-muted hover:text-accent-green transition-colors" />
             <div className="pt-2 border-t border-border mt-2">
               <p className="text-xs text-text-muted uppercase tracking-wider mb-2">Neighborhoods</p>

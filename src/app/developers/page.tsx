@@ -66,7 +66,7 @@ export default async function DevelopersPage() {
 
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-semibold text-text-primary">
+          <h1 className="text-4xl md:text-6xl leading-[0.95] tracking-[-0.045em] text-text-primary">
             Pre-Construction Developers
           </h1>
           <p className="text-text-muted mt-3 max-w-2xl">

@@ -42,7 +42,7 @@ export default function ContactPage() {
         <span className="text-text-primary font-medium">Contact Us</span>
       </nav>
       <div className="mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-text-primary">Contact Us</h1>
+        <h1 className="text-4xl md:text-6xl leading-[0.95] tracking-[-0.045em] text-text-primary">Contact Us</h1>
         <p className="text-text-muted mt-2">We&apos;d love to hear from you. Reach out and we&apos;ll get back within 24 hours.</p>
       </div>
 

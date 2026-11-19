@@ -93,7 +93,7 @@ export default async function NewCondosPage({ searchParams }: Props) {
     />
     <div className="container-main pt-24 pb-10">
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-text-primary">
+        <h1 className="text-4xl md:text-6xl leading-[0.95] tracking-[-0.045em] text-text-primary">
           New Condos in Miami
         </h1>
         <p className="text-text-muted mt-2">
