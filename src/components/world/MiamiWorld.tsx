@@ -180,6 +180,22 @@ export default function MiamiWorld() {
     }
   }, [pick, data, view]);
 
+  // /miami-3d?project=<slug> opens the map on that tower
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (deepLinked.current || !data || !loaded) return;
+    const slug = new URLSearchParams(window.location.search).get('project');
+    if (!slug) return;
+    const p = Object.values(data.projects).find((x) => x.slug === slug);
+    deepLinked.current = true;
+    if (!p) return;
+    setSelected(p);
+    const h = heightOf(data, p.id);
+    const floors = p.floors || Math.max(4, Math.round(h / RESIDENTIAL_FLOOR_M));
+    setFloor(Math.max(2, Math.round(floors / 2)));
+    mapRef.current?.getMap().flyTo({ center: [p.longitude, p.latitude], zoom: h > 150 ? 16 : 16.8, pitch: 62, duration: 1800 });
+  }, [data, loaded]);
+
   const selHeight = selected && data ? heightOf(data, selected.id) : 0;
   const selFloors = selected ? selected.floors || Math.max(4, Math.round(selHeight / RESIDENTIAL_FLOOR_M)) : 0;
   const eyeM = selFloors ? Math.round((floor / selFloors) * selHeight) : 0;

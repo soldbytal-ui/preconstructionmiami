@@ -16,6 +16,8 @@ import Markdown from 'react-markdown';
 import StatusBadge from '@/components/projects/StatusBadge';
 import InquiryForm from '@/components/projects/InquiryForm';
 import FollowButton from '@/components/account/FollowButton';
+import ListingHero from '@/components/projects/ListingHero';
+import { getSkyline } from '@/lib/skyline';
 import ProjectCard from '@/components/projects/ProjectCard';
 import SafeImage from '@/components/ui/SafeImage';
 import ImageGallery from '@/components/projects/ImageGallery';
@@ -107,6 +109,13 @@ export default async function PropertyDetailPage({ params }: Props) {
   const galleryImages = Array.isArray(projectImages.gallery) ? projectImages.gallery as { url: string; alt?: string; type?: 'rendering' | 'photo' | 'aerial' }[] : [];
   const floorPlanImages = Array.isArray(projectImages.floorPlans) ? projectImages.floorPlans as { url: string; label?: string }[] : [];
 
+  // The 3D tile: this tower with the nearest listed towers from the same area, tallest first
+  const skyline = await getSkyline();
+  const tower = skyline.find((s) => s.slug === project.slug) || null;
+  const around = tower
+    ? skyline.filter((s) => s.slug !== tower.slug && s.status !== 'COMPLETED' && s.neighborhoodSlug && s.neighborhoodSlug === tower.neighborhoodSlug).slice(0, 5)
+    : [];
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listingSchema) }} />
@@ -114,7 +123,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
       <div className="max-w-7xl mx-auto px-6 pt-28 pb-16">
         {/* Breadcrumb */}
-        <nav className="text-sm text-text-muted mb-8 flex items-center gap-2 flex-wrap">
+        <nav className="text-sm text-text-muted mb-5 flex items-center gap-2 flex-wrap">
           <Link href="/" className="hover:text-accent-green transition-colors">Home</Link>
           <span className="text-text-muted/40">/</span>
           <Link href="/new-condos" className="hover:text-accent-green transition-colors">Properties</Link>
@@ -129,6 +138,16 @@ export default async function PropertyDetailPage({ params }: Props) {
           <span className="text-text-muted/40">/</span>
           <span className="text-text-primary font-medium">{project.name}</span>
         </nav>
+
+        <div className="mb-10">
+          <ListingHero slug={project.slug} name={project.name} status={project.status} main={project.mainImageUrl || null} gallery={galleryImages} tower={tower} around={around} />
+          {/* Shown only once the photo source has been confirmed as the developer's own */}
+          {projectImages.credit?.confirmed && (
+            <p className="mt-2 text-[11px] text-text-muted/60">
+              Renderings courtesy of the developer. Images are artist&apos;s conceptual renderings and may differ from the finished building.
+            </p>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Main Content */}
@@ -150,29 +169,6 @@ export default async function PropertyDetailPage({ params }: Props) {
               )}
               <FollowButton projectId={project.id} projectName={project.name} className="mt-4" />
             </div>
-
-            {/* Image placeholder */}
-            <div className="bg-gradient-to-br from-surface2 to-surface rounded-2xl h-64 md:h-96 flex items-center justify-center overflow-hidden border border-border">
-              {project.mainImageUrl ? (
-                <SafeImage
-                  src={project.mainImageUrl}
-                  alt={`${project.name} rendering`}
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                  fetchPriority="high"
-                  fallbackLabel={project.name}
-                />
-              ) : (
-                <span className="text-text-muted/20 text-7xl font-light">{project.name[0]}</span>
-              )}
-            </div>
-
-            {/* Shown only once the photo source has been confirmed as the developer's own */}
-            {projectImages.credit?.confirmed && (
-              <p className="text-[11px] text-text-muted/60 -mt-5">
-                Renderings courtesy of the developer. Images are artist&apos;s conceptual renderings and may differ from the finished building.
-              </p>
-            )}
 
             {/* Key Specs — 4 glass panels */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -251,7 +247,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             )}
 
             {/* Gallery */}
-            <ImageGallery images={galleryImages} projectName={project.name} />
+            <div id="gallery" className="scroll-mt-24"><ImageGallery images={galleryImages} projectName={project.name} /></div>
 
             {/* Floor Plans — gated */}
             <FloorPlans floorPlans={floorPlanImages} projectId={project.id} projectName={project.name} />
