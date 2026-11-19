@@ -84,6 +84,9 @@ export default function MiamiWorld() {
   const [sunHour, setSunHour] = useState(13);
   const [sunMonth, setSunMonth] = useState(5);
   const [loaded, setLoaded] = useState(false);
+  // Night view: the same city after dark, with the new towers in their real colours
+  const [night, setNight] = useState(false);
+  const dayPaint = useRef<Record<string, Record<string, any>>>({});
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
   useEffect(() => {
@@ -285,7 +288,8 @@ export default function MiamiWorld() {
   const active = selected?.id || hovered;
   // In view mode the tower you are standing in is hidden so it does not block the view
   const towerFilter: any = view && selected ? ['!=', ['get', 'id'], selected.id] : ['has', 'id'];
-  const towerColor: any = active ? ['case', ['==', ['get', 'id'], active], ['case', ['==', ['get', 'c'], OFFPLAN_SOFT], '#B8F0E3', '#00C9A0'], ['get', 'c']] : ['get', 'c'];
+  const baseColor: any = night ? ['coalesce', ['get', 'color'], ['get', 'c']] : ['get', 'c'];
+  const towerColor: any = active ? ['case', ['==', ['get', 'id'], active], night ? '#FFB38A' : ['case', ['==', ['get', 'c'], OFFPLAN_SOFT], '#B8F0E3', '#00C9A0'], baseColor] : baseColor;
   // Move the light with the chosen time, so each facade brightens and darkens as it would through the day
   const sun = useMemo(() => {
     const c = AREAS[area].center;
@@ -294,7 +298,7 @@ export default function MiamiWorld() {
   }, [area, sunHour, sunMonth]);
   useEffect(() => {
     const map = mapRef.current?.getMap();
-    if (!loaded || !map) return;
+    if (!loaded || !map || night) return;
     const up = sun.alt > 0;
     const low = Math.max(0, Math.min(1, sun.alt / 18)); // 0 at the horizon, 1 once the sun is well up
     const mix = (a: number, b: number) => Math.round(a + (b - a) * low);
@@ -311,12 +315,47 @@ export default function MiamiWorld() {
         ? { color: low < 1 ? `rgb(${mix(243, 230)}, ${mix(214, 237)}, ${mix(190, 242)})` : '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 }
         : { color: '#3a4763', 'high-color': '#1f2a44', 'horizon-blend': 0.1, 'space-color': '#141c30', 'star-intensity': 0.4 }) as any
     );
-  }, [loaded, sun]);
+  }, [loaded, sun, night]);
+
+  // Repaint the base map for night and put the day colours back afterwards
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!loaded || !map) return;
+    const set = (id: string, prop: string, value: any) => {
+      try {
+        const saved = (dayPaint.current[id] ||= {});
+        if (!(prop in saved)) saved[prop] = map.getPaintProperty(id, prop as any) ?? null;
+        map.setPaintProperty(id, prop as any, value);
+      } catch { /* a layer without this property */ }
+    };
+    if (night) {
+      for (const l of map.getStyle()?.layers || []) {
+        const id = l.id, src = (l as any)['source-layer'] || '';
+        if (id.startsWith('w-')) continue;
+        if (l.type === 'background') set(id, 'background-color', '#1D2233');
+        else if (l.type === 'fill' && (src === 'water' || id === 'water')) set(id, 'fill-color', '#14234A');
+        else if (l.type === 'fill' && /landuse|park|landcover|national/.test(id + src)) set(id, 'fill-color', '#232B3C');
+        else if (l.type === 'fill') set(id, 'fill-color', '#222839');
+        else if (l.type === 'line' && /road|bridge|tunnel|street/.test(id)) set(id, 'line-color', /case/.test(id) ? '#1A1F2E' : '#3D4666');
+        else if (l.type === 'line') set(id, 'line-color', '#2B3248');
+        else if (l.type === 'symbol') { set(id, 'text-color', '#C3C9DC'); set(id, 'text-halo-color', '#151927'); }
+      }
+      set('city', 'fill-extrusion-color', ['interpolate', ['linear'], ['get', 'height'], 0, '#2C3349', 60, '#353D57', 200, '#434C6A']);
+      map.setLight({ anchor: 'map', position: [1.5, 200, 40], intensity: 0.45, color: '#dfe6ff' } as any);
+      map.setFog({ color: '#262E46', 'high-color': '#141B30', 'horizon-blend': 0.12, 'space-color': '#0C1122', 'star-intensity': 0.5 } as any);
+    } else {
+      for (const [id, props] of Object.entries(dayPaint.current)) {
+        if (!map.getLayer(id)) continue;
+        for (const [prop, value] of Object.entries(props)) { try { map.setPaintProperty(id, prop as any, value ?? undefined); } catch { /* ignore */ } }
+      }
+      dayPaint.current = {};
+    }
+  }, [loaded, night]);
 
   const compass = (b: number) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((b % 360) + 360) % 360) / 45) % 8];
 
   return (
-    <div className="absolute inset-0 bg-[#e9eef2] text-[#1c2530]">
+    <div className={`absolute inset-0 text-[#1c2530] ${night ? 'bg-[#1D2233]' : 'bg-[#e9eef2]'}`}>
       <Map
         ref={mapRef}
         initialViewState={{ longitude: AREAS[0].center[0], latitude: AREAS[0].center[1], zoom: isTouch ? 14.4 : AREAS[0].zoom, pitch: 60, bearing: AREAS[0].bearing }}
@@ -340,8 +379,8 @@ export default function MiamiWorld() {
 
         {lots && (
           <Source id="w-lots" type="geojson" data={lots}>
-            <Layer id="w-lot-fill" type="fill" paint={{ 'fill-color': OFFPLAN, 'fill-opacity': 0.14 }} />
-            <Layer id="w-lot-line" type="line" paint={{ 'line-color': OFFPLAN_LINE, 'line-width': 1.6, 'line-dasharray': [2, 2] }} />
+            <Layer id="w-lot-fill" type="fill" paint={{ 'fill-color': night ? '#00E5B4' : OFFPLAN, 'fill-opacity': night ? 0.22 : 0.14 }} />
+            <Layer id="w-lot-line" type="line" paint={{ 'line-color': night ? '#00E5B4' : OFFPLAN_LINE, 'line-width': 1.6, 'line-dasharray': [2, 2] }} />
           </Source>
         )}
 
@@ -373,11 +412,16 @@ export default function MiamiWorld() {
               {AREAS.map((a, i) => <option key={a.name} value={i}>{a.name}</option>)}
             </select>
           </label>
+          <div role="group" aria-label="Map view" className="mt-3 flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
+            {[[false, 'Day'], [true, 'Night']].map(([v, label]) => (
+              <button key={label as string} type="button" aria-pressed={night === v} onClick={() => setNight(v as boolean)} className={`flex-1 rounded-md py-1.5 ${night === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
+            ))}
+          </div>
           <ul className="mt-3 space-y-1.5 text-xs text-[#3d4852]">
-            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-[#f1f3f5] border border-black/15" /> Existing buildings</li>
-            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: OFFPLAN }} /> Pre-construction and under construction</li>
+            <li className="flex items-center gap-2"><span className={`w-3 h-3 rounded-sm border border-black/15 ${night ? 'bg-[#353D57]' : 'bg-[#f1f3f5]'}`} /> Existing buildings</li>
+            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: night ? 'linear-gradient(135deg,#8aa3b3,#cfc6b8)' : OFFPLAN }} /> Pre-construction and under construction{night ? ', in their real colours' : ''}</li>
           </ul>
-          <div className="mt-3 pt-3 border-t border-black/5">
+          <div className={`mt-3 pt-3 border-t border-black/5 ${night ? 'hidden' : ''}`}>
             <div className="flex items-center justify-between text-xs text-[#3d4852]">
               <span className="font-medium">Sun</span>
               <span>{`${Math.floor(sunHour)}:${sunHour % 1 ? '30' : '00'}`} · {sun.alt > 0 ? `${compass(sun.az)} sky, ${Math.round(sun.alt)}° up` : 'below the horizon'}</span>
@@ -394,7 +438,7 @@ export default function MiamiWorld() {
               ))}
             </div>
           </div>
-          <p className="mt-3 text-[11px] text-[#7a8791] leading-snug">Click a green tower for details and the view from any floor.</p>
+          <p className="mt-3 text-[11px] text-[#7a8791] leading-snug">{night ? 'Click a tower with a green outline for details and the view from any floor.' : 'Click a green tower for details and the view from any floor.'}</p>
         </div>
       )}
 
