@@ -62,9 +62,10 @@ export default function Navbar() {
           <span className="font-display font-extrabold text-[19px] sm:text-[21px] tracking-[-0.035em] text-text-primary whitespace-nowrap">preconstruction miami<span className="text-coral">.</span></span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden min-[1140px]:flex items-center gap-0.5 whitespace-nowrap">
           <Link href="/new-condos" className="btn-ghost text-sm">Properties</Link>
           <Link href="/miami-3d" className="btn-ghost text-sm">Miami 3D</Link>
+          <Link href="/preconstruction-3d" className="btn-ghost text-sm">Precon 3D</Link>
           <Link href="/tallest-buildings" className="btn-ghost text-sm">Tallest</Link>
           <div
             className="relative"
@@ -98,7 +99,7 @@ export default function Navbar() {
           <Link href="/contact-us" className="btn-primary text-sm !py-2 !px-4 ml-2">Contact Us</Link>
         </div>
 
-        <button className="md:hidden text-text-primary" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button className="min-[1140px]:hidden text-text-primary" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           ) : (
@@ -108,10 +109,11 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-bg border-y border-border max-h-[calc(100vh-56px)] overflow-y-auto">
+        <div className="min-[1140px]:hidden bg-bg border-y border-border max-h-[calc(100vh-56px)] overflow-y-auto">
           <div className="container-main py-4 space-y-1">
             <Link href="/new-condos" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Properties</Link>
             <Link href="/miami-3d" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Miami 3D</Link>
+            <Link href="/preconstruction-3d" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Pre-construction 3D</Link>
             <Link href="/tallest-buildings" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Tallest buildings</Link>
             <Link href="/developers" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Developers</Link>
             <Link href="/blog" className="block py-2.5 text-text-primary hover:text-accent-green transition-colors">Blog</Link>
