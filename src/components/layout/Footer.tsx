@@ -82,8 +82,8 @@ export default function Footer() {
               <h4 className="text-text-primary font-semibold text-sm uppercase tracking-wider mb-4">Popular Searches</h4>
               <ul className="space-y-1.5">
                 <li><Link href="/new-condos?category=ULTRA_LUXURY" className="text-sm text-text-muted hover:text-accent-green transition-colors">Ultra-Luxury Condos</Link></li>
-                <li><Link href="/new-condos?status=PRE_LAUNCH" className="text-sm text-text-muted hover:text-accent-green transition-colors">Pre-Launch Projects</Link></li>
-                <li><Link href="/new-condos?status=UNDER_CONSTRUCTION" className="text-sm text-text-muted hover:text-accent-green transition-colors">Under Construction</Link></li>
+                <li><Link href="/new-condos?stage=planned" className="text-sm text-text-muted hover:text-accent-green transition-colors">Planned Projects</Link></li>
+                <li><Link href="/new-condos?stage=building" className="text-sm text-text-muted hover:text-accent-green transition-colors">Under Construction</Link></li>
                 <li><Link href="/new-condos?sort=price_asc" className="text-sm text-text-muted hover:text-accent-green transition-colors">Most Affordable</Link></li>
               </ul>
             </div>
