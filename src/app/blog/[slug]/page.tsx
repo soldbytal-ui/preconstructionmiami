@@ -10,7 +10,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import blogRedirects from '@/lib/blog-redirects.json';
 import Markdown from 'react-markdown';
-import { supabase } from '@/lib/supabase';
+import { supabase, throwIfOutage } from '@/lib/supabase';
 import { generateArticleSchema, generateBreadcrumbSchema, fitTitle, fitDesc, DEFAULT_OG } from '@/lib/seo';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -102,11 +102,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const { data: post } = await supabase
+  const { data: post, error: loadError } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('slug', slug)
     .single();
+  throwIfOutage(loadError);
   if (!post) notFound();
 
   const { data: relatedPosts } = await supabase

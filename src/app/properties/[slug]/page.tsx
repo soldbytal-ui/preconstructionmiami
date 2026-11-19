@@ -8,7 +8,7 @@ export async function generateStaticParams() {
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { supabase } from '@/lib/supabase';
+import { supabase, throwIfOutage } from '@/lib/supabase';
 import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice, formatPriceRange, STATUS_LABELS, CATEGORY_LABELS } from '@/lib/utils';
 import { generateRealEstateListingSchema, generateBreadcrumbSchema, fitDesc, pickTitle, DEFAULT_OG } from '@/lib/seo';
@@ -73,12 +73,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PropertyDetailPage({ params }: Props) {
   const { slug } = await params;
-  const { data: project } = await supabase
+  const { data: project, error: loadError } = await supabase
     .from('projects')
     .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
     .eq('slug', slug)
     .single();
 
+  throwIfOutage(loadError);
   if (!project) notFound();
 
   const { data: relatedProjects } = await supabase

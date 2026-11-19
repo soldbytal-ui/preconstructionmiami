@@ -2,7 +2,7 @@
 export const revalidate = 300;
 
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { supabase, throwIfOutage } from '@/lib/supabase';
 import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice } from '@/lib/utils';
 import { generateLocalBusinessSchema, generateWebSiteSchema, generateHowToSchema } from '@/lib/seo';
@@ -28,6 +28,9 @@ export default async function HomePage() {
   const countRes = await supabase.from('projects').select('*', { count: 'exact', head: true });
   const nhCountRes = await supabase.from('neighborhoods').select('*', { count: 'exact', head: true });
 
+  // An outage must not replace the cached home page with an empty one
+  throwIfOutage(featuredRes.error);
+  throwIfOutage(countRes.error);
   const featured: any[] = featuredRes.data || [];
   const neighborhoods = neighborhoodRes.data || [];
   const projectCount = countRes.count || 0;

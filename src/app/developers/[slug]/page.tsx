@@ -8,7 +8,7 @@ export async function generateStaticParams() {
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { supabase } from '@/lib/supabase';
+import { supabase, throwIfOutage } from '@/lib/supabase';
 import { CARD_COLUMNS } from '@/lib/queries';
 import { formatPrice, formatPriceRange } from '@/lib/utils';
 import { generateBreadcrumbSchema, fitTitle, DEFAULT_OG } from '@/lib/seo';
@@ -57,12 +57,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DeveloperProfilePage({ params }: Props) {
   const { slug } = await params;
 
-  const { data: developer } = await supabase
+  const { data: developer, error: loadError } = await supabase
     .from('developers')
     .select('*')
     .eq('slug', slug)
     .single();
 
+  throwIfOutage(loadError);
   if (!developer) notFound();
 
   const { data: projects } = await supabase

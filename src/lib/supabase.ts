@@ -36,3 +36,11 @@ export const supabaseAdmin = createClient(
     global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, { ...init, cache: 'no-store' }) },
   }
 );
+
+/**
+ * A missing row is a real 404. Any other failure (database paused, network) must throw instead,
+ * so the last good cached page keeps being served rather than a "not found" page replacing it.
+ */
+export function throwIfOutage(error: { code?: string; message?: string } | null | undefined) {
+  if (error && error.code !== 'PGRST116') throw new Error(`Database unavailable: ${error.message || error.code}`);
+}
