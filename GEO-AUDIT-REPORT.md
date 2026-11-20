@@ -9,7 +9,7 @@ Audit date: November 20, 2026. Method: every URL in the sitemap (359) plus three
 | Structured data | 70 | 88 | Developer pages had only breadcrumbs; area pages lacked a page-level type |
 | Titles and descriptions | 72 | 90 | Stale counts and prices in descriptions; a few over-length titles |
 | AI discoverability | 80 | 90 | llms.txt and crawler rules were already good; pages lacked plain stated facts |
-| Content quality | 55 | 70 | 131 developer pages were thin; 143 listings still use template wording |
+| Content quality | 55 | 80 | 131 developer pages were thin; 143 listings used template wording |
 | Technical | 88 | 92 | All 362 URLs returned 200; canonicals consistent; www and http redirect correctly |
 | Indexation | 85 | 92 | One empty area page and empty developer pages were indexable |
 
@@ -31,10 +31,11 @@ Audit date: November 20, 2026. Method: every URL in the sitemap (359) plus three
 5. **Empty pages were indexable.** The Palm Beach area page has no projects; it is now excluded from search and from the sitemap until it has one.
 6. **Smaller items.** Pre-construction 3D page had 71 words and no structured data (now has an explanation and WebApplication data); the neighborhoods index gained a comparison table and ItemList data; two titles over 60 characters were shortened; the account page pointed its canonical at the home page; robots.txt now names the search and answer crawlers (OAI-SearchBot, ChatGPT-User, Claude-SearchBot, Perplexity-User and others) explicitly; "150+" became "170+".
 
+7. **143 of 172 listings used near-identical template wording** ("one of South Florida's most sought-after neighborhoods", plus an "Investment Outlook" paragraph that read as a promise of appreciation). All 143 were rewritten from each listing's own facts: what it is, storeys, residences, price, completion, address, the nearest other new projects, amenities and the developer. The investment paragraphs are gone. The old text is backed up. Each listing page also gained a "How it compares" section worked out from the other projects in its area. Trade-off: the rewritten listings are shorter (about 430 words on the page, down from about 700), because the filler was not replaced with more filler.
+
 ### Still open
 
-1. **143 of 172 listings use template wording** ("one of South Florida's most sought-after neighborhoods", an "Investment Outlook" paragraph that reads as a promise). The facts are right but the prose is near-identical across listings, which search engines discount and AI engines will not quote. Recommended: rewrite them from each listing's facts, the way the newer listings are written.
-2. **36 listings load photos from other websites** rather than our own storage, mostly broker sites. This is a sourcing and reliability problem more than an SEO one, but image search and link previews depend on it.
-3. **No author or review signals on blog posts.** Posts have BlogPosting data but no named author with credentials. Needs a decision on whose name goes on them.
-4. **About and Contact pages are short** (258 and 123 words) and say little about who runs the site. For trust signals they should name the operator and the licensed partners.
-5. **Not measured here:** page speed (Core Web Vitals), actual Google index coverage and rankings. Those need Search Console access.
+1. **36 listings load photos from other websites** rather than our own storage, mostly broker sites. This is a sourcing and reliability problem more than an SEO one, but image search and link previews depend on it.
+2. **No author or review signals on blog posts.** Posts have BlogPosting data but no named author with credentials. Needs a decision on whose name goes on them.
+3. **About and Contact pages are short** (258 and 123 words) and say little about who runs the site. For trust signals they should name the operator and the licensed partners.
+4. **Not measured here:** page speed (Core Web Vitals), actual Google index coverage and rankings. Those need Search Console access.
