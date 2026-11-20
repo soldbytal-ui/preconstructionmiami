@@ -15,6 +15,8 @@ import { generateBreadcrumbSchema, generateFAQSchema, fitTitle, fitDesc, DEFAULT
 import ProjectCard from '@/components/projects/ProjectCard';
 import InquiryForm from '@/components/projects/InquiryForm';
 import DynamicMap from '@/components/map/DynamicMap';
+import ProjectFactsTable from '@/components/projects/ProjectFactsTable';
+import { projectFacts, summarySentences, factFaqs } from '@/lib/facts';
 
 type Props = { params: Promise<{ neighborhood: string }> };
 
@@ -26,24 +28,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('slug', slug)
     .single();
   if (!n) return { title: 'Neighborhood Not Found' };
+  // Title and description come from the live listings, so the counts and prices in search results stay true
+  const { data: ps } = await supabase.from('projects').select(CARD_COLUMNS).eq('neighborhoodId', n.id);
+  const f = projectFacts((ps || []) as any);
+  const title = f.total
+    ? fitTitle(`New Condos in ${n.name}: ${f.total} Pre-Construction ${f.total === 1 ? 'Project' : 'Projects'}`)
+    : fitTitle(`New Pre-Construction Condos in ${n.name}`);
+  const description = f.total
+    ? fitDesc(`${f.total} new condo ${f.total === 1 ? 'project' : 'projects'} in ${n.name}${f.cheapest?.priceMin ? `, from ${formatPrice(f.cheapest.priceMin)}` : ''}. ${f.tallest?.floors ? `Tallest: ${f.tallest.name}, ${f.tallest.floors} storeys. ` : ''}Prices, developers and completion dates.`, 160)
+    : `New pre-construction condos in ${n.name}: prices, developers and completion dates as projects are announced.`;
+  const url = `https://preconstructionmiami.net/new-condos-${n.slug}`;
   return {
-    title: { absolute: fitTitle(`New Pre-Construction Condos in ${n.name} | Prices & Floor Plans`) },
-    description: fitDesc(n.metaDescription) || `Browse pre-construction condos in ${n.name}. Find new developments, pricing, floor plans, and completion dates.`,
-    alternates: {
-      canonical: `https://preconstructionmiami.net/new-condos-${n.slug}`,
-    },
-    openGraph: {
-      images: DEFAULT_OG,
-      title: n.metaTitle || `New Pre-Construction Condos in ${n.name}`,
-      description: n.metaDescription || `Browse pre-construction condos in ${n.name}.`,
-      url: `https://preconstructionmiami.net/new-condos-${n.slug}`,
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: n.metaTitle || `New Pre-Construction Condos in ${n.name}`,
-      description: n.metaDescription || `Browse pre-construction condos in ${n.name}.`,
-    },
+    title: { absolute: title },
+    description,
+    alternates: { canonical: url },
+    // An area with nothing listed yet stays out of search results until it has a project
+    ...(f.total === 0 && { robots: { index: false, follow: true } }),
+    openGraph: { images: DEFAULT_OG, title, description, url, type: 'website' },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 
@@ -91,29 +93,20 @@ export default async function NeighborhoodPage({ params }: Props) {
     { name: neighborhood.name, url: `https://preconstructionmiami.net/new-condos-${neighborhood.slug}` },
   ]);
 
-  // Generate dynamic FAQs based on neighborhood data
-  const faqs = [
-    {
-      question: `What are the best new pre-construction condos in ${neighborhood.name}?`,
-      answer: projectCount > 0
-        ? `There are currently ${projectCount} active pre-construction developments in ${neighborhood.name}. ${projectList.slice(0, 3).map((p: any) => p.name).join(', ')}${projectCount > 3 ? ` and ${projectCount - 3} more` : ''} are among the top projects. Visit our ${neighborhood.name} page for full pricing, floor plans, and availability.`
-        : `New pre-construction projects in ${neighborhood.name} are coming soon. Register with us to be notified of new launches and VIP pricing.`,
-    },
-    {
-      question: `What is the average price of pre-construction condos in ${neighborhood.name}?`,
-      answer: neighborhood.avgPriceStudio
-        ? `Pre-construction condo prices in ${neighborhood.name} start from approximately ${formatPrice(neighborhood.avgPriceStudio)} for studios. ${neighborhood.avgPrice2br ? `Two-bedroom units average around ${formatPrice(neighborhood.avgPrice2br)}.` : ''} Prices vary significantly by developer, floor level, and view. Contact us for current pricing on specific projects.`
-        : `Pre-construction condo prices in ${neighborhood.name} vary by project, unit type, and floor level. Get in touch for current pricing on specific developments in ${neighborhood.name}.`,
-    },
-    {
-      question: `Is ${neighborhood.name} a good area to buy pre-construction in Miami?`,
-      answer: `${neighborhood.name} is one of South Florida's most sought-after neighborhoods for pre-construction investment. ${neighborhood.description?.slice(0, 200) || `The area offers excellent amenities, strong appreciation potential, and a desirable lifestyle.`} Connect with a licensed agent for a personalized investment analysis.`,
-    },
-    {
-      question: `When will new condos in ${neighborhood.name} be completed?`,
-      answer: `Most pre-construction condos currently selling in ${neighborhood.name} have estimated completion dates between ${new Date().getFullYear()} and ${new Date().getFullYear() + 4}. Completion timelines vary by project — some developments in ${neighborhood.name} are already under construction while others are in pre-construction sales. Contact us for project-specific timelines.`,
-    },
-  ];
+  // Summary, table and questions are all worked out from the listings, so they update when the data does
+  const facts = projectFacts(projectList as any);
+  const summary = summarySentences(`in ${neighborhood.name}`, facts);
+  const faqs = projectCount > 0
+    ? factFaqs(neighborhood.name, facts)
+    : [{ question: `Are there new condo projects in ${neighborhood.name}?`, answer: `We are not tracking any new condo projects in ${neighborhood.name} at the moment. New launches are added as they are announced.` }];
+  const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const pageUrl = `https://preconstructionmiami.net/new-condos-${neighborhood.slug}`;
+  const collectionSchema = {
+    '@context': 'https://schema.org', '@type': 'CollectionPage', name: `New condos in ${neighborhood.name}`, url: pageUrl,
+    description: summary.join(' '), dateModified: new Date().toISOString().slice(0, 10), inLanguage: 'en-US',
+    about: { '@type': 'Place', name: `${neighborhood.name}, Florida`, address: { '@type': 'PostalAddress', addressLocality: neighborhood.name, addressRegion: 'FL', addressCountry: 'US' } },
+    isPartOf: { '@type': 'WebSite', name: 'PreConstructionMiami', url: 'https://preconstructionmiami.net' },
+  };
 
   const faqSchema = generateFAQSchema(faqs);
 
@@ -154,18 +147,11 @@ export default async function NeighborhoodPage({ params }: Props) {
   const spread = pts.length ? Math.max(...pts.map((p: any) => Math.max(Math.abs(p.latitude - mapCenter[0]), Math.abs(p.longitude - mapCenter[1])))) : 0;
   const mapZoom = spread > 0.05 ? 12.6 : spread > 0.025 ? 13.4 : spread > 0.012 ? 14 : 14.6;
 
-  const prices = [
-    { type: 'Studio', price: neighborhood.avgPriceStudio },
-    { type: '1 Bedroom', price: neighborhood.avgPrice1br },
-    { type: '2 Bedroom', price: neighborhood.avgPrice2br },
-    { type: '3 Bedroom', price: neighborhood.avgPrice3br },
-    { type: 'Penthouse', price: neighborhood.avgPricePenthouse },
-  ].filter((p) => p.price);
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
       {projectList.length > 0 && (
         <script
           type="application/ld+json"
@@ -187,11 +173,7 @@ export default async function NeighborhoodPage({ params }: Props) {
             New Pre-Construction Condos in <span className="text-accent-green">{neighborhood.name}</span>
           </h1>
           <p className="text-text-muted mt-4 text-lg max-w-2xl">
-            {projectCount > 0
-              ? `${projectCount} active ${projectCount === 1 ? 'development' : 'developments'} available.`
-              : 'New developments coming soon.'}
-            {neighborhood.avgPriceStudio && ` Starting from ${formatPrice(neighborhood.avgPriceStudio)}.`}
-            {' '}Updated for {new Date().getFullYear()}&ndash;{new Date().getFullYear() + 3}.
+            {summary[0] || 'No new condo projects listed here yet.'} Updated {updated}.
           </p>
         </div>
       </section>
@@ -206,6 +188,16 @@ export default async function NeighborhoodPage({ params }: Props) {
       <div className="container-main pt-24 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2 space-y-10">
+            {/* The numbers first: what is being built here, stated plainly */}
+            {projectCount > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold text-text-primary mb-4">New condos in {neighborhood.name} at a glance</h2>
+                <p className="text-text-muted leading-relaxed mb-6">{summary.join(' ')}</p>
+                <ProjectFactsTable projects={projectList as any} caption={`New condo projects in ${neighborhood.name}: developer, storeys, residences, starting price, completion and stage`} />
+                <p className="mt-3 text-xs text-text-muted">Figures come from developer announcements and public filings and can change. Last checked {updated}.</p>
+              </section>
+            )}
+
             {/* About This Neighborhood */}
             {neighborhood.description && (
               <section>
@@ -214,33 +206,6 @@ export default async function NeighborhoodPage({ params }: Props) {
                 </h2>
                 <div className="text-text-muted leading-relaxed whitespace-pre-line">
                   {neighborhood.description}
-                </div>
-              </section>
-            )}
-
-            {/* Price Table */}
-            {prices.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-bold text-text-primary mb-4">
-                  Average Pre-Construction Prices in {neighborhood.name}
-                </h2>
-                <div className="card overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-surface2 text-sm">
-                        <th className="px-6 py-3 text-left font-medium text-text-muted">Unit Type</th>
-                        <th className="px-6 py-3 text-right font-medium text-text-muted">Starting Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {prices.map((p, i) => (
-                        <tr key={p.type} className={`border-t border-border ${i % 2 === 0 ? 'bg-bg' : 'bg-surface'}`}>
-                          <td className="px-6 py-3 text-sm text-text-primary">{p.type}</td>
-                          <td className="px-6 py-3 text-sm text-right font-semibold font-mono text-accent-green">{formatPrice(p.price)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               </section>
             )}
@@ -282,7 +247,7 @@ export default async function NeighborhoodPage({ params }: Props) {
             {/* FAQ Section */}
             <section>
               <h2 className="text-2xl font-bold text-text-primary mb-6">
-                Frequently Asked Questions About {neighborhood.name} Pre-Construction
+                Questions about new condos in {neighborhood.name}
               </h2>
               <div className="space-y-4">
                 {faqs.map((faq, i) => (

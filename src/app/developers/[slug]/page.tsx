@@ -15,22 +15,32 @@ import { generateBreadcrumbSchema, fitTitle, DEFAULT_OG } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import DevLogo from '@/components/ui/DevLogo';
 
+import ProjectFactsTable from '@/components/projects/ProjectFactsTable';
+import { projectFacts, summarySentences, factFaqs } from '@/lib/facts';
+import { generateFAQSchema, generateProjectListSchema, fitDesc } from '@/lib/seo';
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const { data: dev } = await supabase
     .from('developers')
-    .select('name, description, logoUrl')
+    .select('id, name, description, logoUrl')
     .eq('slug', slug)
     .single();
 
   if (!dev) return { title: 'Developer Not Found' };
 
-  const title = `${dev.name} | Miami Developer Profile`;
-  const description = dev.description
-    ? dev.description.slice(0, 160)
-    : `Explore ${dev.name}'s pre-construction condo portfolio in South Florida. View projects, pricing, and developer track record.`;
+  const soloFirm = !/[,&/]/.test(dev.name);
+  const { data: jv } = soloFirm ? await supabase.from('developers').select('id, name').ilike('name', `%${dev.name}%`).neq('id', dev.id) : { data: [] as { id: string; name: string }[] };
+  const jvIds = (jv || []).filter((v) => v.name.split(/\s*[,&/]\s*/).some((part: string) => part.trim().toLowerCase() === dev.name.toLowerCase())).map((v) => v.id);
+  const { data: ps } = await supabase.from('projects').select(CARD_COLUMNS).in('developerId', [dev.id, ...jvIds]);
+  const f = projectFacts((ps || []) as any);
+  const title = `${dev.name}: ${f.total} New Condo ${f.total === 1 ? 'Project' : 'Projects'} in South Florida`;
+  const names = (ps || []).slice(0, 3).map((p: any) => p.name).join(', ');
+  const description = f.total
+    ? fitDesc(`${dev.name} has ${f.total} new condo ${f.total === 1 ? 'project' : 'projects'} in South Florida${names ? `, including ${names}` : ''}. Compare storeys, residences, prices and completion dates.`, 160)
+    : fitDesc(dev.description, 160) || `${dev.name}: developer profile on PreConstructionMiami.`;
 
   return {
     title: { absolute: fitTitle(title) },
@@ -66,10 +76,17 @@ export default async function DeveloperProfilePage({ params }: Props) {
   throwIfOutage(loadError);
   if (!developer) notFound();
 
+  // A firm's joint ventures are stored as their own developer records ("Related Group, BH Group"),
+  // so a single firm's page also gathers the projects it is building with partners.
+  const solo = !/[,&/]/.test(developer.name);
+  const { data: ventures } = solo
+    ? await supabase.from('developers').select('id, name').ilike('name', `%${developer.name}%`).neq('id', developer.id)
+    : { data: [] as { id: string; name: string }[] };
+  const ventureIds = (ventures || []).filter((v) => v.name.split(/\s*[,&/]\s*/).some((part: string) => part.trim().toLowerCase() === developer.name.toLowerCase())).map((v) => v.id);
   const { data: projects } = await supabase
     .from('projects')
     .select(CARD_COLUMNS)
-    .eq('developerId', developer.id)
+    .in('developerId', [developer.id, ...ventureIds])
     .order('name');
 
   const { data: otherDevs } = await supabase
@@ -93,6 +110,22 @@ export default async function DeveloperProfilePage({ params }: Props) {
     ? new Date().getFullYear() - developer.foundedYear
     : null;
 
+  // Summary, table and questions are worked out from this developer's own listings
+  const facts = projectFacts(allProjects as any);
+  const summary = summarySentences(`by ${developer.name} in South Florida`, facts);
+  const faqs = factFaqs('South Florida', facts)
+    .filter((q) => !q.question.startsWith('Which developers'))
+    .map((q) => ({ question: q.question.replace(' in South Florida', ` by ${developer.name}`).replace('are there by', 'are there from'), answer: q.answer.replace('in South Florida', `from ${developer.name} in South Florida`) }));
+  const devUrl = `https://preconstructionmiami.net/developers/${developer.slug}`;
+  const orgSchema = {
+    '@context': 'https://schema.org', '@type': 'Organization', name: developer.name, url: devUrl,
+    ...(developer.description && { description: developer.description }),
+    ...(developer.websiteUrl && { sameAs: [developer.websiteUrl] }),
+    ...(developer.logoUrl && { logo: developer.logoUrl.split(',')[0] }),
+    ...(developer.foundedYear && { foundingDate: String(developer.foundedYear) }),
+    ...(developer.headquarters && { address: developer.headquarters }),
+  };
+
   const breadcrumb = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
     { name: 'Developers', url: 'https://preconstructionmiami.net/developers' },
@@ -102,6 +135,9 @@ export default async function DeveloperProfilePage({ params }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
+      {allProjects.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProjectListSchema(`New condo projects by ${developer.name}`, allProjects as any)) }} />}
+      {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateFAQSchema(faqs)) }} />}
 
       <div className="max-w-7xl mx-auto px-6 pt-28 pb-16">
         {/* Breadcrumb */}
@@ -169,6 +205,15 @@ export default async function DeveloperProfilePage({ params }: Props) {
           </div>
         )}
 
+        {/* The numbers, stated plainly, then every project in one comparable table */}
+        {allProjects.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-semibold text-text-primary mb-4">{developer.name} projects at a glance</h2>
+            <p className="text-text-muted leading-relaxed max-w-3xl mb-6">{summary.join(' ')}</p>
+            <ProjectFactsTable projects={allProjects as any} showArea caption={`New condo projects by ${developer.name}: area, storeys, residences, starting price, completion and stage`} />
+          </div>
+        )}
+
         {/* Projects Grid */}
         {allProjects.length > 0 && (
           <div className="mb-16">
@@ -180,6 +225,20 @@ export default async function DeveloperProfilePage({ params }: Props) {
                 <ProjectCard key={p.id} project={p} />
               ))}
             </div>
+          </div>
+        )}
+
+        {faqs.length > 0 && (
+          <div className="mb-16 max-w-3xl">
+            <h2 className="text-2xl font-semibold text-text-primary mb-6">Questions about {developer.name}</h2>
+            <dl className="space-y-5">
+              {faqs.map((q) => (
+                <div key={q.question}>
+                  <dt className="font-semibold text-text-primary">{q.question}</dt>
+                  <dd className="mt-1 text-text-muted leading-relaxed">{q.answer}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         )}
 

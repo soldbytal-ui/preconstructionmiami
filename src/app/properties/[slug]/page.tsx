@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const { data: project } = await supabase
     .from('projects')
-    .select('*, neighborhood:neighborhoods(*)')
+    .select('*, neighborhood:neighborhoods(*), developer:developers(name)')
     .eq('slug', slug)
     .single();
 
@@ -44,10 +44,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `${n} | Pre-Construction Condos`,
     n,
   ]);
-  const description =
-    fitDesc(project.metaDescription) ||
-    fitDesc(project.description) ||
-    `${project.name} - New pre-construction development in ${area}. ${project.priceMin ? `From ${formatPrice(project.priceMin)}.` : ''} ${project.totalUnits ? `${project.totalUnits} residences.` : ''}`;
+  // Built from the listing's own fields so search results never show a stale storey count or price
+  const stage: Record<string, string> = { PRE_LAUNCH: 'planned', PRE_CONSTRUCTION: 'planned', UNDER_CONSTRUCTION: 'under-construction', NEAR_COMPLETION: 'nearly finished', COMPLETED: 'completed' };
+  const what = `${project.floors ? `${project.floors}-storey ` : ''}${stage[project.status] || 'new'} condo ${project.floors && project.floors >= 12 ? 'tower' : 'project'}`;
+  const description = fitDesc([
+    `${project.name} is a ${what} in ${area}${project.developer?.name ? ` by ${project.developer.name}` : ''}.`,
+    project.totalUnits ? `${project.totalUnits.toLocaleString()} residences${project.soldOut ? ', sold out' : project.priceMin ? ` from ${formatPrice(project.priceMin)}` : ''}.` : project.priceMin && !project.soldOut ? `From ${formatPrice(project.priceMin)}.` : '',
+    project.estCompletion && project.status !== 'COMPLETED' ? `Completion expected ${project.estCompletion}.` : '',
+    'Photos, facts and its place on the 3D map.',
+  ].filter(Boolean).join(' '), 160);
   return {
     title: { absolute: title },
     description,

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     default: 'Pre-Construction Condos in Miami | PreConstructionMiami',
     template: '%s | PreConstructionMiami',
   },
-  description: 'Browse 150+ pre-construction condos across Miami and South Florida on a 3D map. Prices from $300K. Brickell, Miami Beach, Edgewater and more.',
+  description: 'Browse 170+ pre-construction condos across Miami and South Florida on a 3D map. Prices from $300K. Brickell, Miami Beach, Edgewater and more.',
   alternates: {
     canonical: 'https://preconstructionmiami.net',
   },
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     url: 'https://preconstructionmiami.net',
     siteName: 'PreConstructionMiami.net',
     title: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
-    description: 'Access 150+ pre-construction condo developments across Miami and South Florida.',
+    description: 'Access 170+ pre-construction condo developments across Miami and South Florida.',
     images: [
       {
         url: '/og-image.png',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Pre-Construction Condos in Miami | PreConstructionMiami.net',
-    description: 'Access 150+ pre-construction condo developments across Miami and South Florida.',
+    description: 'Access 170+ pre-construction condo developments across Miami and South Florida.',
     images: ['/og-image.png'],
   },
   robots: {

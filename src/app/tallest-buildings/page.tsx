@@ -7,7 +7,7 @@ import { DEFAULT_OG, generateBreadcrumbSchema } from '@/lib/seo';
 export const revalidate = 300;
 
 const URL = 'https://preconstructionmiami.net/tallest-buildings';
-const TITLE = 'Tallest Buildings Coming to Miami | Planned and Under Construction';
+const TITLE = 'Tallest Buildings Coming to Miami, Ranked by Height';
 const DESC = 'Every tall tower planned or under construction in Miami and South Florida, drawn to scale and ranked by height, with storeys, units and status.';
 
 export const metadata: Metadata = {

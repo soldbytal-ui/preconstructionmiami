@@ -5,6 +5,7 @@ import AccountDashboard from '@/components/account/AccountDashboard';
 export const metadata: Metadata = {
   title: 'My account',
   robots: { index: false, follow: false },
+  alternates: { canonical: 'https://preconstructionmiami.net/account' },
 };
 
 export default function AccountPage() {

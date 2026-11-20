@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [{ data: projects }, { data: neighborhoods }, { data: blogPosts }, { data: developers }] = await Promise.all([
     supabase.from('projects').select('slug, updatedAt'),
-    supabase.from('neighborhoods').select('slug, updatedAt'),
+    supabase.from('neighborhoods').select('slug, updatedAt, projects(count)'),
     supabase.from('blog_posts').select('slug, updatedAt').not('publishedAt', 'is', null),
     supabase.from('developers').select('slug, updatedAt, projects(count)'),
   ]);
@@ -40,9 +40,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     })),
-    ...(neighborhoods || []).map((n: any) => ({
+    // Area pages are rebuilt from live listings, so they are current as of today; empty areas are left out
+    ...(neighborhoods || []).filter((n: any) => (n.projects?.[0]?.count || 0) > 0).map((n: any) => ({
       url: `${baseUrl}/new-condos-${n.slug}`,
-      lastModified: toW3CDate(n.updatedAt),
+      lastModified: today,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     })),
