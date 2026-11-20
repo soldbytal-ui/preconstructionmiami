@@ -71,6 +71,16 @@ export default function ListingHero({
   const photoCount = gallery.length || (main ? 1 : 0);
   const hasSide = Boolean(tower) || extra.length > 0;
 
+  // No photos yet: lead with the 3D tower instead of an empty photo frame
+  if (!main && extra.length === 0 && tower) {
+    return (
+      <div className="relative overflow-hidden rounded-[26px]">
+        <MapTile slug={slug} tower={tower} around={around} tall className="h-[320px] sm:h-[420px] lg:h-[480px]" />
+        <div className="absolute right-4 top-4"><StatusBadge status={status} soldOut={soldOut} /></div>
+      </div>
+    );
+  }
+
   return (
     <div className={`grid gap-2 overflow-hidden rounded-[26px] ${hasSide ? 'lg:grid-cols-2' : ''}`}>
       <div className="relative h-[300px] sm:h-[420px] lg:h-[560px] bg-surface2">

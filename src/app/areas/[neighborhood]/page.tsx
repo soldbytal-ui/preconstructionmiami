@@ -144,7 +144,15 @@ export default async function NeighborhoodPage({ params }: Props) {
     'boca-raton': [26.3587, -80.0831],
     'west-palm-beach': [26.7153, -80.0534],
   };
-  const mapCenter = NEIGHBORHOOD_MAP_CENTERS[slug] || [25.7750, -80.1900];
+  // Open the map on the projects themselves when the area has any, so they are never off screen
+  const { data: spots } = await supabase.from('projects').select('latitude, longitude').eq('neighborhoodId', neighborhood.id);
+  const pts = (spots || []).filter((p: any) => p.latitude && p.longitude);
+  const mid = (xs: number[]) => { const v = [...xs].sort((x, y) => x - y); return v[Math.floor(v.length / 2)]; };
+  const mapCenter: [number, number] = pts.length
+    ? [mid(pts.map((p: any) => p.latitude)), mid(pts.map((p: any) => p.longitude))]
+    : NEIGHBORHOOD_MAP_CENTERS[slug] || [25.7750, -80.1900];
+  const spread = pts.length ? Math.max(...pts.map((p: any) => Math.max(Math.abs(p.latitude - mapCenter[0]), Math.abs(p.longitude - mapCenter[1])))) : 0;
+  const mapZoom = spread > 0.05 ? 12.6 : spread > 0.025 ? 13.4 : spread > 0.012 ? 14 : 14.6;
 
   const prices = [
     { type: 'Studio', price: neighborhood.avgPriceStudio },
@@ -191,7 +199,7 @@ export default async function NeighborhoodPage({ params }: Props) {
       {/* The same 3D map as the home page, opened on this neighbourhood */}
       <section className="container-main mt-8">
         <div className="theme-dark relative h-[60vh] min-h-[420px] overflow-hidden rounded-[26px] border-2 border-ink bg-bg shadow-[0_30px_60px_-40px_rgba(17,27,51,0.6)]">
-          <DynamicMap focus={{ lat: mapCenter[0], lng: mapCenter[1], name: neighborhood.name }} />
+          <DynamicMap focus={{ lat: mapCenter[0], lng: mapCenter[1], zoom: mapZoom, name: neighborhood.name }} />
         </div>
       </section>
 
