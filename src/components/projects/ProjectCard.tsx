@@ -39,6 +39,7 @@ type ProjectCardProps = {
     status: string;
     category: string;
     priceMin: number | null;
+    soldOut?: boolean | null;
     priceMax: number | null;
     totalUnits: number | null;
     floors: number | null;
@@ -70,7 +71,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </div>
         )}
         <div className="absolute top-3 left-3">
-          <StatusBadge status={project.status} />
+          <StatusBadge status={project.status} soldOut={project.soldOut} />
         </div>
         <div className="absolute top-3 right-3">
           <span className="bg-surface/95 text-text-primary text-xs font-medium px-2.5 py-1 rounded-full border border-border">
@@ -88,7 +89,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         )}
         <div className="mt-3 flex items-center justify-between">
           <span className="text-accent-green font-mono font-medium">
-            {project.priceMin ? `From ${formatPrice(project.priceMin)}` : 'Contact for pricing'}
+            {project.soldOut ? 'Sold out' : project.priceMin ? `From ${formatPrice(project.priceMin)}` : 'Contact for pricing'}
           </span>
           {project.neighborhood && (
             <span className="text-xs text-text-muted bg-surface2 px-2 py-1 rounded">

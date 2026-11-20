@@ -9,11 +9,12 @@ const DOT: Record<string, string> = {
   COMPLETED: '#8A9098',
 };
 
-export default function StatusBadge({ status }: { status: string }) {
+// A sold-out project keeps its build stage in the data, but the badge says what a buyer needs to know first
+export default function StatusBadge({ status, soldOut }: { status: string; soldOut?: boolean | null }) {
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-text-primary">
-      <span className="h-2 w-2 rounded-full" style={{ background: DOT[status] || DOT.COMPLETED }} aria-hidden />
-      {STATUS_LABELS[status] || status}
+      <span className="h-2 w-2 rounded-full" style={{ background: soldOut ? '#111B33' : DOT[status] || DOT.COMPLETED }} aria-hidden />
+      {soldOut ? 'Sold out' : STATUS_LABELS[status] || status}
     </span>
   );
 }

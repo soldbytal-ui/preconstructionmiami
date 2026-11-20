@@ -141,7 +141,7 @@ export default async function PropertyDetailPage({ params }: Props) {
         </nav>
 
         <div className="mb-10">
-          <ListingHero slug={project.slug} name={project.name} status={project.status} main={project.mainImageUrl || null} gallery={galleryImages} tower={tower} around={around} />
+          <ListingHero slug={project.slug} name={project.name} status={project.status} soldOut={project.soldOut} main={project.mainImageUrl || null} gallery={galleryImages} tower={tower} around={around} />
           {/* Shown only once the photo source has been confirmed as the developer's own */}
           {projectImages.credit?.confirmed && (
             <p className="mt-2 text-[11px] text-text-muted/60">
@@ -156,7 +156,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             {/* Header */}
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <StatusBadge status={project.status} />
+                <StatusBadge status={project.status} soldOut={project.soldOut} />
                 <span className="text-xs text-text-muted bg-surface2 border border-border px-2.5 py-1 rounded-full">
                   {CATEGORY_LABELS[project.category] || project.category}
                 </span>
@@ -303,6 +303,11 @@ export default async function PropertyDetailPage({ params }: Props) {
           {/* Sidebar */}
           <div className="space-y-6">
             <div className="sticky top-24 scroll-mt-24" id="inquire">
+              {project.soldOut && (
+                <p className="mb-4 rounded-2xl border-2 border-ink bg-surface px-4 py-3 text-sm text-text-primary">
+                  <span className="font-semibold">This project is sold out.</span> Use the form to ask about resale units here or similar projects nearby.
+                </p>
+              )}
               <InquiryForm projectId={project.id} projectName={project.name} />
 
               {/* Form disclaimer */}

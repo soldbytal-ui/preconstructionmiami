@@ -63,9 +63,9 @@ function MapTile({ slug, tower, around, className, tall }: { slug: string; tower
 }
 
 export default function ListingHero({
-  slug, name, status, main, gallery, tower, around,
+  slug, name, status, soldOut, main, gallery, tower, around,
 }: {
-  slug: string; name: string; status: string; main: string | null; gallery: Img[]; tower: SkylineTower | null; around: SkylineTower[];
+  slug: string; name: string; status: string; soldOut?: boolean | null; main: string | null; gallery: Img[]; tower: SkylineTower | null; around: SkylineTower[];
 }) {
   const extra = gallery.filter((g) => g.url && g.url !== main).slice(0, 2);
   const photoCount = gallery.length || (main ? 1 : 0);
@@ -79,7 +79,7 @@ export default function ListingHero({
         ) : (
           <div className="flex h-full w-full items-center justify-center font-display text-7xl font-extrabold text-text-muted/30">{name[0]}</div>
         )}
-        <div className="absolute left-4 top-4"><StatusBadge status={status} /></div>
+        <div className="absolute left-4 top-4"><StatusBadge status={status} soldOut={soldOut} /></div>
         {photoCount > 1 && (
           <a href="#gallery" className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 text-sm font-semibold text-ink shadow-md">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 12h18M12 3v18" /></svg>
