@@ -50,17 +50,35 @@ export default function AccountDashboard() {
   }
 
   if (!user) {
+    const expired = params.get('link') === 'expired';
     return (
-      <div className="max-w-xl">
-        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary">
-          {params.get('link') === 'expired' ? 'That link has expired' : 'Follow the towers you care about'}
-        </h1>
-        <p className="mt-3 text-text-muted">
-          {params.get('link') === 'expired'
-            ? 'Sign-in links only work for a short time. Ask for a new one below.'
-            : 'Create a free account to keep a list of towers and get an email when a price, construction stage or completion date changes.'}
-        </p>
-        <button className="btn-primary mt-6" onClick={() => openSignup({ source: 'account-page' })}>Create account or sign in</button>
+      <div>
+        <div className="max-w-xl">
+          <h1 className="display-big text-text-primary">
+            {expired ? 'That link has expired' : 'Follow the towers you care about'}
+          </h1>
+          <p className="mt-4 text-text-muted">
+            {expired
+              ? 'Sign-in links only work for a short time. Ask for a new one below.'
+              : 'Create a free account to keep the towers you are watching in one list, with their prices, heights and completion dates side by side.'}
+          </p>
+          <button className="btn-primary mt-6" onClick={() => openSignup({ source: 'account-page' })}>Create account or sign in</button>
+        </div>
+        {!expired && (
+          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
+            {[
+              ['Find a tower', 'Open any project on the list or the 3D map.', '/new-condos', 'Browse new condos'],
+              ['Press Follow', 'It takes a name and an email. No password to remember.', '/preconstruction-3d', 'Open the 3D map'],
+              ['Compare them here', 'Your towers sit together on this page, and you can ask for prices on any of them.', '/tallest-buildings', 'See the tallest'],
+            ].map(([t, d, href, label]) => (
+              <div key={t} className="bg-surface p-6">
+                <h2 className="text-lg font-semibold text-text-primary">{t}</h2>
+                <p className="mt-2 text-sm text-text-muted">{d}</p>
+                <Link href={href} className="mt-4 inline-block text-sm font-medium text-accent-green link-underline">{label}</Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
