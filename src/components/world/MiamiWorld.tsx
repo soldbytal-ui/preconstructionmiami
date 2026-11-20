@@ -86,12 +86,17 @@ export default function MiamiWorld() {
   const [loaded, setLoaded] = useState(false);
   // Night view: the same city after dark, with the new towers in their real colours
   const [night, setNight] = useState(false);
+  // Finished towers that have a profile page, and which stage of building the map is showing
+  const [existing, setExisting] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [selB, setSelB] = useState<{ name: string; slug: string; floors?: number; yearBuilt?: number; heightM?: number; developer?: string } | null>(null);
+  const [stage, setStage] = useState<'all' | 'planned' | 'building' | 'done'>('all');
   const dayPaint = useRef<Record<string, Record<string, any>>>({});
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
   useEffect(() => {
     let alive = true;
     loadBuildings().then((d) => { if (alive) setData(d); });
+    fetch('/api/existing-buildings').then((r) => r.json()).then((d) => { if (alive) setExisting(d); }).catch(() => {});
     return () => { alive = false; };
   }, []);
 
@@ -175,6 +180,9 @@ export default function MiamiWorld() {
 
   const onClick = useCallback((e: MapMouseEvent) => {
     if (view) return;
+    const f = e.features?.[0];
+    if (f && (f.layer?.id === 'w-ex-pad' || f.layer?.id === 'w-ex-label')) { setSelected(null); setSelB(f.properties as any); return; }
+    setSelB(null);
     const p = pick(e);
     setSelected(p);
     if (p && data) {
@@ -287,7 +295,17 @@ export default function MiamiWorld() {
 
   const active = selected?.id || hovered;
   // In view mode the tower you are standing in is hidden so it does not block the view
-  const towerFilter: any = view && selected ? ['!=', ['get', 'id'], selected.id] : ['has', 'id'];
+  const PLANNED = ['PRE_LAUNCH', 'PRE_CONSTRUCTION'];
+  const stageSet = stage === 'planned' ? PLANNED : stage === 'building' ? ['UNDER_CONSTRUCTION', 'NEAR_COMPLETION'] : stage === 'done' ? ['COMPLETED'] : null;
+  const inStage: any = stageSet ? ['in', ['get', 'status'], ['literal', stageSet]] : ['has', 'id'];
+  const notSelected: any = view && selected ? ['!=', ['get', 'id'], selected.id] : ['has', 'id'];
+  // Towers that have not broken ground are drawn slightly see-through; everything else is solid
+  const isPlanned: any = ['in', ['get', 'status'], ['literal', PLANNED]];
+  const towerFilter: any = ['all', notSelected, inStage, ['!', isPlanned]];
+  const plannedFilter: any = ['all', notSelected, inStage, isPlanned];
+  const stageIds = data && stageSet ? Object.values(data.projects).filter((p) => stageSet.includes(p.status)).map((p) => p.id) : null;
+  const lotFilter: any = stageIds ? ['in', ['get', 'id'], ['literal', stageIds]] : ['has', 'id'];
+  const showExisting = !view && (stage === 'all' || stage === 'done');
   const baseColor: any = night ? ['coalesce', ['get', 'color'], ['get', 'c']] : ['get', 'c'];
   const towerColor: any = active ? ['case', ['==', ['get', 'id'], active], night ? '#FFB38A' : ['case', ['==', ['get', 'c'], OFFPLAN_SOFT], '#B8F0E3', '#00C9A0'], baseColor] : baseColor;
   // Move the light with the chosen time, so each facade brightens and darkens as it would through the day
@@ -363,9 +381,9 @@ export default function MiamiWorld() {
         mapStyle="mapbox://styles/mapbox/light-v11"
         onLoad={onLoad}
         onClick={onClick}
-        onMouseMove={(e) => setHovered(view ? null : pick(e)?.id || null)}
+        onMouseMove={(e) => setHovered(view ? null : pick(e)?.id || (e.features?.[0]?.layer?.id?.startsWith('w-ex') ? 'existing' : null))}
         onMouseLeave={() => setHovered(null)}
-        interactiveLayerIds={towers ? ['w-towers'] : []}
+        interactiveLayerIds={[...(towers ? ['w-towers', 'w-towers-planned'] : []), ...(existing && showExisting ? ['w-ex-pad', 'w-ex-label'] : [])]}
         cursor={hovered ? 'pointer' : 'grab'}
         cooperativeGestures={isTouch}
         maxPitch={85}
@@ -379,8 +397,8 @@ export default function MiamiWorld() {
 
         {lots && (
           <Source id="w-lots" type="geojson" data={lots}>
-            <Layer id="w-lot-fill" type="fill" paint={{ 'fill-color': night ? '#00E5B4' : OFFPLAN, 'fill-opacity': night ? 0.22 : 0.14 }} />
-            <Layer id="w-lot-line" type="line" paint={{ 'line-color': night ? '#00E5B4' : OFFPLAN_LINE, 'line-width': 1.6, 'line-dasharray': [2, 2] }} />
+            <Layer id="w-lot-fill" type="fill" filter={lotFilter} paint={{ 'fill-color': night ? '#00E5B4' : OFFPLAN, 'fill-opacity': night ? 0.22 : 0.14 }} />
+            <Layer id="w-lot-line" type="line" filter={lotFilter} paint={{ 'line-color': night ? '#00E5B4' : OFFPLAN_LINE, 'line-width': 1.6, 'line-dasharray': [2, 2] }} />
           </Source>
         )}
 
@@ -397,6 +415,52 @@ export default function MiamiWorld() {
                 'fill-extrusion-opacity': 1,
                 'fill-extrusion-vertical-gradient': true,
               }}
+            />
+            <Layer
+              id="w-towers-planned"
+              type="fill-extrusion"
+              filter={plannedFilter}
+              paint={{
+                'fill-extrusion-color': towerColor,
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'base'],
+                'fill-extrusion-opacity': 0.72,
+                'fill-extrusion-vertical-gradient': true,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Finished towers with a profile: a grey ring at the base and a name that appears as you zoom in */}
+        {existing && showExisting && (
+          <Source id="w-existing" type="geojson" data={existing}>
+            <Layer
+              id="w-ex-pad"
+              type="circle"
+              minzoom={13}
+              paint={{
+                'circle-pitch-alignment': 'map',
+                'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 13, 2.5, 16, 14, 18, 52],
+                'circle-color': night ? '#C9CED8' : '#6F7782',
+                'circle-opacity': ['case', ['==', ['get', 'slug'], selB?.slug || ''], 0.55, 0.22],
+                'circle-stroke-color': night ? '#E6E9EF' : '#4A515B',
+                'circle-stroke-width': 1.5,
+              }}
+            />
+            <Layer
+              id="w-ex-label"
+              type="symbol"
+              minzoom={14.3}
+              layout={{
+                'text-field': ['get', 'name'],
+                'text-size': ['interpolate', ['linear'], ['zoom'], 14.3, 10.5, 17, 13],
+                'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'],
+                'text-offset': [0, 1.1],
+                'text-anchor': 'top',
+                'text-max-width': 8,
+                'symbol-sort-key': ['-', 0, ['coalesce', ['get', 'floors'], 0]],
+              }}
+              paint={{ 'text-color': night ? '#E6E9EF' : '#2B323B', 'text-halo-color': night ? '#1D2233' : '#ffffff', 'text-halo-width': 1.4 }}
             />
           </Source>
         )}
@@ -417,8 +481,14 @@ export default function MiamiWorld() {
               <button key={label as string} type="button" aria-pressed={night === v} onClick={() => setNight(v as boolean)} className={`flex-1 rounded-md py-1.5 ${night === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
             ))}
           </div>
+          <div role="group" aria-label="Show" className="mt-2 grid grid-cols-2 gap-1 text-[11px] font-medium">
+            {([['all', 'All'], ['planned', 'Planned'], ['building', 'Being built'], ['done', 'Completed']] as const).map(([v, label]) => (
+              <button key={v} type="button" aria-pressed={stage === v} onClick={() => { setStage(v); setSelected(null); setSelB(null); }} className={`rounded-md border py-1.5 ${stage === v ? 'border-[#1c2530] bg-[#1c2530] text-white' : 'border-black/10 text-[#3d4852]'}`}>{label}</button>
+            ))}
+          </div>
           <ul className="mt-3 space-y-1.5 text-xs text-[#3d4852]">
             <li className="flex items-center gap-2"><span className={`w-3 h-3 rounded-sm border border-black/15 ${night ? 'bg-[#353D57]' : 'bg-[#f1f3f5]'}`} /> Existing buildings</li>
+            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-[1.5px] border-[#4A515B] bg-[#6F7782]/25" /> Finished tower with a profile</li>
             <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: night ? 'linear-gradient(135deg,#8aa3b3,#cfc6b8)' : OFFPLAN }} /> Pre-construction and under construction{night ? ', in their real colours' : ''}</li>
           </ul>
           <div className={`mt-3 pt-3 border-t border-black/5 ${night ? 'hidden' : ''}`}>
@@ -439,6 +509,25 @@ export default function MiamiWorld() {
             </div>
           </div>
           <p className="mt-3 text-[11px] text-[#7a8791] leading-snug">{night ? 'Click a tower with a green outline for details and the view from any floor.' : 'Click a green tower for details and the view from any floor.'}</p>
+        </div>
+      )}
+
+      {/* Existing building card */}
+      {selB && !selected && !view && (
+        <div className="absolute top-4 right-4 z-10 w-[min(320px,calc(100%-2rem))] rounded-2xl bg-white shadow-xl border border-black/5 p-4">
+          <button onClick={() => setSelB(null)} aria-label="Close" className="absolute top-2 right-2 w-8 h-8 rounded-full bg-[#f4f6f8] text-[#1c2530] text-lg leading-none">×</button>
+          <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF0F2] text-[#4A515B]">Completed</span>
+          <h2 className="text-lg font-semibold mt-1.5 leading-tight pr-8">{selB.name}</h2>
+          {selB.developer && <p className="text-xs text-[#5b6770] mt-0.5">by {selB.developer}</p>}
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            {[['Built', selB.yearBuilt ? String(selB.yearBuilt) : ''], ['Floors', selB.floors ? String(selB.floors) : ''], ['Height', selB.heightM ? `${Math.round(Number(selB.heightM))} m` : '']].filter(([, v]) => v).map(([k, v]) => (
+              <div key={k} className="rounded-lg bg-[#f4f6f8] py-2">
+                <div className="text-[10px] uppercase tracking-wide text-[#7a8791]">{k}</div>
+                <div className="text-sm font-semibold">{v}</div>
+              </div>
+            ))}
+          </div>
+          <Link href={`/buildings/${selB.slug}`} className="mt-3 block text-center rounded-xl py-2.5 text-sm font-semibold text-white bg-[#1c2530]">Open building profile</Link>
         </div>
       )}
 
