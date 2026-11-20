@@ -39,7 +39,8 @@ const AREAS = [
   { name: 'Palm Beach', lng: -80.051, lat: 26.708, zoom: 13.8, bearing: 0 },
 ] as const;
 
-export default function MiamiMap() {
+// `focus` opens the map on one neighbourhood (used on the area pages)
+export default function MiamiMap({ focus }: { focus?: { lng: number; lat: number; zoom?: number; name: string } } = {}) {
   const [data, setData] = useState<BuildingsData | null>(null);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -235,13 +236,13 @@ export default function MiamiMap() {
       <Map
         ref={mapRef}
         initialViewState={{
-          longitude: -80.1915,
-          latitude: 25.772,
-          zoom: isTouch ? 12.9 : 14.6,
+          longitude: focus ? focus.lng : -80.1915,
+          latitude: focus ? focus.lat : 25.772,
+          zoom: focus ? (focus.zoom ?? 14.6) - (isTouch ? 0.9 : 0) : isTouch ? 12.9 : 14.6,
           pitch: 60,
           bearing: -20,
           // Keep the skyline clear of the headline card on wide screens
-          padding: !isTouch && typeof window !== 'undefined' && window.innerWidth >= 1024
+          padding: !focus && !isTouch && typeof window !== 'undefined' && window.innerWidth >= 1024
             ? { left: 460, top: 60, right: 0, bottom: 0 }
             : undefined,
         }}
@@ -336,7 +337,7 @@ export default function MiamiMap() {
       </Map>
 
       {/* Legend */}
-      <div className="absolute top-20 right-4 z-10 glass-panel rounded-xl px-3 py-2.5 hidden sm:block pointer-events-none">
+      <div className={`absolute ${focus ? 'top-4' : 'top-20'} right-4 z-10 glass-panel rounded-xl px-3 py-2.5 hidden sm:block pointer-events-none`}>
         <ul className="space-y-1.5">
           {LEGEND.map((l) => (
             <li key={l.label} className="flex items-center gap-2 text-[11px] text-text-muted">
@@ -347,24 +348,31 @@ export default function MiamiMap() {
         </ul>
       </div>
 
-      {/* District quick jumps */}
-      <div className="absolute left-0 right-0 bottom-3 z-10 pl-3 pr-16 lg:pr-3 pointer-events-none">
-        <div className="mx-auto max-w-max flex gap-1.5 overflow-x-auto pointer-events-auto glass-panel rounded-full px-1.5 py-1.5 [scrollbar-width:none]">
-          {AREAS.map((a) => (
-            <button
-              key={a.name}
-              type="button"
-              onClick={() => flyToArea(a)}
-              aria-pressed={area === a.name}
-              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] transition-colors ${
-                area === a.name ? 'bg-accent-green text-bg' : 'text-text-muted hover:text-text-primary hover:bg-white/5'
-              }`}
-            >
-              {a.name}
-            </button>
-          ))}
+      {/* District quick jumps, or on an area page the area name and a way to the full map */}
+      {focus ? (
+        <div className="absolute left-3 bottom-3 z-10 glass-panel rounded-full pl-4 pr-1.5 py-1.5 flex items-center gap-3">
+          <span className="text-[13px] font-medium text-text-primary">{focus.name}</span>
+          <a href="/preconstruction-3d" className="rounded-full bg-accent-green px-3 py-1.5 text-[12px] font-medium text-bg">Open the full 3D map</a>
         </div>
-      </div>
+      ) : (
+      <div className="absolute left-0 right-0 bottom-3 z-10 pl-3 pr-16 lg:pr-3 pointer-events-none">
+          <div className="mx-auto max-w-max flex gap-1.5 overflow-x-auto pointer-events-auto glass-panel rounded-full px-1.5 py-1.5 [scrollbar-width:none]">
+            {AREAS.map((a) => (
+              <button
+                key={a.name}
+                type="button"
+                onClick={() => flyToArea(a)}
+                aria-pressed={area === a.name}
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] transition-colors ${
+                  area === a.name ? 'bg-accent-green text-bg' : 'text-text-muted hover:text-text-primary hover:bg-white/5'
+                }`}
+              >
+                {a.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {hoverInfo && !selected && <MapTooltip info={hoverInfo} />}
 

@@ -14,7 +14,7 @@ import { formatPrice } from '@/lib/utils';
 import { generateBreadcrumbSchema, generateFAQSchema, fitTitle, fitDesc, DEFAULT_OG, generateProjectListSchema } from '@/lib/seo';
 import ProjectCard from '@/components/projects/ProjectCard';
 import InquiryForm from '@/components/projects/InquiryForm';
-import DynamicNeighborhoodMap from '@/components/map/DynamicNeighborhoodMap';
+import DynamicMap from '@/components/map/DynamicMap';
 
 type Props = { params: Promise<{ neighborhood: string }> };
 
@@ -188,13 +188,11 @@ export default async function NeighborhoodPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Neighborhood 3D Mini-Map */}
+      {/* The same 3D map as the home page, opened on this neighbourhood */}
       <section className="container-main mt-8">
-        <DynamicNeighborhoodMap
-          center={mapCenter}
-          neighborhoodName={neighborhood.name}
-          neighborhoodId={neighborhood.id}
-        />
+        <div className="theme-dark relative h-[60vh] min-h-[420px] overflow-hidden rounded-[26px] border-2 border-ink bg-bg shadow-[0_30px_60px_-40px_rgba(17,27,51,0.6)]">
+          <DynamicMap focus={{ lat: mapCenter[0], lng: mapCenter[1], name: neighborhood.name }} />
+        </div>
       </section>
 
       <div className="container-main pt-24 pb-10">

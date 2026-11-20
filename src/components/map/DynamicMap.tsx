@@ -9,7 +9,7 @@ import { loadBuildings } from './mapShared';
 const mapModule = typeof window !== 'undefined' ? import('./MiamiMap') : null;
 if (typeof window !== 'undefined') loadBuildings();
 
-const MiamiMap = dynamic(() => mapModule || import('./MiamiMap'), {
+const MiamiMap = dynamic<{ focus?: { lng: number; lat: number; zoom?: number; name: string } }>(() => mapModule || import('./MiamiMap'), {
   ssr: false,
   loading: () => <MapSkeleton />,
 });
