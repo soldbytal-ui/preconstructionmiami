@@ -18,8 +18,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase.from('projects').select('slug, updatedAt'),
     supabase.from('neighborhoods').select('slug, updatedAt, projects(count)'),
     supabase.from('blog_posts').select('slug, updatedAt').not('publishedAt', 'is', null),
-    supabase.from('developers').select('slug, updatedAt, projects(count)'),
+    supabase.from('developers').select('slug, updatedAt, projects(count), buildings(count)'),
   ]);
+  const { data: buildings } = await supabase.from('buildings').select('slug, updatedAt');
 
   return [
     { url: baseUrl, lastModified: today, changeFrequency: 'daily', priority: 1 },
@@ -28,6 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/areas`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/preconstruction-3d`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/tallest-buildings`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/buildings`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
+    ...(buildings || []).map((b: any) => ({ url: `${baseUrl}/buildings/${b.slug}`, lastModified: toW3CDate(b.updatedAt), changeFrequency: 'monthly' as const, priority: 0.6 })),
     { url: `${baseUrl}/developers`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/about`, lastModified: today, changeFrequency: 'monthly', priority: 0.5 },
@@ -54,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     })),
     // Developer pages with no listed projects are left out: there is nothing on them to rank
-    ...(developers || []).filter((d: any) => (d.projects?.[0]?.count || 0) > 0).map((d: any) => ({
+    ...(developers || []).filter((d: any) => (d.projects?.[0]?.count || 0) + (d.buildings?.[0]?.count || 0) > 0).map((d: any) => ({
       url: `${baseUrl}/developers/${d.slug}`,
       lastModified: toW3CDate(d.updatedAt),
       changeFrequency: 'monthly' as const,

@@ -16,6 +16,8 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import DevLogo from '@/components/ui/DevLogo';
 
 import ProjectFactsTable from '@/components/projects/ProjectFactsTable';
+import BuildingsTable from '@/components/projects/BuildingsTable';
+import { buildingsByDeveloper } from '@/lib/buildings';
 import { projectFacts, summarySentences, factFaqs } from '@/lib/facts';
 import { generateFAQSchema, generateProjectListSchema, fitDesc, pickTitle } from '@/lib/seo';
 
@@ -93,6 +95,9 @@ export default async function DeveloperProfilePage({ params }: Props) {
     .select(CARD_COLUMNS)
     .in('developerId', [developer.id, ...ventureIds])
     .order('name');
+
+  // Finished buildings by this developer (and its joint ventures): the resale side of its record
+  const completedBuildings = await buildingsByDeveloper([developer.id, ...ventureIds]);
 
   const { data: otherDevs } = await supabase
     .from('developers')
@@ -216,6 +221,16 @@ export default async function DeveloperProfilePage({ params }: Props) {
             <h2 className="text-2xl font-semibold text-text-primary mb-4">{developer.name} projects at a glance</h2>
             <p className="text-text-muted leading-relaxed max-w-3xl mb-6">{summary.join(' ')}</p>
             <ProjectFactsTable projects={allProjects as any} showArea caption={`New condo projects by ${developer.name}: area, storeys, residences, starting price, completion and stage`} />
+          </div>
+        )}
+
+        {completedBuildings.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-semibold text-text-primary mb-4">Completed buildings by {developer.name}</h2>
+            <p className="text-text-muted leading-relaxed max-w-3xl mb-6">
+              {completedBuildings.length === 1 ? 'One finished building' : `${completedBuildings.length} finished buildings`} by {developer.name} that we have profiled so far. Units in these are sold by their owners on the resale market.
+            </p>
+            <BuildingsTable buildings={completedBuildings} caption={`Completed buildings by ${developer.name}: area, year built, storeys, height and residences`} />
           </div>
         )}
 
