@@ -42,6 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `${dev.name}: ${f.total} New Condo ${f.total === 1 ? 'Project' : 'Projects'} in South Florida`,
     `${dev.name}: ${f.total} New Condo ${f.total === 1 ? 'Project' : 'Projects'}`,
     `${dev.name}: Developer Profile`,
+    dev.name, // a long joint-venture name is its own title, so no two developer pages share one
     dev.name.split(',')[0] + ' and partners: Developer Profile',
   ]);
   const names = (ps || []).slice(0, 3).map((p: any) => p.name).join(', ');
