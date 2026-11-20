@@ -29,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/areas`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/preconstruction-3d`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/tallest-buildings`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/miami-condo-pipeline`, lastModified: today, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/buildings`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     ...(buildings || []).map((b: any) => ({ url: `${baseUrl}/buildings/${b.slug}`, lastModified: toW3CDate(b.updatedAt), changeFrequency: 'monthly' as const, priority: 0.6 })),
     { url: `${baseUrl}/developers`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
