@@ -74,7 +74,7 @@ export default async function DeveloperProfilePage({ params }: Props) {
 
   const { data: otherDevs } = await supabase
     .from('developers')
-    .select('id, name, slug, description, projects:projects(id)')
+    .select('id, name, slug, logoUrl, projects:projects(id)')
     .neq('id', developer.id)
     .limit(50);
 
@@ -117,7 +117,7 @@ export default async function DeveloperProfilePage({ params }: Props) {
         <div className="flex items-start gap-6 mb-8">
           <DevLogo src={developer.logoUrl} name={developer.name} size={80} initialsClassName="text-accent-green font-bold text-2xl" />
           <div>
-            <h1 className="text-3xl md:text-4xl font-semibold text-text-primary">{developer.name}</h1>
+            <h1 className="display-big text-text-primary">{developer.name}</h1>
             <div className="flex items-center gap-4 mt-2 text-sm text-text-muted flex-wrap">
               {developer.headquarters && <span>{developer.headquarters}</span>}
               {developer.foundedYear && <span>Est. {developer.foundedYear}</span>}
@@ -135,29 +135,31 @@ export default async function DeveloperProfilePage({ params }: Props) {
           </div>
         </div>
 
-        {/* Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <div className="glass-panel rounded-xl p-4">
-            <div className="text-xs text-text-muted uppercase tracking-wider">Projects</div>
-            <div className="text-text-primary font-semibold text-xl mt-1">{allProjects.length}</div>
+        {/* Facts */}
+        <dl className="flex flex-wrap gap-x-10 gap-y-4 border-y border-border py-5 mb-10">
+          <div>
+            <dt className="text-sm text-text-muted">Projects on this site</dt>
+            <dd className="text-text-primary font-semibold text-2xl mt-0.5">{allProjects.length}</dd>
           </div>
-          <div className="glass-panel rounded-xl p-4">
-            <div className="text-xs text-text-muted uppercase tracking-wider">Neighborhoods</div>
-            <div className="text-text-primary font-semibold text-xl mt-1">{neighborhoods.length}</div>
-          </div>
-          <div className="glass-panel rounded-xl p-4">
-            <div className="text-xs text-text-muted uppercase tracking-wider">Price Range</div>
-            <div className="text-text-primary font-semibold mt-1">
-              {isFinite(priceMinAll) ? formatPriceRange(priceMinAll, priceMaxAll) : 'Contact Us'}
+          {neighborhoods.length > 0 && (
+            <div>
+              <dt className="text-sm text-text-muted">Neighbourhoods</dt>
+              <dd className="text-text-primary font-semibold text-2xl mt-0.5">{neighborhoods.length}</dd>
             </div>
-          </div>
-          <div className="glass-panel rounded-xl p-4">
-            <div className="text-xs text-text-muted uppercase tracking-wider">Years Active</div>
-            <div className="text-text-primary font-semibold text-xl mt-1">
-              {yearsActive ? `${yearsActive}+` : '—'}
+          )}
+          {isFinite(priceMinAll) && (
+            <div>
+              <dt className="text-sm text-text-muted">Price range</dt>
+              <dd className="text-text-primary font-semibold text-2xl mt-0.5">{formatPriceRange(priceMinAll, priceMaxAll)}</dd>
             </div>
-          </div>
-        </div>
+          )}
+          {yearsActive && (
+            <div>
+              <dt className="text-sm text-text-muted">Founded</dt>
+              <dd className="text-text-primary font-semibold text-2xl mt-0.5">{developer.foundedYear}</dd>
+            </div>
+          )}
+        </dl>
 
         {/* Bio */}
         {developer.description && (
@@ -184,7 +186,7 @@ export default async function DeveloperProfilePage({ params }: Props) {
         {/* Other Developers */}
         {relatedDevs.length > 0 && (
           <div className="border-t border-border pt-10">
-            <h2 className="text-2xl font-semibold text-text-primary mb-6">Other Developers</h2>
+            <h2 className="text-2xl font-semibold text-text-primary mb-6">Other active developers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {relatedDevs.map((d: any) => (
                 <Link
@@ -192,15 +194,17 @@ export default async function DeveloperProfilePage({ params }: Props) {
                   href={`/developers/${d.slug}`}
                   className="card p-4 group hover:border-accent-green/30 transition-all"
                 >
-                  <h3 className="text-text-primary font-medium group-hover:text-accent-green transition-colors line-clamp-1">
-                    {d.name}
-                  </h3>
-                  <div className="text-xs text-text-muted mt-1">
-                    {d.projects?.length || 0} project{(d.projects?.length || 0) !== 1 ? 's' : ''}
+                  <div className="flex items-center gap-3">
+                    <DevLogo src={d.logoUrl} name={d.name} size={40} />
+                    <div className="min-w-0">
+                      <h3 className="text-text-primary font-medium group-hover:text-accent-green transition-colors line-clamp-1">
+                        {d.name}
+                      </h3>
+                      <div className="text-xs text-text-muted mt-0.5">
+                        {d.projects?.length || 0} project{(d.projects?.length || 0) !== 1 ? 's' : ''}
+                      </div>
+                    </div>
                   </div>
-                  {d.description && (
-                    <p className="text-xs text-text-muted mt-2 line-clamp-2">{d.description}</p>
-                  )}
                 </Link>
               ))}
             </div>

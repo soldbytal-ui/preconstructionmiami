@@ -9,33 +9,17 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <div className="max-w-7xl mx-auto px-6 pt-28 pb-16 min-h-[60vh] flex flex-col items-center justify-center text-center">
-      <div className="text-8xl font-bold text-accent-green/20 mb-4">404</div>
-      <h1 className="text-3xl md:text-4xl font-semibold text-text-primary mb-4">
-        Page Not Found
+      <div className="display-mega text-accent-green/25 mb-2">404</div>
+      <h1 className="display-big text-text-primary mb-4">
+        This page isn&apos;t here
       </h1>
       <p className="text-text-muted max-w-md mb-8 leading-relaxed">
-        The page you&apos;re looking for doesn&apos;t exist or has been moved.
-        Browse our latest pre-construction developments below.
+        The link may be old, or the listing may have been renamed. Every current project is on the list and on the map.
       </p>
-      <div className="flex flex-wrap gap-4 justify-center">
-        <Link
-          href="/"
-          className="px-6 py-3 bg-accent-green text-white font-medium rounded-xl hover:bg-accent-green/90 transition-colors"
-        >
-          Go Home
-        </Link>
-        <Link
-          href="/new-condos"
-          className="px-6 py-3 border border-border text-text-primary font-medium rounded-xl hover:border-accent-green/30 transition-colors"
-        >
-          Browse New Condos
-        </Link>
-        <Link
-          href="/developers"
-          className="px-6 py-3 border border-border text-text-primary font-medium rounded-xl hover:border-accent-green/30 transition-colors"
-        >
-          View Developers
-        </Link>
+      <div className="flex flex-wrap gap-3 justify-center">
+        <Link href="/new-condos" className="btn-primary">Browse new condos</Link>
+        <Link href="/miami-3d" className="btn-secondary">Open the 3D map</Link>
+        <Link href="/" className="btn-secondary">Go to the home page</Link>
       </div>
     </div>
   );

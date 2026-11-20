@@ -35,9 +35,11 @@ export default async function DevelopersPage() {
     .order('name');
 
   // Filter to only show developers with at least 1 project
-  const devsWithProjects = (developers || []).filter(
-    (d: any) => d.projects && d.projects.length > 0
-  );
+  // Most active first, then by name
+  const devsWithProjects = (developers || [])
+    .filter((d: any) => d.projects && d.projects.length > 0)
+    .sort((a: any, b: any) => b.projects.length - a.projects.length || a.name.localeCompare(b.name));
+  const projectTotal = devsWithProjects.reduce((n: number, d: any) => n + d.projects.length, 0);
 
   const breadcrumb = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
@@ -66,12 +68,12 @@ export default async function DevelopersPage() {
 
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-4xl md:text-6xl leading-[0.95] tracking-[-0.045em] text-text-primary">
-            Pre-Construction Developers
+          <h1 className="display-big text-text-primary">
+            Who is building South Florida
           </h1>
           <p className="text-text-muted mt-3 max-w-2xl">
-            Meet the developers shaping South Florida&apos;s skyline. Browse {devsWithProjects.length} developers
-            and their portfolios of pre-construction condos across Miami, Fort Lauderdale, and Palm Beach.
+            {devsWithProjects.length} developers are behind the {projectTotal} projects on this site. They are listed
+            with the most active first. Open one to see everything it is building.
           </p>
         </div>
 
