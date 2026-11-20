@@ -73,7 +73,7 @@ export function generateLocalBusinessSchema() {
       opens: '09:00',
       closes: '18:00',
     },
-    sameAs: [],
+    sameAs: ['https://www.youtube.com/@PreconstructionMiami'],
     knowsAbout: ['pre-construction condos', 'Miami real estate', 'new construction', 'luxury condominiums', 'South Florida developments'],
   };
 }
@@ -100,7 +100,7 @@ export function generateOrganizationSchema() {
       contactType: 'customer service',
       availableLanguage: ['English', 'Spanish'],
     },
-    sameAs: [],
+    sameAs: ['https://www.youtube.com/@PreconstructionMiami'],
   };
 }
 
