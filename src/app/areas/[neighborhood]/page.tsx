@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { data: ps } = await supabase.from('projects').select(CARD_COLUMNS).eq('neighborhoodId', n.id);
   const f = projectFacts((ps || []) as any);
   const title = f.total
-    ? fitTitle(`New Condos in ${n.name}: ${f.total} Pre-Construction ${f.total === 1 ? 'Project' : 'Projects'}`)
+    ? [`New Condos in ${n.name}: ${f.total} Pre-Construction ${f.total === 1 ? 'Project' : 'Projects'}`, `New Condos in ${n.name}: ${f.total} New ${f.total === 1 ? 'Project' : 'Projects'}`].find((t) => t.length <= 60) || `New Condos in ${n.name}`
     : fitTitle(`New Pre-Construction Condos in ${n.name}`);
   const description = f.total
     ? fitDesc(`${f.total} new condo ${f.total === 1 ? 'project' : 'projects'} in ${n.name}${f.cheapest?.priceMin ? `, from ${formatPrice(f.cheapest.priceMin)}` : ''}. ${f.tallest?.floors ? `Tallest: ${f.tallest.name}, ${f.tallest.floors} storeys. ` : ''}Prices, developers and completion dates.`, 160)

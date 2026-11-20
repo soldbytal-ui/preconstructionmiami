@@ -17,7 +17,7 @@ import DevLogo from '@/components/ui/DevLogo';
 
 import ProjectFactsTable from '@/components/projects/ProjectFactsTable';
 import { projectFacts, summarySentences, factFaqs } from '@/lib/facts';
-import { generateFAQSchema, generateProjectListSchema, fitDesc } from '@/lib/seo';
+import { generateFAQSchema, generateProjectListSchema, fitDesc, pickTitle } from '@/lib/seo';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -36,14 +36,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const jvIds = (jv || []).filter((v) => v.name.split(/\s*[,&/]\s*/).some((part: string) => part.trim().toLowerCase() === dev.name.toLowerCase())).map((v) => v.id);
   const { data: ps } = await supabase.from('projects').select(CARD_COLUMNS).in('developerId', [dev.id, ...jvIds]);
   const f = projectFacts((ps || []) as any);
-  const title = `${dev.name}: ${f.total} New Condo ${f.total === 1 ? 'Project' : 'Projects'} in South Florida`;
+  const title = pickTitle([
+    `${dev.name}: ${f.total} New Condo ${f.total === 1 ? 'Project' : 'Projects'} in South Florida`,
+    `${dev.name}: ${f.total} New Condo ${f.total === 1 ? 'Project' : 'Projects'}`,
+    `${dev.name}: Developer Profile`,
+    dev.name.split(',')[0] + ' and partners: Developer Profile',
+  ]);
   const names = (ps || []).slice(0, 3).map((p: any) => p.name).join(', ');
   const description = f.total
     ? fitDesc(`${dev.name} has ${f.total} new condo ${f.total === 1 ? 'project' : 'projects'} in South Florida${names ? `, including ${names}` : ''}. Compare storeys, residences, prices and completion dates.`, 160)
     : fitDesc(dev.description, 160) || `${dev.name}: developer profile on PreConstructionMiami.`;
 
   return {
-    title: { absolute: fitTitle(title) },
+    title: { absolute: title },
     description,
     alternates: {
       canonical: `https://preconstructionmiami.net/developers/${slug}`,

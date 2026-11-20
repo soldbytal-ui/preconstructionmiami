@@ -94,6 +94,32 @@ export default async function PropertyDetailPage({ params }: Props) {
     .neq('id', project.id)
     .limit(3);
 
+  // How this project sits among the others in its area, worked out from the listings themselves
+  const { data: areaRows } = project.neighborhoodId
+    ? await supabase.from('projects').select('id, name, slug, floors, priceMin, status, soldOut, estCompletion').eq('neighborhoodId', project.neighborhoodId)
+    : { data: [] as any[] };
+  const peers = (areaRows || []) as any[];
+  const compare: string[] = [];
+  const ord = (k: number) => (k === 1 ? '' : k === 2 ? 'second-' : k === 3 ? 'third-' : `${k}th-`);
+  if (project.neighborhood && peers.length > 1) {
+    const areaName = project.neighborhood.name;
+    // Height rank is only worth stating for the tall end of an area's list
+    if (project.floors && project.floors >= 12) {
+      const taller = peers.filter((q) => (q.floors || 0) > project.floors).length;
+      const tied = peers.filter((q) => q.floors === project.floors).length;
+      const top = [...peers].filter((q) => q.floors).sort((a, b) => b.floors - a.floors)[0];
+      if (taller === 0 && tied > 1) compare.push(`At ${project.floors} storeys, ${project.name} is one of ${tied} towers tied as the tallest of the ${peers.length} new condo projects we track in ${areaName}.`);
+      else if (taller < 5) compare.push(`${project.name} is the ${ord(taller + 1)}tallest of the ${peers.length} new condo projects we track in ${areaName}${taller > 0 && top ? `; the tallest is ${top.name} at ${top.floors} storeys` : ''}.`);
+    }
+    const priced = peers.filter((q) => q.priceMin && !q.soldOut && q.status !== 'COMPLETED').map((q) => q.priceMin as number).sort((a, b) => a - b);
+    if (project.priceMin && !project.soldOut && project.status !== 'COMPLETED' && priced.length > 2) {
+      const cheaper = priced.filter((v) => v < project.priceMin).length;
+      compare.push(`Its starting price of ${formatPrice(project.priceMin)} is ${cheaper === 0 ? 'the lowest' : cheaper === priced.length - 1 ? 'the highest' : `higher than ${cheaper} and lower than ${priced.length - 1 - cheaper}`} of the ${priced.length} projects in ${areaName} with a published price, which run from ${formatPrice(priced[0])} to ${formatPrice(priced[priced.length - 1])}.`);
+    }
+    const sameYear = project.estCompletion && project.status !== 'COMPLETED' ? peers.filter((q) => q.id !== project.id && q.estCompletion === project.estCompletion && q.status !== 'COMPLETED') : [];
+    if (sameYear.length) compare.push(`${sameYear.length === 1 ? 'One other project' : `${sameYear.length} other projects`} in ${areaName} ${sameYear.length === 1 ? 'is' : 'are'} also due in ${project.estCompletion}: ${sameYear.slice(0, 4).map((q) => q.name).join(', ')}${sameYear.length > 4 ? ' and others' : ''}.`);
+  }
+
   const listingSchema = generateRealEstateListingSchema(project);
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: 'https://preconstructionmiami.net' },
@@ -235,6 +261,16 @@ export default async function PropertyDetailPage({ params }: Props) {
                   {project.longDescription || project.description}
                 </Markdown>
               </div>
+            )}
+
+            {compare.length > 0 && project.neighborhood && (
+              <section>
+                <h2 className="text-2xl font-semibold text-text-primary mb-4">How it compares in {project.neighborhood.name}</h2>
+                <p className="text-text-muted leading-relaxed">{compare.join(' ')}</p>
+                <p className="mt-3">
+                  <Link href={`/new-condos-${project.neighborhood.slug}`} className="text-sm font-medium text-accent-green link-underline">Compare every new project in {project.neighborhood.name}</Link>
+                </p>
+              </section>
             )}
 
             {/* Amenities */}
