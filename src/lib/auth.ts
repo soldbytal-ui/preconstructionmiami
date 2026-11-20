@@ -41,6 +41,8 @@ export function verifyToken(token: string): AgentSession | null {
 }
 
 export async function getSession(): Promise<AgentSession | null> {
+  // Local demo only (never on Vercel): a stand-in admin, so admin screens can be built without real accounts
+  if (process.env.LOCAL_DEMO === '1' && !process.env.VERCEL) return { id: 'demo-admin', email: 'demo@localhost', name: 'Demo Admin', role: 'admin' };
   const cookieStore = await cookies();
   const token = cookieStore.get('admin_token')?.value;
   if (!token) return null;

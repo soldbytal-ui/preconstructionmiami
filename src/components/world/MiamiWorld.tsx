@@ -8,6 +8,9 @@ import type { MapMouseEvent, MapRef } from 'react-map-gl/mapbox';
 import { type BuildingsData, type MapProject, loadBuildings, shortPrice } from '@/components/map/mapShared';
 import { thumbUrl, STATUS_LABELS } from '@/lib/utils';
 import { RESIDENTIAL_FLOOR_M } from '@/lib/massing';
+import ApprovalStage from '@/components/projects/ApprovalStage';
+import ComingSoonForm from '@/components/projects/ComingSoonForm';
+import { type StageRecord, publicStage, stageLabel } from '@/lib/approval';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -90,6 +93,10 @@ export default function MiamiWorld() {
   const [existing, setExisting] = useState<GeoJSON.FeatureCollection | null>(null);
   const [selB, setSelB] = useState<{ name: string; slug: string; floors?: number; yearBuilt?: number; heightM?: number; developer?: string } | null>(null);
   const [stage, setStage] = useState<'all' | 'planned' | 'building' | 'done'>('all');
+  // Approval stages (always with their source) and the "coming soon" projects not yet approved
+  const [stages, setStages] = useState<Record<string, StageRecord>>({});
+  const [soon, setSoon] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [selSoon, setSelSoon] = useState<any | null>(null);
   const dayPaint = useRef<Record<string, Record<string, any>>>({});
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
@@ -97,6 +104,8 @@ export default function MiamiWorld() {
     let alive = true;
     loadBuildings().then((d) => { if (alive) setData(d); });
     fetch('/api/existing-buildings').then((r) => r.json()).then((d) => { if (alive) setExisting(d); }).catch(() => {});
+    fetch('/api/approval-stages').then((r) => r.json()).then((d) => { if (alive && d && typeof d === 'object') setStages(d); }).catch(() => {});
+    fetch('/api/coming-soon').then((r) => r.json()).then((d) => { if (alive && d?.type === 'FeatureCollection') setSoon(d); }).catch(() => {});
     return () => { alive = false; };
   }, []);
 
@@ -181,15 +190,19 @@ export default function MiamiWorld() {
   const onClick = useCallback((e: MapMouseEvent) => {
     if (view) return;
     const f = e.features?.[0];
-    if (f && (f.layer?.id === 'w-ex-pad' || f.layer?.id === 'w-ex-label')) { setSelected(null); setSelB(f.properties as any); return; }
+    if (f && (f.layer?.id === 'w-ex-pad' || f.layer?.id === 'w-ex-label')) { setSelected(null); setSelSoon(null); setSelB(f.properties as any); return; }
     setSelB(null);
+    const fid = (f?.properties as any)?.id;
+    const cs = fid && soon?.features.find((x) => (x.properties as any).id === fid);
+    if (cs) { setSelected(null); setSelSoon(cs.properties); return; }
+    setSelSoon(null);
     const p = pick(e);
     setSelected(p);
     if (p && data) {
       const floors = p.floors || Math.max(4, Math.round(heightOf(data, p.id) / RESIDENTIAL_FLOOR_M));
       setFloor(Math.max(2, Math.round(floors / 2)));
     }
-  }, [pick, data, view]);
+  }, [pick, data, view, soon]);
 
   // /miami-3d?project=<slug> opens the map on that tower
   const deepLinked = useRef(false);
@@ -301,8 +314,15 @@ export default function MiamiWorld() {
   const notSelected: any = view && selected ? ['!=', ['get', 'id'], selected.id] : ['has', 'id'];
   // Towers that have not broken ground are drawn slightly see-through; everything else is solid
   const isPlanned: any = ['in', ['get', 'status'], ['literal', PLANNED]];
-  const towerFilter: any = ['all', notSelected, inStage, ['!', isPlanned]];
-  const plannedFilter: any = ['all', notSelected, inStage, isPlanned];
+  // Coming-soon projects are drawn as ghosts instead of solid towers
+  const soonIds = (soon?.features || []).map((x) => (x.properties as any).id as string);
+  const notSoon: any = ['!', ['in', ['get', 'id'], ['literal', soonIds]]];
+  const isSoon: any = ['in', ['get', 'id'], ['literal', soonIds]];
+  const showSoon = !view && soonIds.length > 0 && (stage === 'all' || stage === 'planned');
+  // Ghosts with no modelled tower yet get a plain box at their location
+  const soonBoxes = soon && data ? { ...soon, features: soon.features.filter((x) => !data.projects[(x.properties as any).id]) } : soon;
+  const towerFilter: any = ['all', notSelected, inStage, ['!', isPlanned], notSoon];
+  const plannedFilter: any = ['all', notSelected, inStage, isPlanned, notSoon];
   const stageIds = data && stageSet ? Object.values(data.projects).filter((p) => stageSet.includes(p.status)).map((p) => p.id) : null;
   const lotFilter: any = stageIds ? ['in', ['get', 'id'], ['literal', stageIds]] : ['has', 'id'];
   const showExisting = !view && (stage === 'all' || stage === 'done');
@@ -383,7 +403,7 @@ export default function MiamiWorld() {
         onClick={onClick}
         onMouseMove={(e) => setHovered(view ? null : pick(e)?.id || (e.features?.[0]?.layer?.id?.startsWith('w-ex') ? 'existing' : null))}
         onMouseLeave={() => setHovered(null)}
-        interactiveLayerIds={[...(towers ? ['w-towers', 'w-towers-planned'] : []), ...(existing && showExisting ? ['w-ex-pad', 'w-ex-label'] : [])]}
+        interactiveLayerIds={[...(towers ? ['w-towers', 'w-towers-planned'] : []), ...(showSoon ? [...(towers ? ['w-soon-model'] : []), 'w-soon-box'] : []), ...(existing && showExisting ? ['w-ex-pad', 'w-ex-label'] : [])]}
         cursor={hovered ? 'pointer' : 'grab'}
         cooperativeGestures={isTouch}
         maxPitch={85}
@@ -428,6 +448,23 @@ export default function MiamiWorld() {
                 'fill-extrusion-vertical-gradient': true,
               }}
             />
+          </Source>
+        )}
+
+        {/* Coming soon: not yet approved, so drawn as a pale see-through ghost */}
+        {towers && showSoon && (
+          <Source id="w-soon-model-src" type="geojson" data={towers}>
+            <Layer id="w-soon-model" type="fill-extrusion" filter={isSoon} paint={{ 'fill-extrusion-color': night ? '#C9B8FF' : '#8E7CC3', 'fill-extrusion-height': ['get', 'height'], 'fill-extrusion-base': ['get', 'base'], 'fill-extrusion-opacity': 0.34 }} />
+          </Source>
+        )}
+        {soonBoxes && showSoon && (
+          <Source id="w-soon-src" type="geojson" data={soonBoxes}>
+            <Layer id="w-soon-box" type="fill-extrusion" paint={{ 'fill-extrusion-color': night ? '#C9B8FF' : '#8E7CC3', 'fill-extrusion-height': ['get', 'height'], 'fill-extrusion-base': 0, 'fill-extrusion-opacity': 0.34 }} />
+          </Source>
+        )}
+        {soon && showSoon && (
+          <Source id="w-soon-pad-src" type="geojson" data={soon}>
+            <Layer id="w-soon-line" type="line" paint={{ 'line-color': night ? '#C9B8FF' : '#6B57A8', 'line-width': 2, 'line-dasharray': [1.5, 1.5] }} />
           </Source>
         )}
 
@@ -483,13 +520,14 @@ export default function MiamiWorld() {
           </div>
           <div role="group" aria-label="Show" className="mt-2 grid grid-cols-2 gap-1 text-[11px] font-medium">
             {([['all', 'All'], ['planned', 'Planned'], ['building', 'Being built'], ['done', 'Completed']] as const).map(([v, label]) => (
-              <button key={v} type="button" aria-pressed={stage === v} onClick={() => { setStage(v); setSelected(null); setSelB(null); }} className={`rounded-md border py-1.5 ${stage === v ? 'border-[#1c2530] bg-[#1c2530] text-white' : 'border-black/10 text-[#3d4852]'}`}>{label}</button>
+              <button key={v} type="button" aria-pressed={stage === v} onClick={() => { setStage(v); setSelected(null); setSelB(null); setSelSoon(null); }} className={`rounded-md border py-1.5 ${stage === v ? 'border-[#1c2530] bg-[#1c2530] text-white' : 'border-black/10 text-[#3d4852]'}`}>{label}</button>
             ))}
           </div>
           <ul className="mt-3 space-y-1.5 text-xs text-[#3d4852]">
             <li className="flex items-center gap-2"><span className={`w-3 h-3 rounded-sm border border-black/15 ${night ? 'bg-[#353D57]' : 'bg-[#f1f3f5]'}`} /> Existing buildings</li>
             <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-[1.5px] border-[#4A515B] bg-[#6F7782]/25" /> Finished tower with a profile</li>
             <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: night ? 'linear-gradient(135deg,#8aa3b3,#cfc6b8)' : OFFPLAN }} /> Pre-construction and under construction{night ? ', in their real colours' : ''}</li>
+            {soonIds.length > 0 && <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm border-[1.5px] border-dashed border-[#6B57A8] bg-[#8E7CC3]/30" /> Coming soon: not yet approved</li>}
           </ul>
           <div className={`mt-3 pt-3 border-t border-black/5 ${night ? 'hidden' : ''}`}>
             <div className="flex items-center justify-between text-xs text-[#3d4852]">
@@ -531,6 +569,22 @@ export default function MiamiWorld() {
         </div>
       )}
 
+      {/* Coming-soon card: stage with its source, and a sign-up for when sales open */}
+      {selSoon && !selected && !view && (
+        <div className="absolute top-4 right-4 z-10 w-[min(340px,calc(100%-2rem))] max-h-[calc(100%-2rem)] overflow-y-auto rounded-2xl bg-white shadow-xl border border-black/5 p-4 space-y-3">
+          <button onClick={() => setSelSoon(null)} aria-label="Close" className="absolute top-2 right-2 w-8 h-8 rounded-full bg-[#f4f6f8] text-[#1c2530] text-lg leading-none">×</button>
+          <div className="pr-8">
+            <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEEAF8] text-[#4B3A8C]">Coming soon · {stageLabel(selSoon.stage)}</span>
+            <h2 className="text-lg font-semibold mt-1.5 leading-tight">{selSoon.name}</h2>
+            <p className="text-xs text-[#5b6770] mt-0.5">{selSoon.developer ? `by ${selSoon.developer} · ` : ''}{selSoon.area || 'South Florida'}{selSoon.floors ? ` · ${selSoon.floors} storeys proposed` : ''}</p>
+          </div>
+          <ApprovalStage compact record={publicStage({ projectId: selSoon.id, stage: selSoon.stage, sourceUrl: selSoon.sourceUrl, sourceLabel: selSoon.sourceLabel, confirmedOn: selSoon.confirmedOn })} />
+          <p className="text-xs text-[#5b6770]">Not approved yet. Size, design and timing can change, and sales have not opened.</p>
+          <ComingSoonForm key={selSoon.id} projectId={selSoon.id} projectName={selSoon.name} />
+          <Link href={`/properties/${selSoon.slug}`} className="block text-center text-sm font-medium underline text-[#1c2530]">Open the project page</Link>
+        </div>
+      )}
+
       {/* Project card */}
       {selected && !view && (
         <div className="absolute top-4 right-4 z-10 w-[min(340px,calc(100%-2rem))] rounded-2xl bg-white shadow-xl border border-black/5 overflow-hidden">
@@ -557,6 +611,7 @@ export default function MiamiWorld() {
                 </div>
               ))}
             </div>
+            {(stages[selected.id] || selected.status !== 'COMPLETED') && <ApprovalStage compact record={stages[selected.id] || null} />}
             {selected.priceMin ? <p className="text-sm">From <span className="font-semibold text-[#00755E]">{shortPrice(selected.priceMin)}</span></p> : null}
             <div className="rounded-xl bg-[#f4f6f8] p-3">
               <div className="flex items-center justify-between text-xs text-[#5b6770]">

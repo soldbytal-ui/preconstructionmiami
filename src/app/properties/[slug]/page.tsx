@@ -22,6 +22,9 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import SafeImage from '@/components/ui/SafeImage';
 import ImageGallery from '@/components/projects/ImageGallery';
 import FloorPlans from '@/components/projects/FloorPlans';
+import ApprovalStage from '@/components/projects/ApprovalStage';
+import { stageFor } from '@/lib/approval-store';
+import { localDemo, demoListing } from '@/lib/local-demo';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -78,14 +81,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PropertyDetailPage({ params }: Props) {
   const { slug } = await params;
-  const { data: project, error: loadError } = await supabase
+  const { data: found, error: loadError } = await supabase
     .from('projects')
     .select('*, neighborhood:neighborhoods(*), developer:developers(*)')
     .eq('slug', slug)
     .single();
 
-  throwIfOutage(loadError);
+  // Local demo only: fictional listings, so new features can be shown without real projects
+  const project = found || (localDemo ? demoListing(slug) : null);
+  if (!found && !project) throwIfOutage(loadError);
   if (!project) notFound();
+  const approval = await stageFor(project.id);
 
   const { data: relatedProjects } = await supabase
     .from('projects')
@@ -202,6 +208,9 @@ export default async function PropertyDetailPage({ params }: Props) {
               <FollowButton projectId={project.id} projectName={project.name} className="mt-4" />
             </div>
 
+            {/* Approval stage: only ever shown with the public record it came from */}
+            {project.status !== 'COMPLETED' || approval ? <ApprovalStage record={approval} /> : null}
+
             {/* Key Specs — 4 glass panels */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
@@ -229,6 +238,11 @@ export default async function PropertyDetailPage({ params }: Props) {
               <div className="bg-accent-green/5 border border-accent-green/20 rounded-xl p-4">
                 <div className="text-xs text-accent-green uppercase tracking-wider mb-1">Deposit Structure</div>
                 <div className="text-text-primary font-medium">{project.depositStructure}</div>
+                <p className="mt-2 text-xs text-text-muted">
+                  Before you pay: <Link href="/guides/florida-pre-construction-deposit-protection" className="underline">how deposits are protected</Link>
+                  {' · '}<Link href="/guides/florida-condo-15-day-right-to-cancel" className="underline">your 15-day right to cancel</Link>
+                  {' · '}<Link href="/guides/reservation-vs-contract-florida-condo" className="underline">reservation vs contract</Link>
+                </p>
               </div>
             )}
 

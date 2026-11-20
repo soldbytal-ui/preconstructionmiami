@@ -1,3 +1,4 @@
+import { getSession } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
+    if (process.env.LOCAL_DEMO === '1' && !process.env.VERCEL) return NextResponse.json({ user: await getSession() });
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;
     if (!token) return NextResponse.json({ user: null });

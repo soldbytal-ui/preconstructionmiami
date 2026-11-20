@@ -57,6 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/leads', label: 'Leads', icon: '◎' },
     ...(isAdmin ? [{ href: '/admin/agents', label: 'Agents', icon: '◉' }] : []),
     ...(isAdmin ? [{ href: '/admin/towers', label: 'Map Towers', icon: '▲' }] : []),
+    ...(isAdmin ? [{ href: '/admin/stages', label: 'Approval Stages', icon: '◆' }] : []),
     { href: '/admin/settings', label: 'Settings', icon: '⚙' },
   ];
 
