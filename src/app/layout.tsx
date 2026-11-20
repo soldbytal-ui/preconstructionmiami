@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     default: 'Pre-Construction Condos in Miami | PreConstructionMiami',
     template: '%s | PreConstructionMiami',
   },
-  description: 'Browse 170+ pre-construction condos across Miami and South Florida on a 3D map. Prices from $300K. Brickell, Miami Beach, Edgewater and more.',
+  description: 'Browse 170+ pre-construction condos across Miami and South Florida on a 3D map. Prices from $350K. Brickell, Miami Beach, Edgewater and more.',
   alternates: {
     canonical: 'https://preconstructionmiami.net',
   },

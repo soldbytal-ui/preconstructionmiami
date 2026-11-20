@@ -66,7 +66,7 @@ export function generateLocalBusinessSchema() {
       { '@type': 'County', name: 'Broward County' },
       { '@type': 'County', name: 'Palm Beach County' },
     ],
-    priceRange: '$300K - $50M+',
+    priceRange: '$350K+',
     openingHoursSpecification: {
       '@type': 'OpeningHoursSpecification',
       dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
