@@ -10,6 +10,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import blogRedirects from '@/lib/blog-redirects.json';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { supabase, throwIfOutage } from '@/lib/supabase';
 import { generateArticleSchema, generateBreadcrumbSchema, fitTitle, fitDesc, DEFAULT_OG } from '@/lib/seo';
 
@@ -183,22 +184,9 @@ export default async function BlogPostPage({ params }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-10">
           {/* Content */}
           <div className="min-w-0">
-            <div className="prose prose-invert prose-lg max-w-none
-              prose-headings:text-text-primary prose-headings:font-bold prose-headings:tracking-tight
-              prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border
-              prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-              prose-p:text-text-muted prose-p:leading-relaxed prose-p:mb-4
-              prose-li:text-text-muted prose-li:leading-relaxed
-              prose-strong:text-text-primary prose-strong:font-semibold
-              prose-a:text-accent-green prose-a:no-underline hover:prose-a:underline prose-a:font-medium
-              prose-blockquote:border-l-4 prose-blockquote:border-accent-green/40 prose-blockquote:bg-accent-green/5 prose-blockquote:rounded-r-xl prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:not-italic prose-blockquote:text-text-muted
-              prose-code:text-accent-green prose-code:bg-surface2 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-              prose-hr:border-border prose-hr:my-8
-              prose-table:border prose-table:border-border prose-th:bg-surface2 prose-th:px-4 prose-th:py-2 prose-th:text-left prose-th:font-medium prose-th:text-text-primary prose-td:px-4 prose-td:py-2 prose-td:border-t prose-td:border-border
-              prose-img:rounded-xl prose-img:border prose-img:border-border
-              prose-ul:space-y-1 prose-ol:space-y-1
-            ">
+            <div className="article-body">
               <Markdown
+                remarkPlugins={[remarkGfm]}
                 components={{
                   // The page already has its H1; a heading-1 inside the article becomes an H2
                   h1: ({ children }) => <h2>{children}</h2>,
@@ -218,8 +206,8 @@ export default async function BlogPostPage({ params }: Props) {
                     </blockquote>
                   ),
                   table: ({ children }) => (
-                    <div className="overflow-x-auto rounded-xl border border-border my-6">
-                      <table className="w-full">{children}</table>
+                    <div className="article-table">
+                      <table>{children}</table>
                     </div>
                   ),
                 }}
