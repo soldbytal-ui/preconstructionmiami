@@ -67,6 +67,7 @@ export default function Footer() {
               <li><Link href="/new-condos" className="text-sm text-text-muted hover:text-accent-green transition-colors">All Properties</Link></li>
               <li><Link href="/buildings" className="text-sm text-text-muted hover:text-accent-green transition-colors">Existing Buildings</Link></li>
               <li><Link href="/miami-condo-pipeline" className="text-sm text-text-muted hover:text-accent-green transition-colors">Condo Pipeline Data</Link></li>
+              <li><Link href="/architects" className="text-sm text-text-muted hover:text-accent-green transition-colors">Architects</Link></li>
               <li><a href="https://www.youtube.com/@PreconstructionMiami" target="_blank" rel="noopener noreferrer me" className="text-sm text-text-muted hover:text-accent-green transition-colors">YouTube</a></li>
               <li><Link href="/developers" className="text-sm text-text-muted hover:text-accent-green transition-colors">Developers</Link></li>
               <li><Link href="/blog" className="text-sm text-text-muted hover:text-accent-green transition-colors">Market Insights Blog</Link></li>

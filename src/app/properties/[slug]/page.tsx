@@ -22,6 +22,8 @@ import ProjectCard from '@/components/projects/ProjectCard';
 import SafeImage from '@/components/ui/SafeImage';
 import ImageGallery from '@/components/projects/ImageGallery';
 import FloorPlans from '@/components/projects/FloorPlans';
+import ArchitectLinks from '@/components/projects/ArchitectLinks';
+import { architectProfileSlugs } from '@/lib/architects';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -86,6 +88,7 @@ export default async function PropertyDetailPage({ params }: Props) {
 
   throwIfOutage(loadError);
   if (!project) notFound();
+  const architectProfiles = project.architect ? await architectProfileSlugs() : new Set<string>();
 
   const { data: relatedProjects } = await supabase
     .from('projects')
@@ -298,7 +301,7 @@ export default async function PropertyDetailPage({ params }: Props) {
             {project.architect && (
               <div className="glass-panel rounded-xl p-4">
                 <div className="text-xs text-text-muted uppercase tracking-wider mb-1">Architect</div>
-                <div className="text-text-primary font-medium">{project.architect}</div>
+                <div className="text-text-primary font-medium"><ArchitectLinks field={project.architect} profiles={architectProfiles} /></div>
               </div>
             )}
 

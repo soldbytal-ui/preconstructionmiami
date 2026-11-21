@@ -1,3 +1,4 @@
+import { allArchitects, hasProfile } from '@/lib/architects';
 export const revalidate = 3600;
 
 import { MetadataRoute } from 'next';
@@ -33,6 +34,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/buildings`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     ...(buildings || []).map((b: any) => ({ url: `${baseUrl}/buildings/${b.slug}`, lastModified: toW3CDate(b.updatedAt), changeFrequency: 'monthly' as const, priority: 0.6 })),
     { url: `${baseUrl}/developers`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${baseUrl}/architects`, lastModified: today, changeFrequency: 'weekly', priority: 0.6 },
+    ...(await allArchitects()).filter(hasProfile).map((a) => ({ url: `${baseUrl}/architects/${a.slug}`, lastModified: today, changeFrequency: 'weekly' as const, priority: 0.6 })),
     { url: `${baseUrl}/blog`, lastModified: today, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/about`, lastModified: today, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${baseUrl}/contact-us`, lastModified: today, changeFrequency: 'monthly', priority: 0.5 },

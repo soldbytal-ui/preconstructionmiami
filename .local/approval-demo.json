@@ -1,0 +1,16 @@
+{
+  "_note": "Fictional projects for local development and screenshots only. Never loaded in production.",
+  "projects": [
+    { "id": "demo-harbourline", "slug": "example-harbourline-tower", "name": "Harbourline Tower (example)", "address": "Fictional address, Edgewater, Miami", "latitude": 25.8012, "longitude": -80.1869, "floors": 58, "totalUnits": 410, "neighborhood": "Edgewater", "developer": "Example Development Co." },
+    { "id": "demo-meridian", "slug": "example-meridian-brickell", "name": "Meridian Brickell (example)", "address": "Fictional address, Brickell, Miami", "latitude": 25.7598, "longitude": -80.1949, "floors": 72, "totalUnits": 520, "neighborhood": "Brickell", "developer": "Example Development Co." },
+    { "id": "demo-coral-yard", "slug": "example-coral-yard", "name": "Coral Yard Residences (example)", "address": "Fictional address, Wynwood, Miami", "latitude": 25.8026, "longitude": -80.1992, "floors": 24, "totalUnits": 180, "neighborhood": "Wynwood", "developer": "Sample Builders LLC" },
+    { "id": "demo-bayfront", "slug": "example-bayfront-one", "name": "Bayfront One (example)", "address": "Fictional address, Downtown Miami", "latitude": 25.7786, "longitude": -80.1872, "floors": 64, "totalUnits": 390, "neighborhood": "Downtown Miami", "developer": "Sample Builders LLC" }
+  ],
+  "records": [
+    { "id": "r1", "projectId": "demo-harbourline", "stage": "hearing_scheduled", "sourceUrl": "https://example.com/agendas/udrb-2026-12-16#item-4", "sourceLabel": "Example board agenda, item 4 (fictional)", "confirmedOn": "2026-11-18", "note": "On the agenda for 16 Dec.", "createdAt": "2026-11-18T15:00:00Z" },
+    { "id": "r2", "projectId": "demo-meridian", "stage": "under_review", "sourceUrl": "https://example.com/eplan/PZ-26-00000", "sourceLabel": "Example plan review record (fictional)", "confirmedOn": "2026-10-02", "note": "Exception application on file.", "createdAt": "2026-10-02T15:00:00Z" },
+    { "id": "r3", "projectId": "demo-coral-yard", "stage": "proposed", "sourceUrl": "https://example.com/news/coral-yard-announced", "sourceLabel": "Example announcement (fictional)", "confirmedOn": "2026-11-10", "createdAt": "2026-11-10T15:00:00Z" },
+    { "id": "r4", "projectId": "demo-bayfront", "stage": "permitted", "sourceUrl": "https://example.com/permits/BD26-000000", "sourceLabel": "Example building permit (fictional)", "confirmedOn": "2026-11-05", "createdAt": "2026-11-05T15:00:00Z" }
+  ],
+  "suppressions": []
+}
