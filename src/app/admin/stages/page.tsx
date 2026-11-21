@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Suggestions from './Suggestions';
 import { STAGES, formatDay, sourceHost, isPublicUrl, type StageRecord } from '@/lib/approval';
 
 type Current = StageRecord & { recheck: boolean };
@@ -59,6 +60,9 @@ export default function StagesAdmin() {
         <p className="text-sm text-text-muted mt-1">Paste the public record for a project and the stage it shows. A stage cannot be saved without a link, and the site never shows one without it.</p>
       </div>
 
+      <Suggestions onChange={load} />
+
+      <h2 className="text-lg font-semibold text-text-primary !mb-[-1rem]">Add a stage by hand</h2>
       <form onSubmit={save} className="bg-surface border border-border rounded-2xl p-5 grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
           <label className={label} htmlFor="st-q">Project</label>

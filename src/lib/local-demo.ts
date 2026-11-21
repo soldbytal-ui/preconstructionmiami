@@ -11,8 +11,8 @@ export const localDemo = process.env.LOCAL_DEMO === '1' && !process.env.VERCEL;
 const SEED = path.join(process.cwd(), 'fixtures', 'approval-demo.json');
 const FILE = path.join(process.cwd(), '.local', 'approval-demo.json');
 
-export type DemoProject = { id: string; slug: string; name: string; address: string; latitude: number; longitude: number; floors: number; totalUnits: number; neighborhood: string; developer: string };
-type DemoData = { projects: DemoProject[]; records: any[]; suppressions: string[] };
+export type DemoProject = { id: string; slug: string; name: string; address: string; latitude: number; longitude: number; floors: number; totalUnits: number; neighborhood: string; developer: string; folioNumber?: string | null; applicantEntity?: string | null };
+type DemoData = { projects: DemoProject[]; records: any[]; suppressions: string[]; suggestions?: any[] };
 
 export function readDemo(): DemoData {
   try {

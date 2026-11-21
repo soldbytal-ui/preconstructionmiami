@@ -1,0 +1,51 @@
+{
+  "_note": "Fictional agenda items for local development and tests. No real meeting, applicant or property.",
+  "items": [
+    {
+      "source": "Example City",
+      "body": "Urban Development Review Board",
+      "meetingDate": "2026-12-16",
+      "itemNumber": "4",
+      "title": "Harbourline Tower: design review",
+      "text": "Applicant: Harbourline Holdings, LLC. Property at 1200 Example Bay Drive. Folio 01-9999-001-0010. A 58-storey residential tower with 410 units.",
+      "url": "https://example.com/agendas/udrb-2026-12-16#item-4"
+    },
+    {
+      "source": "Example City",
+      "body": "Planning, Zoning and Appeals Board",
+      "meetingDate": "2026-12-02",
+      "itemNumber": "PZ.7",
+      "title": "Exception for a mixed-use tower",
+      "text": "Exception to permit a 72-storey mixed-use building at 45 Southwest Sample St. Applicant: Sample Land Trust.",
+      "url": "https://example.com/agendas/pzab-2026-12-02#pz7"
+    },
+    {
+      "source": "Example County",
+      "body": "Board of County Commissioners (zoning)",
+      "meetingDate": "2026-11-05",
+      "itemNumber": "3",
+      "title": "Zoning hearing Z-26-000",
+      "text": "Applicant MERIDIAN SAMPLE OWNER LLC requests a district boundary change.",
+      "result": "Approved",
+      "url": "https://example.com/agendas/bcc-2026-11-05#3"
+    },
+    {
+      "source": "Example City",
+      "body": "Design Review Board",
+      "meetingDate": "2026-12-09",
+      "itemNumber": "11",
+      "title": "Coral Yard Residences",
+      "text": "Design review of a new 24-storey residential building in the arts district.",
+      "url": "https://example.com/agendas/drb-2026-12-09#11"
+    },
+    {
+      "source": "Example City",
+      "body": "Design Review Board",
+      "meetingDate": "2026-12-09",
+      "itemNumber": "12",
+      "title": "Sidewalk cafe",
+      "text": "A sidewalk cafe permit at 800 Other Road.",
+      "url": "https://example.com/agendas/drb-2026-12-09#12"
+    }
+  ]
+}
