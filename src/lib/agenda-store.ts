@@ -5,6 +5,8 @@ import { localDemo, readDemo, writeDemo } from '@/lib/local-demo';
 import { type AgendaItem, type MatchProject, type Suggestion, suggestFrom, suggestionToStageInput } from '@/lib/agenda-match';
 import { validateStageInput } from '@/lib/approval';
 import { saveStageRecord } from '@/lib/approval-store';
+import { createPoliteFetcher } from '@/lib/polite-fetch';
+import { MIAMI_CALENDAR, MIAMI_CRAWL_DELAY_MS, parseMiamiCalendar, parseMiamiMeeting, pickMeetings } from '@/lib/agenda-miami';
 
 const T = 'stage_suggestions';
 
@@ -61,15 +63,38 @@ export async function saveProjectIds(projectId: string, folioNumber: string | nu
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
+const PAGES = 'agenda_pages';
+
+/** When each agenda page was last read, so a page is not requested again within a week. */
+async function lastRead(): Promise<Record<string, string> | null> {
+  if (localDemo) return {};
+  const { data, error } = await supabaseAdmin.from(PAGES).select('url, fetchedAt').limit(2000);
+  if (error) return null; // the table does not exist yet: the live watcher stays off
+  return Object.fromEntries((data || []).map((r: any) => [r.url, r.fetchedAt]));
+}
+
 /**
- * Where agenda items come from. No live source is switched on yet: each one is added only after
- * its robots.txt and terms have been checked and Tal has agreed. In local demo mode the items
- * come from a file of fictional agendas.
+ * Where agenda items come from. In local demo mode: a file of fictional agendas. Live: the City
+ * of Miami meeting portal, read through the polite fetcher at no more than one request a minute
+ * (its robots.txt asks for 60 seconds). Live reading only starts once its table exists.
+ * Miami Beach is deliberately absent: its agenda site's robots.txt disallows all automated reading.
  */
-export async function collectAgendaItems(): Promise<{ items: AgendaItem[]; sources: string[] }> {
+export async function collectAgendaItems(maxMeetings = 2): Promise<{ items: AgendaItem[]; sources: string[]; note?: string }> {
   if (localDemo) {
     const f = path.join(process.cwd(), 'fixtures', 'agendas-demo.json');
     return { items: JSON.parse(fs.readFileSync(f, 'utf8')).items, sources: ['fictional demo agendas'] };
   }
-  return { items: [], sources: [] };
+  const read = await lastRead();
+  if (!read) return { items: [], sources: [], note: 'not set up' };
+  const get = createPoliteFetcher({ minDelayMs: MIAMI_CRAWL_DELAY_MS });
+  const cal = await get(MIAMI_CALENDAR);
+  if (!cal.ok) return { items: [], sources: [], note: `City of Miami calendar not read (${cal.reason})` };
+  const items: AgendaItem[] = [];
+  for (const ref of pickMeetings(parseMiamiCalendar(cal.text), read, maxMeetings)) {
+    const page = await get(ref.url);
+    if (!page.ok) break; // refused or failing: stop for today rather than keep knocking
+    items.push(...parseMiamiMeeting(page.text, ref));
+    await supabaseAdmin.from(PAGES).upsert({ url: ref.url, source: 'City of Miami', fetchedAt: new Date().toISOString() });
+  }
+  return { items, sources: ['City of Miami meeting portal'] };
 }

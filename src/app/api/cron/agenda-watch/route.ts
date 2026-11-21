@@ -1,4 +1,6 @@
 export const dynamic = 'force-dynamic';
+// One request a minute to the source, so a run that reads two meetings takes about three minutes
+export const maxDuration = 300;
 
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
@@ -9,7 +11,8 @@ export async function GET(req: Request) {
   const fromCron = req.headers.get('user-agent')?.includes('vercel-cron');
   const session = fromCron ? null : await getSession();
   if (!fromCron && session?.role !== 'admin') return NextResponse.json({ error: 'not allowed' }, { status: 401 });
-  const { items, sources } = await collectAgendaItems();
+  // The button in the admin reads one meeting; the daily run reads two
+  const { items, sources, note } = await collectAgendaItems(fromCron ? 2 : 1);
   const result = await fileSuggestions(items);
-  return NextResponse.json({ sources, ...result });
+  return NextResponse.json({ sources, note, ...result });
 }

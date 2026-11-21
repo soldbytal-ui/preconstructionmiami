@@ -2,7 +2,6 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
 import { localDemo, readDemo, writeDemo } from '@/lib/local-demo';
 import { sendEmail, emailConfigured } from '@/lib/notify';
-import { postUnsubscribeToZekal } from '@/lib/zekal';
 
 const SITE = 'https://preconstructionmiami.net';
 const secret = () => process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || (localDemo ? 'local-demo-only' : '');
@@ -35,7 +34,6 @@ export async function suppress(email: string): Promise<void> {
   const e = email.trim().toLowerCase();
   if (localDemo) { const d = readDemo(); if (!d.suppressions.includes(e)) { d.suppressions.push(e); writeDemo(d); } }
   else await supabaseAdmin.from('email_suppressions').upsert({ email: e });
-  await postUnsubscribeToZekal(e);
 }
 
 /** The footer every marketing email carries: who sent it, a postal address and a one-click unsubscribe. */

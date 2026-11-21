@@ -32,7 +32,7 @@ export default function Suggestions({ onChange }: { onChange: () => void }) {
     setBusy('check'); setMsg('');
     const j = await fetch('/api/cron/agenda-watch').then((r) => r.json()).catch(() => null);
     setBusy('');
-    setMsg(!j ? 'The check did not run.' : j.sources?.length ? `Read ${j.read} agenda items from ${j.sources.join(', ')}; ${j.added} new ${j.added === 1 ? 'suggestion' : 'suggestions'}.` : 'No agenda sources are switched on yet, so there was nothing to read.');
+    setMsg(!j ? 'The check did not run.' : j.sources?.length ? `Read ${j.read} agenda items from ${j.sources.join(', ')}; ${j.added} new ${j.added === 1 ? 'suggestion' : 'suggestions'}.` : j.note === 'not set up' ? 'The agenda watcher is not switched on yet.' : j.note || 'Nothing was read.');
     load();
   }
   async function saveIds(e: React.FormEvent<HTMLFormElement>, projectId: string) {
@@ -53,7 +53,7 @@ export default function Suggestions({ onChange }: { onChange: () => void }) {
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h2 className="text-lg font-semibold text-text-primary">Suggestions from agendas <span className="text-text-muted font-normal text-sm">({pending?.length ?? 0} waiting)</span></h2>
-          <button onClick={check} disabled={busy === 'check'} className="rounded-md border border-border px-3 py-1.5 text-xs text-text-primary disabled:opacity-50">{busy === 'check' ? 'Checking…' : 'Check agendas now'}</button>
+          <button onClick={check} disabled={busy === 'check'} className="rounded-md border border-border px-3 py-1.5 text-xs text-text-primary disabled:opacity-50">{busy === 'check' ? 'Checking (takes a minute or two)…' : 'Check agendas now'}</button>
         </div>
         <p className="text-sm text-text-muted mb-3">Each suggestion is an agenda item that looks like one of our projects. Nothing here is on the public site until you approve it.</p>
         {msg && <p role="status" className="mb-3 rounded-lg bg-surface2 px-3 py-2 text-sm text-text-primary">{msg}</p>}

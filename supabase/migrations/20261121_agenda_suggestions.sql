@@ -26,3 +26,12 @@ create table if not exists public.stage_suggestions (
 create index if not exists stage_suggestions_status on public.stage_suggestions (status, "createdAt" desc);
 alter table public.stage_suggestions enable row level security;
 -- No policies: suggestions are never public. Only the server reads or writes them.
+
+-- Which public agenda pages have been read and when, so none is requested twice in a week.
+create table if not exists public.agenda_pages (
+  url text primary key,
+  source text not null,
+  "fetchedAt" timestamptz not null default now()
+);
+alter table public.agenda_pages enable row level security;
+-- No policies: server only.

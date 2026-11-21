@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { CONSENT_WORDING, COMING_SOON_SOURCE } from '@/lib/zekal';
+import { CONSENT_WORDING, COMING_SOON_SOURCE } from '@/lib/coming-soon';
 
 /** "Get notified when sales open": name, email and an opt-in box that starts unticked. */
 export default function ComingSoonForm({ projectId, projectName }: { projectId: string; projectName: string }) {

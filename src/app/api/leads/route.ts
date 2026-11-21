@@ -4,7 +4,7 @@ import { rateLimit, clientIp } from '@/lib/rate-limit';
 import { notifyNewLead } from '@/lib/notify';
 import { z } from 'zod';
 import { localDemo } from '@/lib/local-demo';
-import { postLeadToZekal, comingSoonProblem, COMING_SOON_SOURCE, CONSENT_WORDING } from '@/lib/zekal';
+import { comingSoonProblem, COMING_SOON_SOURCE, consentNote } from '@/lib/coming-soon';
 import { sendComingSoonConfirmation } from '@/lib/unsubscribe';
 
 const leadSchema = z.object({
@@ -98,13 +98,10 @@ export async function POST(request: Request) {
     const problem = comingSoonProblem(data);
     if (problem) return NextResponse.json({ error: problem }, { status: 400 });
     const comingSoon = data.source === COMING_SOON_SOURCE;
-    const consent = comingSoon ? { email: true, at: new Date().toISOString(), wording: CONSENT_WORDING } : null;
+    const consent = comingSoon ? consentNote() : null;
 
-    // Local demo: nothing is written to the database and no owner alert goes out; the lead still goes to Zekal's (local) endpoint
-    if (localDemo) {
-      const zekal = await postLeadToZekal({ name: data.name, email: data.email, phone: data.phone, message: data.message, source: data.source || 'inquiry', projectId: data.projectId, consent, pageUrl: data.pageUrl });
-      return NextResponse.json({ success: true, demo: true, zekal: zekal.sent }, { status: 201 });
-    }
+    // Local demo: nothing is written to the database and no alert goes out
+    if (localDemo) return NextResponse.json({ success: true, demo: true }, { status: 201 });
 
     let neighborhoodId = data.neighborhoodId;
     let projectName: string | null = null;
@@ -129,7 +126,7 @@ export async function POST(request: Request) {
       phone: data.phone || null,
       projectId: data.projectId || null,
       neighborhoodId: data.neighborhoodId || null,
-      message: consent ? [data.message, `[Opted in to email on ${consent.at.slice(0, 10)}: "${consent.wording}"]`].filter(Boolean).join('\n') : data.message || null,
+      message: consent ? [data.message, consent].filter(Boolean).join('\n') : data.message || null,
       source: data.source || 'inquiry',
       assignedAgentId,
       status: 'new',
@@ -146,13 +143,6 @@ export async function POST(request: Request) {
       source: data.source || 'inquiry',
       projectName,
     }).catch((err) => console.error('Lead notification failed:', err));
-
-    // Every lead also goes to Zekal (the "Preconstruction Miami" tenant). The lead is already saved, so a Zekal outage only logs.
-    const zekal = await postLeadToZekal({
-      name: data.name, email: data.email, phone: data.phone || null, message: data.message || null,
-      source: data.source || 'inquiry', projectId: data.projectId || null, projectName, neighborhoodId: neighborhoodId || null, consent, pageUrl: data.pageUrl || null,
-    });
-    if (!zekal.sent && zekal.reason !== 'not-configured') console.error('Zekal lead post failed:', zekal.reason, zekal.status);
 
     if (comingSoon) await sendComingSoonConfirmation(data.email, projectName || 'this project').catch(() => {});
 
