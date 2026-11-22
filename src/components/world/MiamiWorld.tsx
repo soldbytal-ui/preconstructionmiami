@@ -345,8 +345,8 @@ export default function MiamiWorld() {
   const stageIds = data && stageSet ? Object.values(data.projects).filter((p) => stageSet.includes(p.status)).map((p) => p.id) : null;
   const lotFilter: any = stageIds ? ['in', ['get', 'id'], ['literal', stageIds]] : ['has', 'id'];
   const showExisting = !view && (stage === 'all' || stage === 'done');
-  const baseColor: any = night ? ['coalesce', ['get', 'color'], ['get', 'c']] : ['get', 'c'];
-  const towerColor: any = active ? ['case', ['==', ['get', 'id'], active], night ? '#FFB38A' : ['case', ['==', ['get', 'c'], OFFPLAN_SOFT], '#B8F0E3', '#00C9A0'], baseColor] : baseColor;
+  // Towers are always drawn in the tones read from their own rendering; stage and selection show at the base, on the lot outline
+  const towerColor: any = ['coalesce', ['get', 'color'], ['get', 'c']];
   // Move the light with the chosen time, so each facade brightens and darkens as it would through the day
   const sun = useMemo(() => {
     const c = AREAS[area].center;
@@ -436,8 +436,8 @@ export default function MiamiWorld() {
 
         {lots && (
           <Source id="w-lots" type="geojson" data={lots}>
-            <Layer id="w-lot-fill" type="fill" filter={lotFilter} paint={{ 'fill-color': night ? '#00E5B4' : OFFPLAN, 'fill-opacity': night ? 0.22 : 0.14 }} />
-            <Layer id="w-lot-line" type="line" filter={lotFilter} paint={{ 'line-color': night ? '#00E5B4' : OFFPLAN_LINE, 'line-width': 1.6, 'line-dasharray': [2, 2] }} />
+            <Layer id="w-lot-fill" type="fill" filter={lotFilter} paint={{ 'fill-color': ['case', ['==', ['get', 'id'], active || ''], '#E8563F', night ? '#00E5B4' : OFFPLAN] as any, 'fill-opacity': night ? 0.22 : 0.2 }} />
+            <Layer id="w-lot-line" type="line" filter={lotFilter} paint={{ 'line-color': ['case', ['==', ['get', 'id'], active || ''], '#E8563F', night ? '#00E5B4' : OFFPLAN_LINE] as any, 'line-width': ['case', ['==', ['get', 'id'], active || ''], 3.5, 1.8] as any, 'line-dasharray': [2, 2] }} />
           </Source>
         )}
 
@@ -534,7 +534,7 @@ export default function MiamiWorld() {
           <ul className="mt-3 space-y-1.5 text-xs text-[#3d4852]">
             <li className="flex items-center gap-2"><span className={`w-3 h-3 rounded-sm border border-black/15 ${night ? 'bg-[#353D57]' : 'bg-[#f1f3f5]'}`} /> Existing buildings</li>
             <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-[1.5px] border-[#4A515B] bg-[#6F7782]/25" /> Finished tower with a profile</li>
-            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: night ? 'linear-gradient(135deg,#8aa3b3,#cfc6b8)' : OFFPLAN }} /> Pre-construction and under construction{night ? ', in their real colours' : ''}</li>
+            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg,#8aa3b3,#cfc6b8)', outline: `2px dashed ${OFFPLAN_LINE}`, outlineOffset: 1 }} /> New projects, in their real colours, on a green lot</li>
           </ul>
           <div className={`mt-3 pt-3 border-t border-black/5 ${night ? 'hidden' : ''}`}>
             <div className="flex items-center justify-between text-xs text-[#3d4852]">
@@ -553,7 +553,7 @@ export default function MiamiWorld() {
               ))}
             </div>
           </div>
-          <p className="mt-3 text-[11px] text-[#7a8791] leading-snug">{night ? 'Click a tower with a green outline for details and the view from any floor.' : 'Click a green tower for details and the view from any floor.'}</p>
+          <p className="mt-3 text-[11px] text-[#7a8791] leading-snug">Click a tower on a green lot for details and the view from any floor.</p>
         </div>
       )}
 
