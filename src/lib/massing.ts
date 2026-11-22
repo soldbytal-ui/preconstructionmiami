@@ -196,6 +196,41 @@ export function buildTower(input: {
     }
   }
 
+  // ---- Low-rise buildings (7 storeys or fewer, no podium): drawn as real blocks, not a stack of thin plates.
+  // The building sits back from the property line; a project with several buildings gets separate blocks
+  // with a gap between them; each floor is a window strip under a solid wall band, with a recessed ground floor.
+  if (floors <= 7 && podiumFloors === 0) {
+    const setback = Math.max(1.5, Math.min(3, box.short * 0.1));
+    const L = Math.max(6, box.long - setback * 2), W = Math.max(5, box.short - setback * 2);
+    const n = Math.max(1, Math.min(4, recipe.towers || 1));
+    const gap = n > 1 ? Math.max(3, Math.min(6, L * 0.07)) : 0;
+    const bl = (L - gap * (n - 1)) / n;
+    const fh = total / floors;
+    const wall = colors.slab, glassC = colors.glass;
+    for (let t = 0; t < n; t++) {
+      const cx = -L / 2 + bl / 2 + t * (bl + gap);
+      const rect = (inset: number): [number, number][] => {
+        const hl = bl / 2 - inset, hw = W / 2 - inset;
+        return close(([[-hl, -hw], [hl, -hw], [hl, hw], [-hl, hw]] as Pt[]).map(([x, y]) => world(cx + x, y)));
+      };
+      for (let f = 0; f < floors; f++) {
+        const b = f * fh;
+        if (f === 0) {
+          // Ground floor: set in and glazed, so the building reads as standing on a base
+          parts.push({ ring: rect(0.7), base: 0, height: fh * 0.92, color: shade(glassC, -0.12) });
+          parts.push({ ring: rect(0), base: fh * 0.92, height: fh, color: wall });
+        } else {
+          parts.push({ ring: rect(0.3), base: b, height: b + fh * 0.6, color: glassC });
+          parts.push({ ring: rect(0), base: b + fh * 0.6, height: b + fh, color: wall });
+        }
+      }
+      // Parapet and a slightly darker roof surface inside it
+      parts.push({ ring: rect(0), base: total, height: total + 0.6, color: wall });
+      parts.push({ ring: rect(0.5), base: total, height: total + 0.35, color: shade(wall, -0.1) });
+    }
+    return { parts, pad: close(pts) };
+  }
+
   // ---- Tower plate size: from the lot, capped at a typical residential floor plate
   const m = recipe.manual || {};
   const shape = recipe.shape || 'slab';
