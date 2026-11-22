@@ -106,11 +106,24 @@ export default async function NewCondosPage({ searchParams }: Props) {
       dangerouslySetInnerHTML={{ __html: JSON.stringify(generateProjectListSchema('New pre-construction condos in Miami and South Florida', pageProjects as any)) }}
     />
     <div className="container-main pt-28 md:pt-32 pb-10">
-      <div className="mb-8">
-        <h1 className="display-big max-w-[16ch] text-text-primary">Every project, in one list</h1>
-        <p className="mt-5 max-w-[60ch] text-lg text-text-primary/85">
-          {live.length} pre-construction towers and residences across Miami-Dade, Broward and Palm Beach. Filter by area, stage and budget.
-        </p>
+      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="display-big max-w-[16ch] text-text-primary">Every project, in one list</h1>
+          <p className="mt-5 max-w-[60ch] text-lg text-text-primary/85">
+            {live.length} pre-construction towers and residences across Miami-Dade, Broward and Palm Beach. Filter by area, stage and budget.
+          </p>
+        </div>
+        <Link
+          href="/miami-3d"
+          className="group inline-flex shrink-0 items-center gap-3 self-start rounded-full bg-[#111B33] py-3 pl-3 pr-6 text-base font-semibold text-white transition-colors hover:bg-[#1d2a4a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111B33] lg:self-auto"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8563F]" aria-hidden>
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+              <path d="M4 20V9l5-2v13M9 20V4l6 2.5V20M15 20v-9l5 2v7M3 20h18" />
+            </svg>
+          </span>
+          Open 3D map
+        </Link>
       </div>
 
       <Suspense fallback={<div className="h-16" />}>
