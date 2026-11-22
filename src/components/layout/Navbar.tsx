@@ -68,11 +68,11 @@ export default function Navbar() {
           <Link href="/preconstruction-3d" className="btn-ghost text-sm">Precon 3D</Link>
           <Link href="/tallest-buildings" className="btn-ghost text-sm">Tallest</Link>
           <div
-            className="relative"
+            className="relative flex items-center"
             onMouseEnter={() => { if (hoodTimeoutRef.current) clearTimeout(hoodTimeoutRef.current); setHoodOpen(true); }}
             onMouseLeave={() => { hoodTimeoutRef.current = setTimeout(() => setHoodOpen(false), 150); }}
           >
-            <button className="btn-ghost text-sm flex items-center gap-1 pb-3 -mb-3">
+            <button className="btn-ghost text-sm inline-flex items-center gap-1" aria-expanded={hoodOpen} aria-haspopup="true">
               Neighborhoods
               <svg className={`w-3.5 h-3.5 transition-transform ${hoodOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
