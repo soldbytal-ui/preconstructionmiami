@@ -115,7 +115,7 @@ export default async function BuildingPage({ params }: Props) {
             <h2 className="text-2xl font-semibold text-text-primary mb-4">About {b.name}</h2>
             <p className="text-text-muted leading-relaxed">{text.join(' ')}</p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/miami-3d" className="btn-secondary">See it on the 3D map</Link>
+              <Link href={`/miami-3d?building=${b.slug}`} className="btn-secondary">See it on the 3D map</Link>
               {b.neighborhood && <Link href={`/new-condos-${b.neighborhood.slug}`} className="btn-secondary">New projects in {area}</Link>}
             </div>
           </section>

@@ -90,6 +90,8 @@ export default function MiamiWorld() {
   const [existing, setExisting] = useState<GeoJSON.FeatureCollection | null>(null);
   const [selB, setSelB] = useState<{ name: string; slug: string; floors?: number; yearBuilt?: number; heightM?: number; developer?: string } | null>(null);
   const [stage, setStage] = useState<'all' | 'planned' | 'building' | 'done'>('all');
+  // The base-map building under the selected existing tower, painted in the accent colour so it can be told apart
+  const [hlId, setHlId] = useState<number | string | null>(null);
   const dayPaint = useRef<Record<string, Record<string, any>>>({});
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
@@ -169,9 +171,32 @@ export default function MiamiWorld() {
     const map = mapRef.current?.getMap();
     if (!map || !data || !map.getLayer('city')) return;
     const base: any = ['==', ['get', 'extrude'], 'true'];
-    const ids = data.hiddenBaseIds || [];
+    const ids = [...(data.hiddenBaseIds || []), ...(hlId != null ? [hlId] : [])];
     map.setFilter('city', ids.length ? ['all', base, ['!', ['in', ['id'], ['literal', ids]]]] : base);
-  }, [data]);
+  }, [data, hlId]);
+
+  // Find the base-map building that stands on the selected existing tower's spot
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    const f = selB && existing?.features.find((x) => (x.properties as any).slug === selB.slug);
+    if (!map || !f) { setHlId(null); return; }
+    const [lng, lat] = (f.geometry as any).coordinates as [number, number];
+    const inside = (ring: number[][]) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) c = !c; } return c; };
+    let cancelled = false;
+    const find = () => {
+      if (cancelled) return;
+      let best: { id: any; h: number } | null = null;
+      for (const b of map.querySourceFeatures('composite', { sourceLayer: 'building' })) {
+        if (b.id == null || (b.properties as any)?.extrude !== 'true') continue;
+        const polys = b.geometry.type === 'Polygon' ? [b.geometry.coordinates] : b.geometry.type === 'MultiPolygon' ? b.geometry.coordinates : [];
+        if (polys.some((poly: any) => inside(poly[0]))) { const h = Number((b.properties as any).height) || 0; if (!best || h > best.h) best = { id: b.id, h }; }
+      }
+      setHlId(best ? best.id : null);
+    };
+    find();
+    map.on('idle', find); // tiles for the spot may still be loading while the camera flies in
+    return () => { cancelled = true; map.off('idle', find); };
+  }, [selB, existing]);
 
   const pick = useCallback((e: MapMouseEvent) => {
     const id = (e.features?.[0]?.properties as any)?.id;
@@ -206,6 +231,20 @@ export default function MiamiWorld() {
     setFloor(Math.max(2, Math.round(floors / 2)));
     mapRef.current?.getMap().flyTo({ center: [p.longitude, p.latitude], zoom: h > 150 ? 16 : 16.8, pitch: 62, duration: 1800 });
   }, [data, loaded]);
+
+  // /miami-3d?building=<slug> opens the map on that existing tower and highlights it
+  const deepLinkedB = useRef(false);
+  useEffect(() => {
+    if (deepLinkedB.current || !existing || !loaded) return;
+    const slug = new URLSearchParams(window.location.search).get('building');
+    if (!slug) return;
+    deepLinkedB.current = true;
+    const f = existing.features.find((x) => (x.properties as any).slug === slug);
+    if (!f) return;
+    setSelected(null); setSelB(f.properties as any);
+    const h = Number((f.properties as any).heightM) || 0;
+    mapRef.current?.getMap().flyTo({ center: (f.geometry as any).coordinates, zoom: h > 150 ? 16 : 16.6, pitch: 62, bearing: -20, duration: 1800 });
+  }, [existing, loaded]);
 
   const selHeight = selected && data ? heightOf(data, selected.id) : 0;
   const selFloors = selected ? selected.floors || Math.max(4, Math.round(selHeight / RESIDENTIAL_FLOOR_M)) : 0;
@@ -429,6 +468,12 @@ export default function MiamiWorld() {
               }}
             />
           </Source>
+        )}
+
+        {/* The selected existing tower, in the accent colour */}
+        {hlId != null && !view && (
+          <Layer id="w-hl" type="fill-extrusion" source="composite" source-layer="building" filter={['==', ['id'], hlId] as any}
+            paint={{ 'fill-extrusion-color': '#E8563F', 'fill-extrusion-height': ['get', 'height'], 'fill-extrusion-base': ['get', 'min_height'], 'fill-extrusion-opacity': 1, 'fill-extrusion-vertical-gradient': true } as any} />
         )}
 
         {/* Finished towers with a profile: a grey ring at the base and a name that appears as you zoom in */}
