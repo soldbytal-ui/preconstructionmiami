@@ -92,12 +92,17 @@ export default function MiamiWorld() {
   const [stage, setStage] = useState<'all' | 'planned' | 'building' | 'done'>('all');
   // The base-map building under the selected existing tower, painted in the accent colour so it can be told apart
   const [hlId, setHlId] = useState<number | string | null>(null);
+  // Towers with a detailed glass model, and the one currently shown that way (selected, or the nearest when zoomed in)
+  const [detail, setDetail] = useState<Record<string, any>>({});
+  const [nearDetail, setNearDetail] = useState<string | null>(null);
+  const detailRef = useRef<{ id: string; setSun: (s: { alt: number; az: number }, night: boolean) => void; hit: (x: number, y: number) => boolean } | null>(null);
   const dayPaint = useRef<Record<string, Record<string, any>>>({});
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
 
   useEffect(() => {
     let alive = true;
     loadBuildings().then((d) => { if (alive) setData(d); });
+    if (new URLSearchParams(window.location.search).get('detail') !== '0') fetch('/api/tower-detail').then((r) => r.json()).then((d) => { if (alive && d && typeof d === 'object') setDetail(d); }).catch(() => {});
     fetch('/api/existing-buildings').then((r) => r.json()).then((d) => { if (alive) setExisting(d); }).catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -199,7 +204,9 @@ export default function MiamiWorld() {
   }, [selB, existing]);
 
   const pick = useCallback((e: MapMouseEvent) => {
-    const id = (e.features?.[0]?.properties as any)?.id;
+    let id = (e.features?.[0]?.properties as any)?.id;
+    // The detailed tower is drawn by its own layer, so it is hit-tested against its real shape
+    if (!id && detailRef.current?.hit(e.point.x, e.point.y)) id = detailRef.current.id;
     return (id && data?.projects[id]) || null;
   }, [data]);
 
@@ -340,8 +347,11 @@ export default function MiamiWorld() {
   const notSelected: any = view && selected ? ['!=', ['get', 'id'], selected.id] : ['has', 'id'];
   // Towers that have not broken ground are drawn slightly see-through; everything else is solid
   const isPlanned: any = ['in', ['get', 'status'], ['literal', PLANNED]];
-  const towerFilter: any = ['all', notSelected, inStage, ['!', isPlanned]];
-  const plannedFilter: any = ['all', notSelected, inStage, isPlanned];
+  // The tower shown as a detailed model: the selected one if it has a model, otherwise the nearest when zoomed in
+  const detailId = !view && selected && detail[selected.id] ? selected.id : !view ? nearDetail : null;
+  const notDetail: any = detailId ? ['!=', ['get', 'id'], detailId] : ['has', 'id'];
+  const towerFilter: any = ['all', notSelected, notDetail, inStage, ['!', isPlanned]];
+  const plannedFilter: any = ['all', notSelected, notDetail, inStage, isPlanned];
   const stageIds = data && stageSet ? Object.values(data.projects).filter((p) => stageSet.includes(p.status)).map((p) => p.id) : null;
   const lotFilter: any = stageIds ? ['in', ['get', 'id'], ['literal', stageIds]] : ['has', 'id'];
   const showExisting = !view && (stage === 'all' || stage === 'done');
@@ -353,6 +363,46 @@ export default function MiamiWorld() {
     const utc = sunHour + (sunMonth === 5 ? 4 : 5); // Miami is UTC-4 in June, UTC-5 in December
     return sunAt(c[1], c[0], new Date(Date.UTC(2026, sunMonth, 21, Math.floor(utc), Math.round((utc % 1) * 60))));
   }, [area, sunHour, sunMonth]);
+  // When zoomed in, the nearest tower with a detailed model switches to it without needing a click
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !loaded) return;
+    const pickNear = () => {
+      const ids = Object.keys(detail);
+      if (!ids.length || map.getZoom() < 15.3) { setNearDetail(null); return; }
+      const c = map.getCenter();
+      let best: string | null = null, bd = 900; // metres
+      for (const id of ids) {
+        const [lng, lat] = detail[id].center;
+        const d = Math.hypot((lng - c.lng) * 111320 * Math.cos((lat * Math.PI) / 180), (lat - c.lat) * 110540);
+        if (d < bd) { bd = d; best = id; }
+      }
+      setNearDetail(best);
+    };
+    pickNear();
+    map.on('moveend', pickNear);
+    return () => { map.off('moveend', pickNear); };
+  }, [detail, loaded]);
+
+  // Load the detailed model only when it is needed, and swap it in for the simple tower
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !loaded) return;
+    let cancelled = false;
+    const remove = () => { if (map.getLayer('w-detail')) map.removeLayer('w-detail'); detailRef.current = null; };
+    if (!detailId || !detail[detailId]) { remove(); return; }
+    import('./detailTower').then(({ createDetailLayer }) => {
+      if (cancelled) return;
+      remove();
+      const made = createDetailLayer('w-detail', detail[detailId], { night, sun });
+      map.addLayer(made.layer, map.getLayer('w-ex-pad') ? 'w-ex-pad' : undefined);
+      detailRef.current = { id: detailId, setSun: made.setSun, hit: made.hit };
+    }).catch((e) => { console.warn('detail tower', e); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailId, detail, loaded, night]);
+  useEffect(() => { detailRef.current?.setSun(sun, night); }, [sun, night]);
+
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!loaded || !map || night) return;
@@ -467,6 +517,7 @@ export default function MiamiWorld() {
                 'fill-extrusion-vertical-gradient': true,
               }}
             />
+
           </Source>
         )}
 

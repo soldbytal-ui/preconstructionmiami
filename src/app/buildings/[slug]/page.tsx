@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = pickTitle([`${b.name}: ${area} Condo Tower Facts and Resales`, `${b.name}: ${area} Condo Tower`, b.name]);
   const description = fitDesc(sentences(b).join(' '), 160);
   const url = `https://preconstructionmiami.net/buildings/${b.slug}`;
-  return { title: { absolute: title }, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'website', images: DEFAULT_OG } };
+  return { title: { absolute: title }, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'website', images: b.mainImageUrl ? [{ url: b.mainImageUrl }] : DEFAULT_OG } };
 }
 
 export default async function BuildingPage({ params }: Props) {
@@ -112,6 +112,17 @@ export default async function BuildingPage({ params }: Props) {
           </dl>
 
           <section>
+            {b.mainImageUrl && (
+              <figure className="mb-10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={b.mainImageUrl} alt={`${b.name}, exterior`} className="w-full max-h-[560px] object-cover rounded-2xl border border-border" loading="eager" />
+                {b.images?.credit && (
+                  <figcaption className="mt-2 text-xs text-text-muted">
+                    Photo: {b.images.credit.author}, <a href={b.images.credit.source} target="_blank" rel="noopener noreferrer nofollow" className="underline">Wikimedia Commons</a>, {b.images.credit.license}.
+                  </figcaption>
+                )}
+              </figure>
+            )}
             <h2 className="text-2xl font-semibold text-text-primary mb-4">About {b.name}</h2>
             <p className="text-text-muted leading-relaxed">{text.join(' ')}</p>
             <div className="mt-5 flex flex-wrap gap-3">

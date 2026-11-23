@@ -5,11 +5,12 @@ export type Building = {
   id: string; name: string; slug: string; address: string | null; architect: string | null;
   floors: number | null; totalUnits: number | null; yearBuilt: number | null; heightM: number | null;
   latitude: number | null; longitude: number | null; tenure: string; note: string | null; sources: string[];
+  mainImageUrl?: string | null; images?: { credit?: { author?: string; license?: string; source?: string } } | null;
   developer?: { name: string; slug: string } | null; neighborhood?: { name: string; slug: string } | null;
 };
 
 export const BUILDING_COLUMNS =
-  'id, name, slug, address, architect, floors, totalUnits, yearBuilt, heightM, latitude, longitude, tenure, note, sources, developerId, neighborhoodId, developer:developers(name, slug), neighborhood:neighborhoods(name, slug)';
+  'id, name, slug, address, architect, floors, totalUnits, yearBuilt, heightM, latitude, longitude, tenure, note, sources, mainImageUrl, images, developerId, neighborhoodId, developer:developers(name, slug), neighborhood:neighborhoods(name, slug)';
 
 export const feet = (m: number | null | undefined) => (m ? Math.round(m * 3.28084) : null);
 
