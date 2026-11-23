@@ -70,6 +70,60 @@ function sunHours(lat: number, lng: number, bearing: number, month: number): num
   return Math.round((minutes / 60) * 2) / 2;
 }
 
+/** Sun and sky light for the whole scene. Buildings cast real shadows on the ground and on each other. */
+function applyLights(map: any, o: { az: number; alt: number; night: boolean }) {
+  const up = o.alt > 0 && !o.night;
+  const low = Math.max(0, Math.min(1, o.alt / 18));
+  const warm = up && low < 1 ? `rgb(255, ${Math.round(226 + 24 * low)}, ${Math.round(196 + 44 * low)})` : '#fff6e8';
+  try {
+    map.setLights([
+      { id: 'sky', type: 'ambient', properties: { color: o.night ? '#aab6e0' : '#f3f1ee', intensity: o.night ? 0.5 : up ? 0.66 : 0.3 } },
+      {
+        id: 'sun', type: 'directional',
+        properties: {
+          color: o.night ? '#c9d2ff' : warm,
+          intensity: o.night ? 0.25 : up ? 0.5 + 0.2 * low : 0.12,
+          direction: [up ? o.az : 200, up ? Math.min(78, Math.max(18, 90 - o.alt)) : 40],
+          'cast-shadows': !o.night, 'shadow-intensity': up ? 0.5 : 0.15,
+        },
+      },
+    ]);
+  } catch { /* older engines keep the flat light */ }
+}
+
+/** A tile of gentle ripples, so the bay reads as water rather than a flat blue shape. */
+function waterTile(night: boolean): ImageData {
+  const n = 256, c = document.createElement('canvas'); c.width = n; c.height = n;
+  const g = c.getContext('2d')!;
+  g.fillStyle = night ? '#14234A' : '#78AFCB'; g.fillRect(0, 0, n, n);
+  let s = 11; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 150; i++) {
+    const x = rnd() * n, y = rnd() * n, w = 10 + rnd() * 28, light = rnd() > 0.45;
+    g.strokeStyle = light ? `rgba(255,255,255,${night ? 0.05 : 0.2})` : `rgba(20,70,110,${night ? 0.2 : 0.14})`;
+    g.lineWidth = 1 + rnd();
+    for (const [dx, dy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {   // repeated across the edges so the tile joins without a seam
+      g.beginPath(); g.moveTo(x + dx, y + dy); g.quadraticCurveTo(x + dx + w / 2, y + dy - 2.5, x + dx + w, y + dy); g.stroke();
+    }
+  }
+  return g.getImageData(0, 0, n, n);
+}
+
+/** Day colours for the base map: warm ground, asphalt streets, green parks, rippled water. */
+function paintScene(map: any) {
+  if (!map.hasImage('w-water')) map.addImage('w-water', waterTile(false), { pixelRatio: 2 });
+  for (const l of map.getStyle()?.layers || []) {
+    const id: string = l.id, src: string = (l as any)['source-layer'] || '';
+    if (id.startsWith('w-') || id === 'city') continue;
+    try {
+      if (l.type === 'background') map.setPaintProperty(id, 'background-color', '#E7E1D3');
+      else if (l.type === 'fill' && (src === 'water' || id === 'water')) { map.setPaintProperty(id, 'fill-color', '#78AFCB'); map.setPaintProperty(id, 'fill-pattern', 'w-water'); }
+      else if (l.type === 'fill' && /park|landuse|landcover|national|pitch|grass/.test(id + src)) map.setPaintProperty(id, 'fill-color', '#C5D6AC');
+      else if (l.type === 'fill' && src === 'building') map.setPaintProperty(id, 'fill-color', '#E4DED0');
+      else if (l.type === 'line' && /road|bridge|tunnel|street/.test(id)) map.setPaintProperty(id, 'line-color', /case/.test(id) ? '#D3CDBF' : /pedestrian|path|steps/.test(id) ? '#D9D3C6' : '#A8A49B');
+    } catch { /* a layer without this property */ }
+  }
+}
+
 export default function MiamiWorld() {
   const mapRef = useRef<MapRef>(null);
   const [data, setData] = useState<BuildingsData | null>(null);
@@ -141,11 +195,8 @@ export default function MiamiWorld() {
     (window as any).__pcmWorld = map;
     setLoaded(true);
     map.setFog({ color: '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 } as any);
-    map.setLight({ anchor: 'map', position: [1.4, 210, 38], intensity: 0.55, color: '#ffffff' } as any);
-    // Make the bay and ocean read as water, not as pale land
-    for (const l of map.getStyle()?.layers || []) {
-      if (l.type === 'fill' && ((l as any)['source-layer'] === 'water' || l.id === 'water')) map.setPaintProperty(l.id, 'fill-color', '#B5D6EC');
-    }
+    applyLights(map, { az: 135, alt: 60, night: false });
+    paintScene(map);
     if (!map.getLayer('city')) {
       const labelId = (map.getStyle()?.layers || []).find((l: any) => l.type === 'symbol' && l.layout?.['text-field'])?.id;
       map.addLayer(
@@ -157,13 +208,15 @@ export default function MiamiWorld() {
           type: 'fill-extrusion',
           minzoom: 12,
           paint: {
-            'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'height'], 0, '#e9ecef', 60, '#f1f3f5', 200, '#fafbfc'],
+            'fill-extrusion-color': ['interpolate', ['linear'], ['get', 'height'], 0, '#F6F1E6', 60, '#FAF7EF', 200, '#FFFDF8'],
             'fill-extrusion-height': ['get', 'height'],
             'fill-extrusion-base': ['get', 'min_height'],
             'fill-extrusion-opacity': 1,
             'fill-extrusion-vertical-gradient': true,
-            'fill-extrusion-ambient-occlusion-intensity': 0.35,
-            'fill-extrusion-ambient-occlusion-radius': 4,
+            'fill-extrusion-ambient-occlusion-intensity': 0.55,
+            'fill-extrusion-ambient-occlusion-radius': 5,
+            'fill-extrusion-ambient-occlusion-ground-radius': 8,
+            'fill-extrusion-ambient-occlusion-wall-radius': 5,
           } as any,
         },
         labelId
@@ -410,13 +463,7 @@ export default function MiamiWorld() {
     const low = Math.max(0, Math.min(1, sun.alt / 18)); // 0 at the horizon, 1 once the sun is well up
     const mix = (a: number, b: number) => Math.round(a + (b - a) * low);
     const color = up ? `rgb(255, ${mix(236, 255)}, ${mix(214, 255)})` : '#aebbd8';
-    map.setLight({
-      anchor: 'map',
-      // Keep the light off vertical so walls, not only roofs, catch it at midday
-      position: [1.5, up ? sun.az : 0, up ? Math.min(80, Math.max(32, 90 - sun.alt)) : 20],
-      intensity: up ? 0.38 + 0.17 * low : 0.15,
-      color,
-    } as any);
+    applyLights(map, { az: sun.az, alt: sun.alt, night: false });
     map.setFog(
       (up
         ? { color: low < 1 ? `rgb(${mix(243, 230)}, ${mix(214, 237)}, ${mix(190, 242)})` : '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 }
@@ -440,7 +487,7 @@ export default function MiamiWorld() {
         const id = l.id, src = (l as any)['source-layer'] || '';
         if (id.startsWith('w-')) continue;
         if (l.type === 'background') set(id, 'background-color', '#1D2233');
-        else if (l.type === 'fill' && (src === 'water' || id === 'water')) set(id, 'fill-color', '#14234A');
+        else if (l.type === 'fill' && (src === 'water' || id === 'water')) { set(id, 'fill-pattern', undefined); set(id, 'fill-color', '#14234A'); }
         else if (l.type === 'fill' && /landuse|park|landcover|national/.test(id + src)) set(id, 'fill-color', '#232B3C');
         else if (l.type === 'fill') set(id, 'fill-color', '#222839');
         else if (l.type === 'line' && /road|bridge|tunnel|street/.test(id)) set(id, 'line-color', /case/.test(id) ? '#1A1F2E' : '#3D4666');
@@ -448,7 +495,7 @@ export default function MiamiWorld() {
         else if (l.type === 'symbol') { set(id, 'text-color', '#C3C9DC'); set(id, 'text-halo-color', '#151927'); }
       }
       set('city', 'fill-extrusion-color', ['interpolate', ['linear'], ['get', 'height'], 0, '#2C3349', 60, '#353D57', 200, '#434C6A']);
-      map.setLight({ anchor: 'map', position: [1.5, 200, 40], intensity: 0.45, color: '#dfe6ff' } as any);
+      applyLights(map, { az: 200, alt: 40, night: true });
       map.setFog({ color: '#262E46', 'high-color': '#141B30', 'horizon-blend': 0.12, 'space-color': '#0C1122', 'star-intensity': 0.5 } as any);
     } else {
       for (const [id, props] of Object.entries(dayPaint.current)) {
