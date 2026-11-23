@@ -7,7 +7,7 @@ import * as THREE from 'three';
 export type DetailData = {
   id: string;
   center: [number, number];
-  volumes: { ring: [number, number][]; baseM: number; topM: number; kind: 'tower' | 'podium' }[];
+  volumes: { ring: [number, number][]; baseM: number; topM: number; kind: 'tower' | 'podium'; look?: 'glass' | 'balcony' | 'louvre' | 'crown' | 'pool' }[];
   colors: { glass?: string; slab?: string; accent?: string };
   podiumWall: string | null;
 };
@@ -24,7 +24,7 @@ function glazingTexture(seed: number): THREE.CanvasTexture {
   const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
   const pw = W / TILE_PANELS, fh = H / TILE_FLOORS;
   for (let f = 0; f < TILE_FLOORS; f++) for (let p = 0; p < TILE_PANELS; p++) {
-    const v = 214 + Math.round(rnd() * 38);                    // each pane reflects a little differently
+    const v = 234 + Math.round(rnd() * 18);                    // each pane reflects a little differently
     g.fillStyle = `rgb(${v - 6},${v - 2},${v})`;
     g.fillRect(p * pw, f * fh, pw, fh);
     if (rnd() < 0.07) { g.fillStyle = 'rgba(255,224,170,0.30)'; g.fillRect(p * pw, f * fh + fh * 0.18, pw, fh * 0.62); } // a lit room
@@ -52,6 +52,17 @@ function finTexture(): THREE.CanvasTexture {
   return t;
 }
 
+/** Horizontal bands: a light louvre with a shadowed gap under it. */
+function bandTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas'); c.width = 8; c.height = 64;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#ffffff'; g.fillRect(0, 0, 8, 64);
+  g.fillStyle = 'rgba(60,66,74,0.75)'; g.fillRect(0, 0, 8, 22);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1 / 1.7); t.anisotropy = 8; t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 /**
  * The sky the glass reflects. One side holds the sun and its glow, the other is deeper blue,
  * so the facade facing the sun and the one turned away pick up visibly different reflections.
@@ -76,6 +87,25 @@ function skyTexture(night: boolean, u: number, alt: number): THREE.CanvasTexture
       g.fillStyle = glow; g.fillRect(0, 0, W, H);
     }
     let s = 7; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    // What stands around a Miami tower: open bay to the east (the middle of the picture), the city on every other side.
+    // Below the horizon the bay is blue-green and the city is pale streets and roofs; above it, a skyline to the west.
+    const bay = (x: number) => { const u = ((x / W) % 1 + 1) % 1; return Math.max(0, 1 - Math.abs(u - 0.5) / 0.17); };   // 1 facing east, 0 elsewhere
+    for (let x = 0; x < W; x += 4) {
+      const k = Math.min(1, bay(x) * 1.6);
+      g.fillStyle = `rgba(${Math.round(206 - 96 * k)},${Math.round(208 - 30 * k)},${Math.round(204 + 14 * k)},0.85)`;
+      g.fillRect(x, H * 0.515, 4, H * 0.485);
+    }
+    for (let i = 0; i < 520; i++) {                                   // roofs and blocks seen from above
+      const x = rnd() * W; if (bay(x) > 0.35) continue;
+      const y = H * (0.53 + rnd() * 0.45), w = 4 + rnd() * 14, v = 176 + Math.round(rnd() * 70);
+      g.fillStyle = `rgba(${v},${v - 4},${v - 12},0.8)`; g.fillRect(x, y, w, 2 + rnd() * 7);
+    }
+    for (let i = 0; i < 150; i++) {                                   // towers on the skyline
+      const x = rnd() * W; if (bay(x) > 0.2) continue;
+      const hgt = H * (0.015 + rnd() * rnd() * 0.16), w = 5 + rnd() * 13, v = 168 + Math.round(rnd() * 70);
+      g.fillStyle = `rgb(${v - 14},${v - 6},${v})`; g.fillRect(x, H * 0.512 - hgt, w, hgt);
+      g.fillStyle = 'rgba(40,60,90,0.35)'; for (let yy = H * 0.512 - hgt + 2; yy < H * 0.51; yy += 3) g.fillRect(x + 1, yy, w - 2, 1);
+    }
     for (let i = 0; i < 30; i++) {
       const x = rnd() * W, y = 70 + rnd() * 170, r = 36 + rnd() * 70;
       const cg = g.createRadialGradient(x, y, 0, x, y, r);
@@ -100,7 +130,16 @@ export function createDetailLayer(id: string, data: DetailData, opts: { night: b
 
   const scene = new THREE.Scene();
   const camera = new THREE.Camera();
-  const full = new THREE.Matrix4(), inv = new THREE.Matrix4(), shift = new THREE.Matrix4();
+  const full = new THREE.Matrix4(), inv = new THREE.Matrix4();
+  const uEye = { value: new THREE.Vector3(0, 400, 1200) };
+  // The scene's camera sits at the origin, so every lit material is told the real eye position instead
+  const eyed = <T extends THREE.Material>(m: T): T => {
+    m.onBeforeCompile = (sh) => {
+      sh.uniforms.uEye = uEye;
+      sh.vertexShader = 'uniform vec3 uEye;\n' + sh.vertexShader.replace('vViewPosition = - mvPosition.xyz;', 'vViewPosition = uEye - (modelMatrix * vec4( transformed, 1.0 )).xyz;');
+    };
+    return m;
+  };
   let renderer: THREE.WebGLRenderer | null = null;
   let map: mapboxgl.Map | null = null;
   const disposables: { dispose: () => void }[] = [];
@@ -140,13 +179,13 @@ export function createDetailLayer(id: string, data: DetailData, opts: { night: b
     const glassMap = glazingTexture(data.id.length * 31 + 7);
     const fins = finTexture();
     const tint = new THREE.Color(data.colors.glass || '#7FA8C2').lerp(new THREE.Color('#c4ccd2'), 0.5);
-    const glass = new THREE.MeshStandardMaterial({ color: tint, map: glassMap, metalness: 0.72, roughness: 0.16, envMapIntensity: opts.night ? 0.8 : 1.0, side: THREE.DoubleSide });
-    const recess = new THREE.MeshStandardMaterial({ color: 0x1b222a, metalness: 0.5, roughness: 0.35, envMapIntensity: 0.5, side: THREE.DoubleSide });   // the dark reveal between cubes
-    const soffit = new THREE.MeshStandardMaterial({ color: 0x3a342c, metalness: 0.35, roughness: 0.55, side: THREE.DoubleSide });                        // bronze underside of each overhang
-    const cap = new THREE.MeshStandardMaterial({ color: 0xcfd4d8, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
-    const screen = new THREE.MeshStandardMaterial({ color: tint.clone().multiplyScalar(0.9), map: fins, metalness: 0.7, roughness: 0.2, side: THREE.DoubleSide });
-    const lobby = new THREE.MeshStandardMaterial({ color: 0x9fbccd, map: glassMap, metalness: 0.6, roughness: 0.2, emissive: 0xffd9a0, emissiveIntensity: opts.night ? 0.5 : 0.1, side: THREE.DoubleSide });
-    const edge = new THREE.MeshStandardMaterial({ color: 0xe6eaed, roughness: 0.55, metalness: 0.25, side: THREE.DoubleSide });
+    const glass = eyed(new THREE.MeshStandardMaterial({ color: tint, map: glassMap, metalness: 0.72, roughness: 0.16, envMapIntensity: opts.night ? 0.8 : 1.0, side: THREE.DoubleSide }));
+    const recess = eyed(new THREE.MeshStandardMaterial({ color: 0x2a2d31, metalness: 0.5, roughness: 0.35, envMapIntensity: 0.5, side: THREE.DoubleSide }));   // the dark reveal between cubes
+    const soffit = eyed(new THREE.MeshStandardMaterial({ color: 0x8a7254, metalness: 0.55, roughness: 0.42, envMapIntensity: 0.9, side: THREE.DoubleSide }));                        // bronze underside of each overhang
+    const cap = eyed(new THREE.MeshStandardMaterial({ color: 0xcfd4d8, roughness: 0.9, metalness: 0, side: THREE.DoubleSide }));
+    const screen = eyed(new THREE.MeshStandardMaterial({ color: tint.clone().multiplyScalar(0.9), map: fins, metalness: 0.7, roughness: 0.2, side: THREE.DoubleSide }));
+    const lobby = eyed(new THREE.MeshStandardMaterial({ color: 0x9fbccd, map: glassMap, metalness: 0.6, roughness: 0.2, emissive: 0xffd9a0, emissiveIntensity: opts.night ? 0.5 : 0.1, side: THREE.DoubleSide }));
+    const edge = eyed(new THREE.MeshStandardMaterial({ color: 0xe6eaed, roughness: 0.55, metalness: 0.25, side: THREE.DoubleSide }));
     disposables.push(glassMap, fins, glass, recess, soffit, cap, screen, lobby, edge);
 
     const shapeOf = (ring: [number, number][], grow = 0) => {
@@ -161,22 +200,53 @@ export function createDetailLayer(id: string, data: DetailData, opts: { night: b
       model.add(mesh); disposables.push(geo);
     };
 
+    // Looks for finished towers: balcony floors, a louvred garage podium, an open crown, a pool deck
+    const hidden = new THREE.MeshBasicMaterial({ visible: false });
+    const darkGlass = eyed(new THREE.MeshStandardMaterial({ color: new THREE.Color(data.colors.glass || '#3F4D59'), map: glassMap, metalness: 0.82, roughness: 0.12, side: THREE.DoubleSide }));
+    const slabM = eyed(new THREE.MeshStandardMaterial({ color: new THREE.Color(data.colors.slab || '#E9EAE8'), roughness: 0.7, metalness: 0.05, side: THREE.DoubleSide }));
+    const railM = eyed(new THREE.MeshStandardMaterial({ color: 0xbfd6e2, metalness: 0.6, roughness: 0.1, transparent: true, opacity: 0.42, depthWrite: false, side: THREE.DoubleSide }));
+    const louvreMap = bandTexture();
+    const louvreM = eyed(new THREE.MeshStandardMaterial({ color: 0xf2f2ef, map: louvreMap, roughness: 0.6, metalness: 0.15, side: THREE.DoubleSide }));
+    const crownM = eyed(new THREE.MeshStandardMaterial({ color: 0xdfe3e6, map: louvreMap, roughness: 0.5, metalness: 0.3, transparent: true, opacity: 0.62, depthWrite: false, side: THREE.DoubleSide }));
+    const poolM = eyed(new THREE.MeshStandardMaterial({ color: 0x3fb2d8, roughness: 0.12, metalness: 0.2, side: THREE.DoubleSide }));
+    disposables.push(hidden, darkGlass, slabM, railM, louvreMap, louvreM, crownM, poolM);
+    const FLOOR = 3.3;
+
     const towers = data.volumes.filter((v) => v.kind !== 'podium');
     for (const v of data.volumes) {
-      if (v.kind === 'podium') {
+      if (v.look === 'louvre') {
+        add(v.ring, v.baseM, v.baseM + 8, lobby, cap, -0.8);               // glazed shops and lobby at the street
+        add(v.ring, v.baseM + 8, v.topM, louvreM, slabM);                  // banded garage screen
+        add(v.ring, v.topM, v.topM + 1.2, slabM, slabM, 0.3);              // parapet around the deck
+      } else if (v.look === 'pool') {
+        add(v.ring, v.baseM, v.topM, poolM, poolM);
+      } else if (v.look === 'balcony') {
+        add(v.ring, v.baseM, v.topM, darkGlass, cap, -1.9);                // the glass wall, set back behind the balconies
+        const n = Math.floor((v.topM - v.baseM) / FLOOR);
+        for (let i = 0; i <= n; i++) {
+          const z = v.baseM + i * FLOOR, wave = 0.55 * Math.sin(i * 0.42);  // the balcony edge drifts in and out up the tower
+          add(v.ring, z, z + 0.5, slabM, slabM, wave);
+          if (i < n) add(v.ring, z + 0.5, z + 1.5, railM, hidden, wave - 0.1);   // glass railing
+        }
+      } else if (v.look === 'crown') {
+        add(v.ring, v.baseM, v.baseM + 0.4, slabM, slabM, 2.2);            // roof deck
+        add(v.ring, v.baseM + 0.4, v.topM, crownM, hidden, 1.4);           // open screen around the rooftop
+        add(v.ring, v.baseM + 0.4, v.topM - 2.5, slabM, cap, -5);          // plant room inside it
+      } else if (v.kind === 'podium') {
         const lobbyH = Math.min(9, (v.topM - v.baseM) * 0.25);
         add(v.ring, v.baseM, v.baseM + lobbyH, lobby, cap, -0.6);          // glazed street level, set in under the screen
         add(v.ring, v.baseM + lobbyH, v.topM, screen, cap);                // the podium cube above, glazed with a heavier frame
         add(v.ring, v.topM, v.topM + 0.5, edge, cap, 0.25);                // roof edge
       } else {
+        // Where one cube meets the next the drawings show a thin shadow line, not a band: a low recessed
+        // strip, and above it the bronze underside of the upper cube, which shows wherever that cube overhangs.
         const first = v === towers[0];
-        const reveal = first ? 0 : 3.2;                                    // each cube sits on a dark recessed floor, as in the renderings
+        const reveal = first ? 0 : 1.2;
         if (reveal) {
-          add(v.ring, v.baseM, v.baseM + reveal, recess, soffit, -1.6);
-          add(v.ring, v.baseM + reveal, v.baseM + reveal + 0.45, soffit, soffit, 0.05);   // the underside of the overhang
+          add(v.ring, v.baseM, v.baseM + reveal, recess, soffit, -0.9);
+          add(v.ring, v.baseM + reveal, v.baseM + reveal + 0.5, soffit, soffit, 0.06);
         }
-        add(v.ring, v.baseM + reveal + (reveal ? 0.45 : 0), v.topM - 0.6, glass, cap);
-        add(v.ring, v.topM - 0.6, v.topM, edge, cap, 0.12);                // a thin bright edge where each cube ends
+        add(v.ring, v.baseM + reveal + (reveal ? 0.5 : 0), v.topM, glass, cap);
       }
     }
   }
@@ -200,13 +270,13 @@ export function createDetailLayer(id: string, data: DetailData, opts: { night: b
     },
     render(_gl, matrix) {
       if (!renderer) return;
-      // The map hands over one combined matrix. Recover where the eye is, so reflections and highlights are worked out
-      // from the viewer's real position, and leave the rest as the projection.
+      // The map hands over one combined matrix, used whole as the projection. Work out where the eye is from it
+      // and pass that to the materials, so reflections and highlights are seen from the viewer's real position.
       full.fromArray(matrix as unknown as number[]).multiply(place);
       const e = new THREE.Vector4(0, 0, 1, 0).applyMatrix4(inv.copy(full).invert());
-      camera.position.set(e.x / e.w, e.y / e.w, e.z / e.w);
-      camera.projectionMatrix.copy(full).multiply(shift.makeTranslation(camera.position.x, camera.position.y, camera.position.z));
-      camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+      uEye.value.set(e.x / e.w, e.y / e.w, e.z / e.w);
+      camera.projectionMatrix.copy(full);
+      camera.projectionMatrixInverse.copy(inv);
       renderer.resetState();
       renderer.render(scene, camera);
     },

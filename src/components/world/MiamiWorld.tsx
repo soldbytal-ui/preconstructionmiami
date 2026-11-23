@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { EXISTING_DETAIL } from '@/lib/existing-detail';
 import mapboxgl from 'mapbox-gl';
 import Map, { Source, Layer, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapMouseEvent, MapRef } from 'react-map-gl/mapbox';
@@ -140,6 +141,7 @@ export default function MiamiWorld() {
   // Towers with a detailed glass model, and the one currently shown that way (selected, or the nearest when zoomed in)
   const [detail, setDetail] = useState<Record<string, any>>({});
   const [nearDetail, setNearDetail] = useState<string | null>(null);
+  const [detailBase, setDetailBase] = useState<number[]>([]);   // base-map shapes the shown model stands in for
   const detailRef = useRef<{ id: string; setSun: (s: { alt: number; az: number }, night: boolean) => void; hit: (x: number, y: number) => boolean } | null>(null);
   const dayPaint = useRef<Record<string, Record<string, any>>>({});
   const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
@@ -147,7 +149,12 @@ export default function MiamiWorld() {
   useEffect(() => {
     let alive = true;
     loadBuildings().then((d) => { if (alive) setData(d); });
-    if (new URLSearchParams(window.location.search).get('detail') !== '0') fetch('/api/tower-detail').then((r) => r.json()).then((d) => { if (alive && d && typeof d === 'object') setDetail(d); }).catch(() => {});
+    if (new URLSearchParams(window.location.search).get('detail') !== '0') {
+      // Finished towers with a hand-built model are keyed "b:<slug>" beside the new projects
+      const built = Object.fromEntries(Object.entries(EXISTING_DETAIL).map(([slug, d]) => [`b:${slug}`, { id: `b:${slug}`, slug, ...d }]));
+      setDetail(built);
+      fetch('/api/tower-detail').then((r) => r.json()).then((d) => { if (alive && d && typeof d === 'object') setDetail({ ...d, ...built }); }).catch(() => {});
+    }
     fetch('/api/existing-buildings').then((r) => r.json()).then((d) => { if (alive) setExisting(d); }).catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -220,9 +227,9 @@ export default function MiamiWorld() {
     const map = mapRef.current?.getMap();
     if (!map || !data || !map.getLayer('city')) return;
     const base: any = ['==', ['get', 'extrude'], 'true'];
-    const ids = [...(data.hiddenBaseIds || []), ...(hlId != null ? [hlId] : [])];
+    const ids = [...(data.hiddenBaseIds || []), ...(hlId != null ? [hlId] : []), ...detailBase];
     map.setFilter('city', ids.length ? ['all', base, ['!', ['in', ['id'], ['literal', ids]]]] : base);
-  }, [data, hlId]);
+  }, [data, hlId, detailBase]);
 
   // Find the base-map building that stands on the selected existing tower's spot
   useEffect(() => {
@@ -258,6 +265,12 @@ export default function MiamiWorld() {
     if (view) return;
     const f = e.features?.[0];
     if (f && (f.layer?.id === 'w-ex-pad' || f.layer?.id === 'w-ex-label')) { setSelected(null); setSelB(f.properties as any); return; }
+    // A finished tower drawn as a detailed model is clicked on its real shape
+    const shown = detailRef.current;
+    if (!f && shown?.id.startsWith('b:') && shown.hit(e.point.x, e.point.y)) {
+      const b = existing?.features.find((x) => `b:${(x.properties as any).slug}` === shown.id);
+      if (b) { setSelected(null); setSelB(b.properties as any); return; }
+    }
     setSelB(null);
     const p = pick(e);
     setSelected(p);
@@ -265,7 +278,7 @@ export default function MiamiWorld() {
       const floors = p.floors || Math.max(4, Math.round(heightOf(data, p.id) / RESIDENTIAL_FLOOR_M));
       setFloor(Math.max(2, Math.round(floors / 2)));
     }
-  }, [pick, data, view]);
+  }, [pick, data, view, existing]);
 
   // /miami-3d?project=<slug> opens the map on that tower
   const deepLinked = useRef(false);
@@ -301,9 +314,39 @@ export default function MiamiWorld() {
   const selFloors = selected ? selected.floors || Math.max(4, Math.round(selHeight / RESIDENTIAL_FLOOR_M)) : 0;
   const eyeM = selFloors ? Math.round((floor / selFloors) * selHeight) : 0;
 
+  // Closer look: frame the whole tower, base included, from the side with the least standing in front of it
   const closer = () => {
-    if (!selected) return;
-    mapRef.current?.getMap().flyTo({ center: [selected.longitude, selected.latitude], zoom: selHeight > 150 ? 16 : 16.8, pitch: 62, duration: 1600 });
+    const map = mapRef.current?.getMap();
+    if (!selected || !map) return;
+    const h = Math.max(30, selHeight), lat = selected.latitude, lng = selected.longitude;
+    const kx = 111320 * Math.cos((lat * Math.PI) / 180), ky = 110540;
+    // Buildings between a camera and the tower hide its base. Score eight directions by what stands in each.
+    const score = new Array(8).fill(0);
+    const seen = new Set<any>();
+    for (const b of map.querySourceFeatures('composite', { sourceLayer: 'building' })) {
+      if (b.id == null || seen.has(b.id) || (b.properties as any)?.extrude !== 'true') continue;
+      seen.add(b.id);
+      const ring: any = b.geometry.type === 'Polygon' ? b.geometry.coordinates[0] : b.geometry.type === 'MultiPolygon' ? b.geometry.coordinates[0][0] : null;
+      if (!ring) continue;
+      const dx = (ring[0][0] - lng) * kx, dy = (ring[0][1] - lat) * ky, d = Math.hypot(dx, dy);
+      if (d < 45 || d > 420) continue;
+      const dir = ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;                 // compass direction of the building from the tower
+      for (let i = 0; i < 8; i++) { const off = Math.abs(((dir - i * 45 + 540) % 360) - 180); if (off < 32) score[i] += (Number((b.properties as any).height) || 10) / d; }
+    }
+    if (data) for (const f of data.features as any[]) {                       // our own towers block the view as well
+      const pr = f.properties; if (!pr || pr.id === selected.id || seen.has('t' + pr.id)) continue;
+      seen.add('t' + pr.id);
+      const c = f.geometry.coordinates[0][0], dx = (c[0] - lng) * kx, dy = (c[1] - lat) * ky, d = Math.hypot(dx, dy);
+      if (d < 45 || d > 420) continue;
+      const dir = ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
+      for (let i = 0; i < 8; i++) { const off = Math.abs(((dir - i * 45 + 540) % 360) - 180); if (off < 32) score[i] += heightOf(data, pr.id) / d; }
+    }
+    const side = score.indexOf(Math.min(...score));                                    // the camera stands on this side...
+    const bearing = (side * 45 + 180) % 360;                                           // ...and looks back at the tower
+    const mapH = map.getContainer().clientHeight, pitch = 76;
+    const pxPerM = ((2 ** 16 * 512) / 40075016 / Math.cos((lat * Math.PI) / 180)) * Math.sin((pitch * Math.PI) / 180);
+    const zoom = Math.max(15, Math.min(18, 16 + Math.log2((mapH * 0.36) / (h * pxPerM))));   // the tower stands nearer the eye than the ground it is measured on, hence the small share
+    map.flyTo({ center: [lng, lat], zoom, pitch, bearing, offset: [isTouch ? 0 : -40, mapH * 0.34], duration: 1800 });
   };
 
   // Stand inside the tower at the chosen floor and look out
@@ -392,7 +435,8 @@ export default function MiamiWorld() {
   // Towers that have not broken ground are drawn slightly see-through; everything else is solid
   const isPlanned: any = ['in', ['get', 'status'], ['literal', PLANNED]];
   // The tower shown as a detailed model: the selected one if it has a model, otherwise the nearest when zoomed in
-  const detailId = !view && selected && detail[selected.id] ? selected.id : !view ? nearDetail : null;
+  const detailId = view ? null : selected && detail[selected.id] ? selected.id : selB && !selected && detail[`b:${selB.slug}`] ? `b:${selB.slug}` : nearDetail;
+  useEffect(() => { setDetailBase((detailId && detail[detailId]?.baseIds) || []); }, [detailId, detail]);
   const notDetail: any = detailId ? ['!=', ['get', 'id'], detailId] : ['has', 'id'];
   const towerFilter: any = ['all', notSelected, notDetail, inStage, ['!', isPlanned]];
   const plannedFilter: any = ['all', notSelected, notDetail, inStage, isPlanned];
@@ -531,6 +575,7 @@ export default function MiamiWorld() {
         initialViewState={{ longitude: AREAS[0].center[0], latitude: AREAS[0].center[1], zoom: isTouch ? 14.4 : AREAS[0].zoom, pitch: 60, bearing: AREAS[0].bearing }}
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/mapbox/light-v11"
+        antialias={!isTouch}
         onLoad={onLoad}
         onClick={onClick}
         onMouseMove={(e) => setHovered(view ? null : pick(e)?.id || (e.features?.[0]?.layer?.id?.startsWith('w-ex') ? 'existing' : null))}
@@ -549,7 +594,7 @@ export default function MiamiWorld() {
 
         {lots && (
           <Source id="w-lots" type="geojson" data={lots}>
-            <Layer id="w-lot-fill" type="fill" filter={lotFilter} paint={{ 'fill-color': ['case', ['==', ['get', 'id'], active || ''], '#E8563F', night ? '#00E5B4' : OFFPLAN] as any, 'fill-opacity': night ? 0.22 : 0.2 }} />
+            <Layer id="w-lot-fill" type="fill" filter={lotFilter} paint={{ 'fill-color': ['case', ['==', ['get', 'id'], active || ''], '#E8563F', night ? '#00E5B4' : OFFPLAN] as any, 'fill-opacity': ['case', ['==', ['get', 'id'], detailId || ''], 0, night ? 0.22 : 0.2] as any }} />
             <Layer id="w-lot-line" type="line" filter={lotFilter} paint={{ 'line-color': ['case', ['==', ['get', 'id'], active || ''], '#E8563F', night ? '#00E5B4' : OFFPLAN_LINE] as any, 'line-width': ['case', ['==', ['get', 'id'], active || ''], 3.5, 1.8] as any, 'line-dasharray': [2, 2] }} />
             {/* The selected parcel, outlined on the ground: a white edge under coral so it reads on the map and on imagery */}
             <Layer id="w-lot-sel-edge" type="line" filter={['==', ['get', 'id'], selected?.id || ''] as any} layout={{ 'line-join': 'round' }} paint={{ 'line-color': '#ffffff', 'line-width': 6, 'line-opacity': 0.9 }} />
@@ -588,7 +633,7 @@ export default function MiamiWorld() {
         )}
 
         {/* The selected existing tower, in the accent colour */}
-        {hlId != null && !view && (
+        {hlId != null && !view && !(detailId || '').startsWith('b:') && (
           <Layer id="w-hl" type="fill-extrusion" source="composite" source-layer="building" filter={['==', ['id'], hlId] as any}
             paint={{ 'fill-extrusion-color': '#E8563F', 'fill-extrusion-height': ['get', 'height'], 'fill-extrusion-base': ['get', 'min_height'], 'fill-extrusion-opacity': 1, 'fill-extrusion-vertical-gradient': true } as any} />
         )}
