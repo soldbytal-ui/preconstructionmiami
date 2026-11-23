@@ -91,35 +91,23 @@ function applyLights(map: any, o: { az: number; alt: number; night: boolean }) {
   } catch { /* older engines keep the flat light */ }
 }
 
-/** A tile of gentle ripples, so the bay reads as water rather than a flat blue shape. */
-function waterTile(night: boolean): ImageData {
-  const n = 256, c = document.createElement('canvas'); c.width = n; c.height = n;
-  const g = c.getContext('2d')!;
-  g.fillStyle = night ? '#14234A' : '#78AFCB'; g.fillRect(0, 0, n, n);
-  let s = 11; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 150; i++) {
-    const x = rnd() * n, y = rnd() * n, w = 10 + rnd() * 28, light = rnd() > 0.45;
-    g.strokeStyle = light ? `rgba(255,255,255,${night ? 0.05 : 0.2})` : `rgba(20,70,110,${night ? 0.2 : 0.14})`;
-    g.lineWidth = 1 + rnd();
-    for (const [dx, dy] of [[0, 0], [n, 0], [-n, 0], [0, n], [0, -n]]) {   // repeated across the edges so the tile joins without a seam
-      g.beginPath(); g.moveTo(x + dx, y + dy); g.quadraticCurveTo(x + dx + w / 2, y + dy - 2.5, x + dx + w, y + dy); g.stroke();
-    }
-  }
-  return g.getImageData(0, 0, n, n);
-}
-
-/** Day colours for the base map: warm ground, asphalt streets, green parks, rippled water. */
+/** Day colours for the base map: warm ground, asphalt streets, green parks, still water. Distant labels are dropped when the map is tilted. */
 function paintScene(map: any) {
-  if (!map.hasImage('w-water')) map.addImage('w-water', waterTile(false), { pixelRatio: 2 });
   for (const l of map.getStyle()?.layers || []) {
     const id: string = l.id, src: string = (l as any)['source-layer'] || '';
     if (id.startsWith('w-') || id === 'city') continue;
     try {
       if (l.type === 'background') map.setPaintProperty(id, 'background-color', '#E7E1D3');
-      else if (l.type === 'fill' && (src === 'water' || id === 'water')) { map.setPaintProperty(id, 'fill-color', '#78AFCB'); map.setPaintProperty(id, 'fill-pattern', 'w-water'); }
+      else if (l.type === 'fill' && (src === 'water' || id === 'water')) map.setPaintProperty(id, 'fill-color', '#8DBCD8');
       else if (l.type === 'fill' && /park|landuse|landcover|national|pitch|grass/.test(id + src)) map.setPaintProperty(id, 'fill-color', '#C5D6AC');
       else if (l.type === 'fill' && src === 'building') map.setPaintProperty(id, 'fill-color', '#E4DED0');
       else if (l.type === 'line' && /road|bridge|tunnel|street/.test(id)) map.setPaintProperty(id, 'line-color', /case/.test(id) ? '#D3CDBF' : /pedestrian|path|steps/.test(id) ? '#D9D3C6' : '#A8A49B');
+      else if (l.type === 'symbol') {
+        // With the map tilted, names far from the centre pile up along the horizon; keep the near ones
+        const f = map.getFilter(id);
+        const near = ['case', ['<', ['pitch'], 35], true, ['<', ['distance-from-center'], 0.35]];
+        map.setFilter(id, f ? ['all', f, near] : near);
+      }
     } catch { /* a layer without this property */ }
   }
 }
@@ -140,6 +128,9 @@ export default function MiamiWorld() {
   const [loaded, setLoaded] = useState(false);
   // Night view: the same city after dark, with the new towers in their real colours
   const [night, setNight] = useState(false);
+  // Aerial imagery in place of the drawn base map. Same map, same camera: only the ground changes
+  const [sat, setSat] = useState(false);
+  const satHidden = useRef<string[]>([]);
   // Finished towers that have a profile page, and which stage of building the map is showing
   const [existing, setExisting] = useState<GeoJSON.FeatureCollection | null>(null);
   const [selB, setSelB] = useState<{ name: string; slug: string; floors?: number; yearBuilt?: number; heightM?: number; developer?: string } | null>(null);
@@ -487,7 +478,7 @@ export default function MiamiWorld() {
         const id = l.id, src = (l as any)['source-layer'] || '';
         if (id.startsWith('w-')) continue;
         if (l.type === 'background') set(id, 'background-color', '#1D2233');
-        else if (l.type === 'fill' && (src === 'water' || id === 'water')) { set(id, 'fill-pattern', undefined); set(id, 'fill-color', '#14234A'); }
+        else if (l.type === 'fill' && (src === 'water' || id === 'water')) set(id, 'fill-color', '#14234A');
         else if (l.type === 'fill' && /landuse|park|landcover|national/.test(id + src)) set(id, 'fill-color', '#232B3C');
         else if (l.type === 'fill') set(id, 'fill-color', '#222839');
         else if (l.type === 'line' && /road|bridge|tunnel|street/.test(id)) set(id, 'line-color', /case/.test(id) ? '#1A1F2E' : '#3D4666');
@@ -505,6 +496,31 @@ export default function MiamiWorld() {
       dayPaint.current = {};
     }
   }, [loaded, night]);
+
+  // Satellite: lay the aerial imagery down and take the drawn ground, water and street lines off it
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!loaded || !map) return;
+    if (sat) {
+      if (!map.getSource('w-sat')) map.addSource('w-sat', { type: 'raster', url: 'mapbox://mapbox.satellite', tileSize: 256 });
+      if (!map.getLayer('w-sat')) {
+        const layers = map.getStyle()?.layers || [];
+        const above = layers.find((l) => l.type !== 'background')?.id;
+        map.addLayer({ id: 'w-sat', type: 'raster', source: 'w-sat', paint: { 'raster-fade-duration': 0, 'raster-saturation': -0.08 } }, above);
+      }
+      map.setLayoutProperty('w-sat', 'visibility', 'visible');
+      const hidden: string[] = [];
+      for (const l of map.getStyle()?.layers || []) {
+        if (l.id.startsWith('w-') || l.id === 'city') continue;
+        if ((l.type === 'fill' || l.type === 'line') && (l.layout as any)?.visibility !== 'none') { map.setLayoutProperty(l.id, 'visibility', 'none'); hidden.push(l.id); }
+      }
+      satHidden.current = hidden;
+    } else {
+      if (map.getLayer('w-sat')) map.setLayoutProperty('w-sat', 'visibility', 'none');
+      for (const id of satHidden.current) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
+      satHidden.current = [];
+    }
+  }, [loaded, sat]);
 
   const compass = (b: number) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((b % 360) + 360) % 360) / 45) % 8];
 
@@ -535,6 +551,9 @@ export default function MiamiWorld() {
           <Source id="w-lots" type="geojson" data={lots}>
             <Layer id="w-lot-fill" type="fill" filter={lotFilter} paint={{ 'fill-color': ['case', ['==', ['get', 'id'], active || ''], '#E8563F', night ? '#00E5B4' : OFFPLAN] as any, 'fill-opacity': night ? 0.22 : 0.2 }} />
             <Layer id="w-lot-line" type="line" filter={lotFilter} paint={{ 'line-color': ['case', ['==', ['get', 'id'], active || ''], '#E8563F', night ? '#00E5B4' : OFFPLAN_LINE] as any, 'line-width': ['case', ['==', ['get', 'id'], active || ''], 3.5, 1.8] as any, 'line-dasharray': [2, 2] }} />
+            {/* The selected parcel, outlined on the ground: a white edge under coral so it reads on the map and on imagery */}
+            <Layer id="w-lot-sel-edge" type="line" filter={['==', ['get', 'id'], selected?.id || ''] as any} layout={{ 'line-join': 'round' }} paint={{ 'line-color': '#ffffff', 'line-width': 6, 'line-opacity': 0.9 }} />
+            <Layer id="w-lot-sel" type="line" filter={['==', ['get', 'id'], selected?.id || ''] as any} layout={{ 'line-join': 'round' }} paint={{ 'line-color': '#E8563F', 'line-width': 3 }} />
           </Source>
         )}
 
@@ -619,9 +638,14 @@ export default function MiamiWorld() {
               {AREAS.map((a, i) => <option key={a.name} value={i}>{a.name}</option>)}
             </select>
           </label>
-          <div role="group" aria-label="Map view" className="mt-3 flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
+          <div role="group" aria-label="Ground" className="mt-3 flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
+            {[[false, 'Map'], [true, 'Satellite']].map(([v, label]) => (
+              <button key={label as string} type="button" aria-pressed={sat === v} onClick={() => { setSat(v as boolean); if (v) setNight(false); }} className={`flex-1 rounded-md py-1.5 ${sat === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
+            ))}
+          </div>
+          <div role="group" aria-label="Time of day" className="mt-2 flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
             {[[false, 'Day'], [true, 'Night']].map(([v, label]) => (
-              <button key={label as string} type="button" aria-pressed={night === v} onClick={() => setNight(v as boolean)} className={`flex-1 rounded-md py-1.5 ${night === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
+              <button key={label as string} type="button" aria-pressed={night === v} onClick={() => { setNight(v as boolean); if (v) setSat(false); }} className={`flex-1 rounded-md py-1.5 ${night === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
             ))}
           </div>
           <div role="group" aria-label="Show" className="mt-2 grid grid-cols-2 gap-1 text-[11px] font-medium">
