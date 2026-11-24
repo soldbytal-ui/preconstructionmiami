@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { DEFAULT_OG } from '@/lib/seo';
 import Link from 'next/link';
 import DynamicWorld from '@/components/world/DynamicWorld';
+import ReactDOM from 'react-dom';
 
 export const metadata: Metadata = {
   title: { absolute: 'Miami 3D Map: Every New Condo Tower | PreConstructionMiami' },
@@ -25,6 +26,9 @@ const FAQ = [
 ];
 
 export default function Miami3DPage() {
+  // Open the connections the map needs before its code asks for them
+  (ReactDOM as any).preconnect?.('https://api.mapbox.com', { crossOrigin: 'anonymous' });
+  (ReactDOM as any).preconnect?.('https://events.mapbox.com', { crossOrigin: 'anonymous' });
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',

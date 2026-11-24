@@ -72,7 +72,7 @@ function sunHours(lat: number, lng: number, bearing: number, month: number): num
 }
 
 /** Sun and sky light for the whole scene. Buildings cast real shadows on the ground and on each other. */
-function applyLights(map: any, o: { az: number; alt: number; night: boolean }) {
+function applyLights(map: any, o: { az: number; alt: number; night: boolean; shadows?: boolean }) {
   const up = o.alt > 0 && !o.night;
   const low = Math.max(0, Math.min(1, o.alt / 18));
   const warm = up && low < 1 ? `rgb(255, ${Math.round(226 + 24 * low)}, ${Math.round(196 + 44 * low)})` : '#fff6e8';
@@ -85,7 +85,7 @@ function applyLights(map: any, o: { az: number; alt: number; night: boolean }) {
           color: o.night ? '#c9d2ff' : warm,
           intensity: o.night ? 0.25 : up ? 0.5 + 0.2 * low : 0.12,
           direction: [up ? o.az : 200, up ? Math.min(78, Math.max(18, 90 - o.alt)) : 40],
-          'cast-shadows': !o.night, 'shadow-intensity': up ? 0.5 : 0.15,
+          'cast-shadows': !o.night && !!o.shadows, 'shadow-intensity': up ? 0.5 : 0.15,
         },
       },
     ]);
@@ -131,6 +131,7 @@ export default function MiamiWorld() {
   const [night, setNight] = useState(false);
   // Aerial imagery in place of the drawn base map. Same map, same camera: only the ground changes
   const [sat, setSat] = useState(false);
+  const [fx, setFx] = useState(false);   // cast shadows, once the first view has been drawn
   const satHidden = useRef<string[]>([]);
   // Finished towers that have a profile page, and which stage of building the map is showing
   const [existing, setExisting] = useState<GeoJSON.FeatureCollection | null>(null);
@@ -187,13 +188,19 @@ export default function MiamiWorld() {
     return { type: 'FeatureCollection', features: feats };
   }, [data]);
 
+  // Set the scene up as soon as the map's style has arrived, not after every tile has been drawn. Doing it late meant
+  // the city was drawn once in the stock grey, then drawn again with our colours, buildings and labels.
+  const started = useRef(false);
   const onLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
-    if (!map) return;
+    if (!map || started.current || !(map as any).style?._loaded) return;
+    started.current = true;
     (window as any).__pcmWorld = map;
     setLoaded(true);
     map.setFog({ color: '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 } as any);
     applyLights(map, { az: 135, alt: 60, night: false });
+    // Shadows are the costly part of the scene: draw the city first, then switch them on. Phones go without
+    if (!isTouch) map.once('idle', () => setFx(true));
     paintScene(map);
     if (!map.getLayer('city')) {
       const labelId = (map.getStyle()?.layers || []).find((l: any) => l.type === 'symbol' && l.layout?.['text-field'])?.id;
@@ -498,13 +505,13 @@ export default function MiamiWorld() {
     const low = Math.max(0, Math.min(1, sun.alt / 18)); // 0 at the horizon, 1 once the sun is well up
     const mix = (a: number, b: number) => Math.round(a + (b - a) * low);
     const color = up ? `rgb(255, ${mix(236, 255)}, ${mix(214, 255)})` : '#aebbd8';
-    applyLights(map, { az: sun.az, alt: sun.alt, night: false });
+    applyLights(map, { az: sun.az, alt: sun.alt, night: false, shadows: fx });
     map.setFog(
       (up
         ? { color: low < 1 ? `rgb(${mix(243, 230)}, ${mix(214, 237)}, ${mix(190, 242)})` : '#e6edf2', 'high-color': '#bcd3e6', 'horizon-blend': 0.08, 'space-color': '#dce8f2', 'star-intensity': 0 }
         : { color: '#3a4763', 'high-color': '#1f2a44', 'horizon-blend': 0.1, 'space-color': '#141c30', 'star-intensity': 0.4 }) as any
     );
-  }, [loaded, sun, night]);
+  }, [loaded, sun, night, fx]);
 
   // Repaint the base map for night and put the day colours back afterwards
   useEffect(() => {
@@ -576,7 +583,9 @@ export default function MiamiWorld() {
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/mapbox/light-v11"
         antialias={!isTouch}
+        projection="mercator"
         onLoad={onLoad}
+        onStyleData={onLoad}
         onClick={onClick}
         onMouseMove={(e) => setHovered(view ? null : pick(e)?.id || (e.features?.[0]?.layer?.id?.startsWith('w-ex') ? 'existing' : null))}
         onMouseLeave={() => setHovered(null)}

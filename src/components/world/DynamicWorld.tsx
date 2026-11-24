@@ -1,6 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { loadBuildings } from '@/components/map/mapShared';
+
+// Ask for the towers straight away, while the map code is still downloading, so the two arrive together
+if (typeof window !== 'undefined') loadBuildings();
 
 const MiamiWorld = dynamic(() => import('./MiamiWorld'), {
   ssr: false,
