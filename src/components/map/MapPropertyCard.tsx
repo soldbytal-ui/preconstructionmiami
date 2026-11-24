@@ -35,8 +35,10 @@ type Props = {
 
 export default function MapPropertyCard({ project: p, onClose }: Props) {
   return (
-    <div className="absolute top-0 right-0 h-full w-full sm:w-[400px] z-30 flex items-start justify-end p-4 pointer-events-none">
-      <div className="glass-panel rounded-2xl w-full max-h-[calc(100vh-120px)] overflow-y-auto pointer-events-auto mt-16">
+    // The card is sized to the map it sits on, not the window: details scroll, and the two buttons stay in view at the bottom
+    <div className="absolute inset-y-0 right-0 w-full sm:w-[380px] z-30 flex items-start justify-end p-3 pointer-events-none">
+      <div className="glass-panel rounded-2xl w-full max-h-full flex flex-col overflow-hidden pointer-events-auto relative">
+        <div className="flex-1 min-h-0 overflow-y-auto">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -48,7 +50,7 @@ export default function MapPropertyCard({ project: p, onClose }: Props) {
         </button>
 
         {/* Image placeholder */}
-        <div className="h-48 bg-gradient-to-br from-surface2 to-surface flex items-center justify-center relative">
+        <div className="h-36 shrink-0 bg-gradient-to-br from-surface2 to-surface flex items-center justify-center relative">
           <SafeImage src={thumbUrl(p.mainImageUrl)} alt={p.name} fallbackLabel={p.name} className="w-full h-full object-cover" />
           <div className="absolute bottom-3 left-3">
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLORS[p.status] || 'bg-accent-gray/20 text-accent-gray'}`}>
@@ -58,7 +60,7 @@ export default function MapPropertyCard({ project: p, onClose }: Props) {
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-4">
+        <div className="p-4 space-y-3">
           {/* Header */}
           <div>
             <h3 className="text-lg font-semibold text-text-primary leading-tight">{p.name}</h3>
@@ -71,26 +73,26 @@ export default function MapPropertyCard({ project: p, onClose }: Props) {
           </div>
 
           {/* Stats grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-surface2 rounded-xl p-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-surface2 rounded-xl px-3 py-2">
               <div className="text-[10px] uppercase tracking-wider text-text-muted">Price From</div>
               <div className="text-accent-green font-mono font-medium mt-0.5">
                 {formatPrice(p.priceMin)}
               </div>
             </div>
-            <div className="bg-surface2 rounded-xl p-3">
+            <div className="bg-surface2 rounded-xl px-3 py-2">
               <div className="text-[10px] uppercase tracking-wider text-text-muted">Floors</div>
               <div className="text-text-primary font-mono font-medium mt-0.5">
                 {p.floors || 'TBD'}
               </div>
             </div>
-            <div className="bg-surface2 rounded-xl p-3">
+            <div className="bg-surface2 rounded-xl px-3 py-2">
               <div className="text-[10px] uppercase tracking-wider text-text-muted">Units</div>
               <div className="text-text-primary font-mono font-medium mt-0.5">
                 {p.totalUnits || 'TBD'}
               </div>
             </div>
-            <div className="bg-surface2 rounded-xl p-3">
+            <div className="bg-surface2 rounded-xl px-3 py-2">
               <div className="text-[10px] uppercase tracking-wider text-text-muted">Completion</div>
               <div className="text-text-primary font-mono font-medium mt-0.5">
                 {p.estCompletion || 'TBD'}
@@ -110,13 +112,16 @@ export default function MapPropertyCard({ project: p, onClose }: Props) {
 
           {/* Description */}
           {p.description && (
-            <p className="text-sm text-text-muted leading-relaxed line-clamp-3">
+            <p className="text-sm text-text-muted leading-relaxed line-clamp-2">
               {p.description}
             </p>
           )}
 
-          {/* CTA */}
-          <FollowButton projectId={p.id} projectName={p.name} source="map" className="w-full" />
+        </div>
+        </div>
+
+        {/* Buttons: always visible */}
+        <div className="shrink-0 border-t border-border p-3 space-y-2">
           <Link
             href={`/properties/${p.slug}`}
             className="btn-primary w-full text-sm"
@@ -126,6 +131,7 @@ export default function MapPropertyCard({ project: p, onClose }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
           </Link>
+          <FollowButton projectId={p.id} projectName={p.name} source="map" className="w-full" />
         </div>
       </div>
     </div>
