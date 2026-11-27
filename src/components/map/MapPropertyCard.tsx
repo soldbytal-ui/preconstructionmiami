@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import type { MapProject } from './mapShared';
 import SafeImage from '@/components/ui/SafeImage';
 import { thumbUrl } from '@/lib/utils';
@@ -34,6 +35,8 @@ type Props = {
 };
 
 export default function MapPropertyCard({ project: p, onClose }: Props) {
+  // Tell the page a card is open, so the chat button gets out of the way of its buttons
+  useEffect(() => { document.body.dataset.mapcard = '1'; return () => { delete document.body.dataset.mapcard; }; }, []);
   return (
     // The card is sized to the map it sits on, not the window: details scroll, and the two buttons stay in view at the bottom
     <div className="absolute inset-y-0 right-0 w-full sm:w-[380px] z-30 flex items-start justify-end p-3 pointer-events-none">

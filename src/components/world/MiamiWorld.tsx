@@ -17,7 +17,11 @@ const OFFPLAN = '#00A886';
 const OFFPLAN_LINE = '#007F66';
 const OFFPLAN_SOFT = '#62CDB6';
 
-const AREAS: { name: string; center: [number, number]; zoom: number; bearing: number }[] = [
+// The first entry is the opening view: from over Biscayne Bay looking at the mouth of the Miami River,
+// Brickell on the left, Downtown on the right, Brickell Key in front. Close enough to tell towers apart.
+const AREAS: { name: string; center: [number, number]; zoom: number; bearing: number; pitch?: number; phoneZoom?: number }[] = [
+  { name: 'Brickell & Downtown, from the bay', center: [-80.1905, 25.7702], zoom: 15.02, bearing: -82, pitch: 62, phoneZoom: 15.0 },
+  { name: 'All of Miami', center: [-80.1870, 25.7830], zoom: 12.4, bearing: -30, pitch: 48, phoneZoom: 11.6 },
   { name: 'Downtown Miami', center: [-80.1895, 25.7765], zoom: 15.2, bearing: -30 },
   { name: 'Brickell', center: [-80.1925, 25.7635], zoom: 15.2, bearing: -20 },
   { name: 'Edgewater', center: [-80.1885, 25.7985], zoom: 15, bearing: -70 },
@@ -123,6 +127,11 @@ export default function MiamiWorld() {
   const [mix, setMix] = useState<{ water: number; existing: number; future: number; open: number } | null>(null);
   const drag = useRef<{ x: number; y: number; bearing: number; pitch: number } | null>(null);
   const [area, setArea] = useState(0);
+  // A phone-width screen gets a one-line panel; the rest opens on request
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 640;
+  const [more, setMore] = useState(false);       // phone: the rest of the panel
+  const [sunOpen, setSunOpen] = useState(false); // sun study, tucked away until wanted
+  const [q, setQ] = useState('');
   // Time of day for the sun: Miami clock hour, and June (5) or December (11)
   const [sunHour, setSunHour] = useState(13);
   const [sunMonth, setSunMonth] = useState(5);
@@ -430,7 +439,27 @@ export default function MiamiWorld() {
     setArea(i);
     setView(null);
     const a = AREAS[i];
-    mapRef.current?.getMap().flyTo({ center: a.center, zoom: a.zoom, bearing: a.bearing, pitch: 60, duration: 2200 });
+    mapRef.current?.getMap().flyTo({ center: a.center, zoom: narrow && a.phoneZoom ? a.phoneZoom : a.zoom, bearing: a.bearing, pitch: a.pitch ?? 60, duration: 2200 });
+  };
+
+  useEffect(() => {
+    if (selected || selB) document.body.dataset.mapcard = '1'; else delete document.body.dataset.mapcard;
+    return () => { delete document.body.dataset.mapcard; };
+  }, [selected, selB]);
+
+  // Search: an area name jumps there, a project name selects that tower
+  const names = useMemo(() => (data ? Object.values(data.projects).map((p) => p.name).sort() : []), [data]);
+  const search = (text: string) => {
+    setQ(text);
+    const t = text.trim().toLowerCase();
+    if (t.length < 3) return;
+    const ai = AREAS.findIndex((a) => a.name.toLowerCase() === t);
+    if (ai >= 0) { goArea(ai); setQ(''); return; }
+    const p = data && Object.values(data.projects).find((x) => x.name.toLowerCase() === t);
+    if (p && p.latitude && p.longitude) {
+      setView(null); setSelB(null); setSelected(p); setStage('all'); setQ(''); setMore(false);
+      mapRef.current?.getMap().flyTo({ center: [p.longitude, p.latitude], zoom: 16, pitch: 62, duration: 1800 });
+    }
   };
 
   const active = selected?.id || hovered;
@@ -576,10 +605,10 @@ export default function MiamiWorld() {
   const compass = (b: number) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round((((b % 360) + 360) % 360) / 45) % 8];
 
   return (
-    <div className={`absolute inset-0 text-[#1c2530] ${night ? 'bg-[#1D2233]' : 'bg-[#e9eef2]'}`}>
+    <div className={`w-world absolute inset-0 text-[#1c2530] ${night ? 'bg-[#1D2233]' : 'bg-[#e9eef2]'}`}>
       <Map
         ref={mapRef}
-        initialViewState={{ longitude: AREAS[0].center[0], latitude: AREAS[0].center[1], zoom: isTouch ? 14.4 : AREAS[0].zoom, pitch: 60, bearing: AREAS[0].bearing }}
+        initialViewState={{ longitude: AREAS[0].center[0], latitude: AREAS[0].center[1], zoom: narrow ? AREAS[0].phoneZoom! : AREAS[0].zoom, pitch: AREAS[0].pitch, bearing: AREAS[0].bearing }}
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/mapbox/light-v11"
         antialias={!isTouch}
@@ -682,60 +711,73 @@ export default function MiamiWorld() {
         )}
       </Map>
 
-      {/* Area picker and legend */}
+      {/* Controls: search, ground, status. Sun study and the legend open on request. On a phone it is one line. */}
       {!view && (
-        <div className="absolute top-4 left-4 z-10 w-[230px] rounded-2xl bg-white/95 backdrop-blur shadow-lg border border-black/5 p-4">
-          <p className="text-[10px] font-semibold tracking-[0.14em] text-[#00896E] uppercase">Miami · 3D map</p>
-          <label className="block mt-2 text-xs text-[#5b6770]">
-            Jump to
-            <select value={area} onChange={(e) => goArea(Number(e.target.value))} className="mt-1 w-full rounded-lg border border-black/10 bg-white px-2.5 py-2 text-sm text-[#1c2530]">
+        <div className="absolute top-3 left-3 z-10 w-[calc(100%-1.5rem)] sm:w-[236px] rounded-2xl bg-white/95 backdrop-blur shadow-lg border border-black/5 p-2.5 sm:p-3.5">
+          <div className="flex items-center gap-2">
+            <input
+              type="search" list="w-search" value={q} onChange={(e) => search(e.target.value)}
+              placeholder="Search a project or area" aria-label="Search a project or area"
+              className="min-w-0 flex-1 rounded-lg border border-black/10 bg-white px-2.5 py-2 text-sm text-[#1c2530] placeholder:text-[#8a96a0]"
+            />
+            <datalist id="w-search">
+              {AREAS.map((a) => <option key={a.name} value={a.name} />)}
+              {names.map((n) => <option key={n} value={n} />)}
+            </datalist>
+            <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more} aria-label="Map options" className="sm:hidden shrink-0 rounded-lg border border-black/10 px-3 py-2 text-xs font-medium text-[#1c2530]">{more ? 'Close' : 'Options'}</button>
+          </div>
+          <div className={`${more ? 'block' : 'hidden'} sm:block`}>
+            <select value={area} onChange={(e) => { goArea(Number(e.target.value)); setMore(false); }} aria-label="Jump to an area" className="mt-2 w-full rounded-lg border border-black/10 bg-white px-2.5 py-2 text-sm text-[#1c2530]">
               {AREAS.map((a, i) => <option key={a.name} value={i}>{a.name}</option>)}
             </select>
-          </label>
-          <div role="group" aria-label="Ground" className="mt-3 flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
-            {[[false, 'Map'], [true, 'Satellite']].map(([v, label]) => (
-              <button key={label as string} type="button" aria-pressed={sat === v} onClick={() => { setSat(v as boolean); if (v) setNight(false); }} className={`flex-1 rounded-md py-1.5 ${sat === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
-            ))}
-          </div>
-          <div role="group" aria-label="Time of day" className="mt-2 flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
-            {[[false, 'Day'], [true, 'Night']].map(([v, label]) => (
-              <button key={label as string} type="button" aria-pressed={night === v} onClick={() => { setNight(v as boolean); if (v) setSat(false); }} className={`flex-1 rounded-md py-1.5 ${night === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
-            ))}
-          </div>
-          <div role="group" aria-label="Show" className="mt-2 grid grid-cols-2 gap-1 text-[11px] font-medium">
-            {([['all', 'All'], ['planned', 'Planned'], ['building', 'Being built'], ['done', 'Completed']] as const).map(([v, label]) => (
-              <button key={v} type="button" aria-pressed={stage === v} onClick={() => { setStage(v); setSelected(null); setSelB(null); }} className={`rounded-md border py-1.5 ${stage === v ? 'border-[#1c2530] bg-[#1c2530] text-white' : 'border-black/10 text-[#3d4852]'}`}>{label}</button>
-            ))}
-          </div>
-          <ul className="mt-3 space-y-1.5 text-xs text-[#3d4852]">
-            <li className="flex items-center gap-2"><span className={`w-3 h-3 rounded-sm border border-black/15 ${night ? 'bg-[#353D57]' : 'bg-[#f1f3f5]'}`} /> Existing buildings</li>
-            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-[1.5px] border-[#4A515B] bg-[#6F7782]/25" /> Finished tower with a profile</li>
-            <li className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm" style={{ background: 'linear-gradient(135deg,#8aa3b3,#cfc6b8)', outline: `2px dashed ${OFFPLAN_LINE}`, outlineOffset: 1 }} /> New projects, in their real colours, on a green lot</li>
-          </ul>
-          <div className={`mt-3 pt-3 border-t border-black/5 ${night ? 'hidden' : ''}`}>
-            <div className="flex items-center justify-between text-xs text-[#3d4852]">
-              <span className="font-medium">Sun</span>
-              <span>{`${Math.floor(sunHour)}:${sunHour % 1 ? '30' : '00'}`} · {sun.alt > 0 ? `${compass(sun.az)} sky, ${Math.round(sun.alt)}° up` : 'below the horizon'}</span>
-            </div>
-            <input
-              type="range" min={5} max={21} step={0.5} value={sunHour}
-              onChange={(e) => setSunHour(Number(e.target.value))}
-              aria-label="Time of day"
-              className="mt-1.5 w-full accent-[#0f9d7a]"
-            />
-            <div className="mt-1.5 flex gap-1.5">
-              {[[5, 'June'], [11, 'December']].map(([m, label]) => (
-                <button key={label as string} onClick={() => setSunMonth(m as number)} className={`flex-1 rounded-md px-2 py-1 text-[11px] border ${sunMonth === m ? 'bg-[#1c2530] text-white border-[#1c2530]' : 'bg-white text-[#3d4852] border-black/10'}`}>{label}</button>
+            <div role="group" aria-label="Ground" className="mt-2 flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
+              {[[false, 'Map'], [true, 'Satellite']].map(([v, label]) => (
+                <button key={label as string} type="button" aria-pressed={sat === v} onClick={() => { setSat(v as boolean); if (v) setNight(false); }} className={`flex-1 rounded-md py-1.5 ${sat === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
               ))}
             </div>
+            <div role="group" aria-label="Show" className="mt-2 grid grid-cols-4 sm:grid-cols-2 gap-1 text-[11px] font-medium">
+              {([['all', 'All'], ['planned', 'Planned'], ['building', 'Being built'], ['done', 'Completed']] as const).map(([v, label]) => (
+                <button key={v} type="button" aria-pressed={stage === v} onClick={() => { setStage(v); setSelected(null); setSelB(null); }} className={`rounded-md border py-1.5 ${stage === v ? 'border-[#1c2530] bg-[#1c2530] text-white' : 'border-black/10 text-[#3d4852]'}`}>{label}</button>
+              ))}
+            </div>
+            <button type="button" onClick={() => setSunOpen((v) => !v)} aria-expanded={sunOpen} className="mt-2 flex w-full items-center justify-between rounded-lg border border-black/10 px-2.5 py-1.5 text-xs font-medium text-[#1c2530]">
+              <span>Sun study</span>
+              <span className="text-[#5b6770] font-normal">{night ? 'Night' : `${Math.floor(sunHour)}:${sunHour % 1 ? '30' : '00'}, ${sunMonth === 5 ? 'June' : 'December'}`}</span>
+            </button>
+            {sunOpen && (
+              <div className="mt-2">
+                <div role="group" aria-label="Time of day" className="flex rounded-lg border border-black/10 p-0.5 text-xs font-medium">
+                  {[[false, 'Day'], [true, 'Night']].map(([v, label]) => (
+                    <button key={label as string} type="button" aria-pressed={night === v} onClick={() => { setNight(v as boolean); if (v) setSat(false); }} className={`flex-1 rounded-md py-1.5 ${night === v ? 'bg-[#1c2530] text-white' : 'text-[#3d4852]'}`}>{label}</button>
+                  ))}
+                </div>
+                <div className={`mt-2 ${night ? 'hidden' : ''}`}>
+                  <p className="text-[11px] text-[#3d4852]">{sun.alt > 0 ? `Sun in the ${compass(sun.az)} sky, ${Math.round(sun.alt)}° up` : 'Sun below the horizon'}</p>
+                  <input
+                    type="range" min={5} max={21} step={0.5} value={sunHour}
+                    onChange={(e) => setSunHour(Number(e.target.value))}
+                    aria-label="Hour of the day"
+                    className="mt-1 w-full accent-[#0f9d7a]"
+                  />
+                  <div className="mt-1 flex gap-1.5">
+                    {[[5, 'June'], [11, 'December']].map(([m, label]) => (
+                      <button key={label as string} onClick={() => setSunMonth(m as number)} className={`flex-1 rounded-md px-2 py-1 text-[11px] border ${sunMonth === m ? 'bg-[#1c2530] text-white border-[#1c2530]' : 'bg-white text-[#3d4852] border-black/10'}`}>{label}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <ul className="mt-2.5 space-y-1 text-[11px] text-[#3d4852]">
+              <li className="flex items-center gap-2"><span className="w-3 h-3 shrink-0 rounded-sm" style={{ background: 'linear-gradient(135deg,#8aa3b3,#cfc6b8)', outline: `2px dashed ${OFFPLAN_LINE}`, outlineOffset: 1 }} /> New project, click for details</li>
+              <li className="flex items-center gap-2"><span className="w-3 h-3 shrink-0 rounded-full border-[1.5px] border-[#4A515B] bg-[#6F7782]/25" /> Finished tower with a profile</li>
+            </ul>
           </div>
-          <p className="mt-3 text-[11px] text-[#7a8791] leading-snug">Click a tower on a green lot for details and the view from any floor.</p>
         </div>
       )}
 
       {/* Existing building card */}
       {selB && !selected && !view && (
-        <div className="absolute top-4 right-4 z-10 w-[min(320px,calc(100%-2rem))] rounded-2xl bg-white shadow-xl border border-black/5 p-4">
+        <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:left-auto sm:top-4 sm:right-4 z-10 sm:w-[320px] rounded-2xl bg-white shadow-xl border border-black/5 p-4">
           <button onClick={() => setSelB(null)} aria-label="Close" className="absolute top-2 right-2 w-8 h-8 rounded-full bg-[#f4f6f8] text-[#1c2530] text-lg leading-none">×</button>
           <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF0F2] text-[#4A515B]">Completed</span>
           <h2 className="text-lg font-semibold mt-1.5 leading-tight pr-8">{selB.name}</h2>
@@ -754,15 +796,15 @@ export default function MiamiWorld() {
 
       {/* Project card */}
       {selected && !view && (
-        <div className="absolute top-4 right-4 z-10 w-[min(340px,calc(100%-2rem))] rounded-2xl bg-white shadow-xl border border-black/5 overflow-hidden">
-          <div className="relative h-36 bg-[#dfe6ea]">
+        <div className="absolute bottom-3 left-3 right-3 max-h-[58%] flex flex-col sm:block sm:max-h-none sm:bottom-auto sm:left-auto sm:top-4 sm:right-4 z-10 sm:w-[340px] rounded-2xl bg-white shadow-xl border border-black/5 overflow-hidden">
+          <div className="relative h-24 sm:h-36 shrink-0 bg-[#dfe6ea]">
             {selected.mainImageUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={thumbUrl(selected.mainImageUrl) || ''} alt={`${selected.name} rendering`} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             )}
             <button onClick={() => setSelected(null)} aria-label="Close" className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 text-[#1c2530] text-lg leading-none">×</button>
           </div>
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-3 min-h-0 overflow-y-auto sm:overflow-visible">
             <div>
               <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#E3F7F2] text-[#00755E]">{STATUS_LABELS[selected.status] || selected.status}</span>
               <h2 className="text-lg font-semibold mt-1.5 leading-tight">{selected.name}</h2>

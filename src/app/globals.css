@@ -150,3 +150,9 @@
 .article-table td { padding: 0.75rem 0.85rem; border-top: 1px solid var(--border, #d9dee5); vertical-align: top; }
 .article-table tbody tr:first-child td { border-top: 0; }
 .article-table td:first-child { font-weight: 600; }
+
+/* The chat button steps aside while a listing card is open on a map, so it never sits on the card's buttons */
+body[data-mapcard] .chat-launcher { opacity: 0; pointer-events: none; }
+.chat-launcher { transition: opacity 0.2s; }
+/* On the 3D map the zoom buttons sit above the chat button instead of under it */
+.w-world .mapboxgl-ctrl-bottom-right { bottom: 84px; }
