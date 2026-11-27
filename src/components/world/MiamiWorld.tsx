@@ -832,6 +832,9 @@ export default function MiamiWorld() {
               <button onClick={closer} className="rounded-xl border border-black/10 py-2.5 text-sm font-medium hover:bg-[#f4f6f8]">Closer look</button>
               <button onClick={() => setView({ bearing: 90 })} className="rounded-xl border border-black/10 py-2.5 text-sm font-medium hover:bg-[#f4f6f8]">See the view</button>
             </div>
+          </div>
+          {/* Always in view, also when the details above scroll on a phone */}
+          <div className="shrink-0 px-4 pb-4 pt-2 sm:pt-0">
             <Link href={`/properties/${selected.slug}`} className="block text-center rounded-xl py-2.5 text-sm font-semibold text-white" style={{ background: OFFPLAN }}>
               See full details →
             </Link>
