@@ -582,12 +582,21 @@ export default function MiamiWorld() {
     const map = mapRef.current?.getMap();
     if (!loaded || !map) return;
     if (sat) {
-      if (!map.getSource('w-sat')) map.addSource('w-sat', { type: 'raster', url: 'mapbox://mapbox.satellite', tileSize: 256 });
+      // Two copies of the photo. The base uses large tiles: a quarter of the downloads, so it is on screen almost at once
+      // and stays in memory as you move. On sharp screens a finer copy is drawn over it. While the fine tiles for a new
+      // view are still arriving you see the base, slightly soft, instead of a far-away blurry stand-in.
+      const tiles = [`https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.webp?access_token=${MAPBOX_TOKEN}`];
+      const fine = !isTouch && window.devicePixelRatio >= 1.5;
+      if (!map.getSource('w-sat')) map.addSource('w-sat', { type: 'raster', tileSize: 512, maxzoom: 19, tiles, attribution: '© Mapbox © Maxar' });
+      if (fine && !map.getSource('w-sat-fine')) map.addSource('w-sat-fine', { type: 'raster', tileSize: 256, maxzoom: 19, tiles });
       if (!map.getLayer('w-sat')) {
         const layers = map.getStyle()?.layers || [];
         const above = layers.find((l) => l.type !== 'background')?.id;
-        map.addLayer({ id: 'w-sat', type: 'raster', source: 'w-sat', paint: { 'raster-fade-duration': 0, 'raster-saturation': -0.08 } }, above);
+        const paint = { 'raster-fade-duration': 0, 'raster-saturation': -0.08 };
+        map.addLayer({ id: 'w-sat', type: 'raster', source: 'w-sat', paint }, above);
+        if (fine) map.addLayer({ id: 'w-sat-fine', type: 'raster', source: 'w-sat-fine', paint: { ...paint, 'raster-fade-duration': 150 } }, above);
       }
+      if (map.getLayer('w-sat-fine')) map.setLayoutProperty('w-sat-fine', 'visibility', 'visible');
       map.setLayoutProperty('w-sat', 'visibility', 'visible');
       const hidden: string[] = [];
       for (const l of map.getStyle()?.layers || []) {
@@ -596,7 +605,7 @@ export default function MiamiWorld() {
       }
       satHidden.current = hidden;
     } else {
-      if (map.getLayer('w-sat')) map.setLayoutProperty('w-sat', 'visibility', 'none');
+      for (const id of ['w-sat', 'w-sat-fine']) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
       for (const id of satHidden.current) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
       satHidden.current = [];
     }
@@ -613,6 +622,7 @@ export default function MiamiWorld() {
         mapStyle="mapbox://styles/mapbox/light-v11"
         antialias={!isTouch}
         projection="mercator"
+        maxTileCacheSize={isTouch ? 150 : 400}
         onLoad={onLoad}
         onStyleData={onLoad}
         onClick={onClick}
