@@ -1,0 +1,19 @@
+{
+  "note": "Invented listings in the feed's own field names, for tests. No real units, agents or brokerages.",
+  "buildings": [
+    { "id": "b-north", "slug": "harbour-point-north", "name": "Harbour Point North Tower", "address": "100 Example Bay Dr, Miami, FL", "addressAliases": [], "latitude": 25.7600, "longitude": -80.1900 },
+    { "id": "b-south", "slug": "harbour-point-south", "name": "Harbour Point South Tower", "address": "100 Example Bay Dr, Miami, FL", "addressAliases": [], "latitude": 25.7596, "longitude": -80.1900 },
+    { "id": "b-palm", "slug": "palmetto-house", "name": "Palmetto House", "address": "2450 SW 3rd Avenue, Miami, FL", "addressAliases": ["2460 SW 3 Ave"], "latitude": 25.7500, "longitude": -80.2000 },
+    { "id": "b-lone", "slug": "the-lantern", "name": "The Lantern", "address": null, "addressAliases": [], "latitude": 25.7800, "longitude": -80.1880 }
+  ],
+  "value": [
+    { "ListingKey": "k1", "ListingId": "A0000001", "StandardStatus": "Active", "PropertyType": "Residential", "PropertySubType": "Condominium", "ListPrice": 850000, "StreetNumber": "2450", "StreetDirPrefix": "SW", "StreetName": "3rd", "StreetSuffix": "Ave", "UnitNumber": "1204", "City": "Miami", "PostalCode": "33129-1234", "Latitude": 25.75001, "Longitude": -80.20001, "BedroomsTotal": 2, "BathroomsTotalInteger": 2, "LivingArea": 1180, "ListOfficeName": "Sample Realty Group", "ListAgentFullName": "Sample Agent", "ModificationTimestamp": "2026-11-20T15:00:00Z", "Media": [{ "MediaURL": "https://example.com/b.jpg", "Order": 2 }, { "MediaURL": "https://example.com/a.jpg", "Order": 1 }] },
+    { "ListingKey": "k2", "ListingId": "A0000002", "StandardStatus": "Closed", "PropertyType": "Residential", "PropertySubType": "Condominium", "ListPrice": 640000, "ClosePrice": 615000, "CloseDate": "2026-09-14", "UnparsedAddress": "2460 SW 3 AVE #805, Miami, FL 33129", "BedroomsTotal": 1, "BathroomsTotalInteger": 1, "LivingArea": 820, "ListOfficeName": "Sample Realty Group" },
+    { "ListingKey": "k3", "ListingId": "A0000003", "StandardStatus": "Active", "PropertyType": "Residential Lease", "PropertySubType": "Condominium", "ListPrice": 4200, "UnparsedAddress": "100 Example Bay Drive Unit 3301, Miami, FL", "BuildingName": "HARBOUR POINT NORTH TOWER CONDO", "BedroomsTotal": 0, "BathroomsTotalInteger": 1, "LivingArea": 560, "ListOfficeName": "Example Brokers" },
+    { "ListingKey": "k4", "ListingId": "A0000004", "StandardStatus": "Active", "PropertyType": "Residential", "PropertySubType": "Condominium", "ListPrice": 990000, "UnparsedAddress": "100 Example Bay Dr #1502", "ListOfficeName": "Example Brokers" },
+    { "ListingKey": "k5", "ListingId": "A0000005", "StandardStatus": "Closed", "PropertyType": "Residential Lease", "PropertySubType": "Condominium", "ListPrice": 5100, "ClosePrice": 5000, "CloseDate": "2026-10-01", "UnparsedAddress": "999 Unknown St #4", "Latitude": 25.78003, "Longitude": -80.18802, "ListOfficeName": "Example Brokers" },
+    { "ListingKey": "k6", "ListingId": "A0000006", "StandardStatus": "Expired", "PropertyType": "Residential", "PropertySubType": "Condominium", "ListPrice": 700000, "UnparsedAddress": "2450 SW 3rd Ave #301" },
+    { "ListingKey": "k7", "ListingId": "A0000007", "StandardStatus": "Active", "PropertyType": "Residential", "PropertySubType": "Condominium", "ListPrice": 1200000, "UnparsedAddress": "2450 SW 3rd Ave #PH2", "InternetAddressDisplayYN": false },
+    { "ListingKey": "k8", "ListingId": "A0000008", "StandardStatus": "Active", "PropertyType": "Residential", "PropertySubType": "Condominium", "ListPrice": 450000, "UnparsedAddress": "77 Nowhere Ct #2", "PostalCode": "33130", "ListOfficeName": "Example Brokers" }
+  ]
+}

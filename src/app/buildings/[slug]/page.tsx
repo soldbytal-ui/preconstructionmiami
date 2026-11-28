@@ -10,6 +10,9 @@ import { DEFAULT_OG, generateBreadcrumbSchema, generateFAQSchema, fitDesc, pickT
 import { BUILDING_COLUMNS, feet, type Building } from '@/lib/buildings';
 import InquiryForm from '@/components/projects/InquiryForm';
 import ProjectCard from '@/components/projects/ProjectCard';
+import BuildingListings from '@/components/buildings/BuildingListings';
+import { listingsForBuilding, summarize } from '@/lib/idx/store';
+import { IDX_DISCLAIMER } from '@/lib/idx/compliance';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -47,6 +50,8 @@ export default async function BuildingPage({ params }: Props) {
   const { b, error } = await load(slug);
   throwIfOutage(error);
   if (!b) notFound();
+  const listings = await listingsForBuilding(b.id);
+  const idx = summarize(listings.byBucket);
   const area = b.neighborhood?.name || 'Miami';
   const url = `https://preconstructionmiami.net/buildings/${b.slug}`;
   const text = sentences(b);
@@ -131,7 +136,11 @@ export default async function BuildingPage({ params }: Props) {
             </div>
           </section>
 
-          {b.tenure !== 'rental' && (
+          {idx.forSale + idx.forLease + idx.sold + idx.leased > 0 && (
+            <BuildingListings name={b.name} byBucket={listings.byBucket} updatedAt={listings.updatedAt} disclaimer={IDX_DISCLAIMER} />
+          )}
+
+          {b.tenure !== 'rental' && idx.forSale + idx.forLease + idx.sold + idx.leased === 0 && (
             <section className="rounded-2xl border border-border bg-surface p-6">
               <h2 className="text-xl font-semibold text-text-primary">Units for sale in {b.name}</h2>
               <p className="mt-2 text-text-muted">We do not show live resale listings yet. Send the form and a licensed local agent will reply with the units currently for sale or rent in this building.</p>
