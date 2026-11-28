@@ -1,0 +1,1253 @@
+[
+ {
+  "slug": "oceania-iii",
+  "name": "Oceania III",
+  "registryName": "OCEANIA III, A CONDO",
+  "folio": "3122140080310",
+  "zip": "33160",
+  "countyHeightFt": 295,
+  "address": "16485 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "hamptons-south",
+  "name": "Hamptons South",
+  "registryName": "HAMPTONS SOUTH CONDO",
+  "folio": "2812350190040",
+  "zip": "33180",
+  "countyHeightFt": 288,
+  "address": "20201 E Country Club Dr, Aventura, FL"
+ },
+ {
+  "slug": "flamenco-tower",
+  "name": "Flamenco Tower",
+  "registryName": "FLAMENCO TOWER CONDO",
+  "folio": "2812350180001",
+  "zip": "33180",
+  "countyHeightFt": 218,
+  "address": "3701 N Country Club Dr, Aventura, FL"
+ },
+ {
+  "slug": "one-island-place-i",
+  "name": "One Island Place I",
+  "registryName": "ONE ISLAND PLACE CONDO I",
+  "folio": "2812350520010",
+  "zip": "33180",
+  "countyHeightFt": 310,
+  "address": "3801 NE 207th St, Aventura, FL"
+ },
+ {
+  "slug": "bonavida",
+  "name": "Bonavida",
+  "registryName": "BONAVIDA (AVENTURA)",
+  "folio": "2812340460001",
+  "zip": "33180",
+  "countyHeightFt": 181,
+  "address": "20100 W Country Club Dr, Aventura, FL"
+ },
+ {
+  "slug": "oceanside-plaza",
+  "name": "Oceanside Plaza",
+  "registryName": "OCEANSIDE PLAZA CONDO",
+  "folio": "0232140100001",
+  "zip": "33140",
+  "countyHeightFt": 175,
+  "address": "5555 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "portugal-towers",
+  "name": "Portugal Towers",
+  "registryName": "PORTUGAL TOWERS",
+  "folio": "0232260200001",
+  "zip": "33140",
+  "countyHeightFt": 143,
+  "address": "3200 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "kenilworth",
+  "name": "Kenilworth",
+  "registryName": "KENILWORTH",
+  "folio": "1222260220001",
+  "zip": "33154",
+  "countyHeightFt": 195,
+  "address": "10205 Collins Ave, Bal Harbour, FL"
+ },
+ {
+  "slug": "winston-towers-700",
+  "name": "Winston Towers 700",
+  "registryName": "WINSTON TOWERS 700 CONDO",
+  "folio": "3122110240001",
+  "zip": "33160",
+  "countyHeightFt": 216,
+  "address": "290 174th St, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "venetian-isle",
+  "name": "Venetian Isle",
+  "registryName": "VENETIAN ISLE CONDO",
+  "folio": "0132310440001",
+  "zip": "33139",
+  "countyHeightFt": 138,
+  "address": "801 N Venetian Dr, Miami, FL"
+ },
+ {
+  "slug": "brickell-bay-club",
+  "name": "Brickell Bay Club",
+  "registryName": "BRICKELL BAY CLUB",
+  "folio": "0141390210001",
+  "zip": "33129",
+  "countyHeightFt": 302,
+  "address": "2333 Brickell Ave, Miami, FL"
+ },
+ {
+  "slug": "royal-club",
+  "name": "Royal Club",
+  "registryName": "ROYAL CLUB, A CONDO",
+  "folio": "0232260240001",
+  "zip": "33140",
+  "countyHeightFt": 162,
+  "address": "2457 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "south-bay-club",
+  "name": "South Bay Club",
+  "registryName": "SOUTH BAY CLUB, A CONDO",
+  "folio": "0242031550001",
+  "zip": "33139",
+  "countyHeightFt": 103,
+  "address": "800 West Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "marina-tower",
+  "name": "Marina Tower",
+  "registryName": "MARINA TOWER, A CONDO",
+  "folio": "2812350250001",
+  "zip": "33180",
+  "countyHeightFt": 316,
+  "address": "19500 Turnberry Way, Aventura, FL"
+ },
+ {
+  "slug": "the-georgian",
+  "name": "The Georgian",
+  "registryName": "GEORGIAN CONDO, THE",
+  "folio": "0232340660001",
+  "zip": "33139",
+  "countyHeightFt": 113,
+  "address": "1621 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "arlen-house-east",
+  "name": "Arlen House East",
+  "registryName": "ARLEN HOUSE EAST",
+  "folio": "3122140180001",
+  "zip": "33160",
+  "countyHeightFt": 215,
+  "address": "100 Bayview Dr, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "brickell-harbour",
+  "name": "Brickell Harbour",
+  "registryName": "BRICKELL HARBOUR CONDO",
+  "folio": "0141390340001",
+  "zip": "33129",
+  "countyHeightFt": 160,
+  "address": "200 SE 15th Rd, Miami, FL"
+ },
+ {
+  "slug": "delvista-b",
+  "name": "Delvista B",
+  "registryName": "DELVISTA B CONDO",
+  "folio": "2822030600010",
+  "zip": "33180",
+  "countyHeightFt": 101,
+  "address": "19900 W Country Club Dr, Aventura, FL"
+ },
+ {
+  "slug": "bal-harbour-101",
+  "name": "Bal Harbour 101",
+  "registryName": "BAL HARBOUR 101, CONDO",
+  "folio": "1222260250001",
+  "zip": "33154",
+  "countyHeightFt": 197,
+  "address": "10155 Collins Ave, Bal Harbour, FL"
+ },
+ {
+  "slug": "winston-towers-600",
+  "name": "Winston Towers 600",
+  "registryName": "WINSTON TOWERS 600 CONDO",
+  "folio": "3122110460001",
+  "zip": "33160",
+  "countyHeightFt": 216,
+  "address": "210 174th St, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "charter-club-on-biscayne-bay",
+  "name": "Charter Club on Biscayne Bay",
+  "registryName": "CHARTER CLUB ON BISCAYNE BAY",
+  "folio": "0132300460001",
+  "zip": "33137",
+  "countyHeightFt": 207,
+  "address": "600 NE 36th St, Miami, FL"
+ },
+ {
+  "slug": "ocean-park",
+  "name": "Ocean Park",
+  "registryName": "OCEAN PARK CONDO",
+  "folio": "0232110400001",
+  "zip": "33141",
+  "countyHeightFt": 163,
+  "address": "6450 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "west-bay-plaza",
+  "name": "West Bay Plaza",
+  "registryName": "WEST BAY PLAZA CONDO",
+  "folio": "0232330570001",
+  "zip": "33139",
+  "countyHeightFt": 137,
+  "address": "1688 West Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "villa-regina",
+  "name": "Villa Regina",
+  "registryName": "VILLA REGINA, A CONDO",
+  "folio": "0141390410001",
+  "zip": "33129",
+  "countyHeightFt": 315,
+  "address": "1581 Brickell Ave, Miami, FL"
+ },
+ {
+  "slug": "ocean-88",
+  "name": "Ocean 88",
+  "registryName": "OCEAN 88 CONDO",
+  "folio": "1422350290001",
+  "zip": "33154",
+  "countyHeightFt": 134,
+  "address": "8855 Collins Ave, Surfside, FL"
+ },
+ {
+  "slug": "bayview-plaza",
+  "name": "Bayview Plaza",
+  "registryName": "BAYVIEW PLAZA, A CONDO",
+  "folio": "0232330630001",
+  "zip": "33139",
+  "countyHeightFt": 141,
+  "address": "1621 Bay Rd, Miami Beach, FL"
+ },
+ {
+  "slug": "riviera",
+  "name": "Riviera",
+  "registryName": "RIVIERA, A CONDO (THE)",
+  "folio": "0232260140001",
+  "zip": "33140",
+  "countyHeightFt": 168,
+  "address": "2401 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "indian-creek-club-marina-north",
+  "name": "Indian Creek Club & Marina North",
+  "registryName": "INDIAN CREEK CLUB & MARINA CONDO NORTH",
+  "folio": "0232110490001",
+  "zip": "33141",
+  "countyHeightFt": 103,
+  "address": "6830 Indian Creek Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "imperial-at-brickell",
+  "name": "Imperial at Brickell",
+  "registryName": "IMPERIAL AT BRICKELL, A CONDO",
+  "folio": "0141390430001",
+  "zip": "33129",
+  "countyHeightFt": 261,
+  "address": "1627 Brickell Ave, Miami, FL"
+ },
+ {
+  "slug": "bay-country-club",
+  "name": "Bay Country Club",
+  "registryName": "BAY COUNTRY CLUB CONDO.",
+  "folio": "3122110260001",
+  "zip": "33160",
+  "countyHeightFt": 136,
+  "address": "17720 N Bay Rd, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "the-palace",
+  "name": "The Palace",
+  "registryName": "PALACE CONDO, THE",
+  "folio": "0141390380001",
+  "zip": "33129",
+  "countyHeightFt": 383,
+  "address": "1541 Brickell Ave, Miami, FL"
+ },
+ {
+  "slug": "tower-house",
+  "name": "Tower House",
+  "registryName": "TOWER HOUSE",
+  "folio": "0232140080001",
+  "zip": "33140",
+  "countyHeightFt": 242,
+  "address": "5500 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "presidential",
+  "name": "Presidential",
+  "registryName": "PRESIDENTIAL CONDO",
+  "folio": "0242031200001",
+  "zip": "33139",
+  "countyHeightFt": 115,
+  "address": "401 Ocean Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "boston-plaza",
+  "name": "Boston Plaza",
+  "registryName": "BOSTON PLAZA CONDO",
+  "folio": "0232110390001",
+  "zip": "33141",
+  "countyHeightFt": 101,
+  "address": "6801 Indian Creek Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "winston-towers-400",
+  "name": "Winston Towers 400",
+  "registryName": "WINSTON TOWERS 400",
+  "folio": "3122110210001",
+  "zip": "33160",
+  "countyHeightFt": 217,
+  "address": "231 174th St, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "casa-del-mar",
+  "name": "Casa del Mar",
+  "registryName": "CASA DEL MAR",
+  "folio": "2452040080001",
+  "zip": "33149",
+  "countyHeightFt": 258,
+  "address": "881 Ocean Dr, Key Biscayne, FL"
+ },
+ {
+  "slug": "admiral-towers",
+  "name": "Admiral Towers",
+  "registryName": "ADMIRAL TOWERS CONDO",
+  "folio": "0242030960001",
+  "zip": "33139",
+  "countyHeightFt": 103,
+  "address": "1020 Meridian Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "brickell-park",
+  "name": "Brickell Park",
+  "registryName": "BRICKELL PARK CONDO",
+  "folio": "0141400150001",
+  "zip": "33129",
+  "countyHeightFt": 128,
+  "address": "2501 Brickell Ave, Miami, FL"
+ },
+ {
+  "slug": "yacht-harbour",
+  "name": "Yacht Harbour",
+  "registryName": "YACHT HARBOUR CONDO",
+  "folio": "0141210750001",
+  "zip": "33133",
+  "countyHeightFt": 180,
+  "address": "2901 S Bayshore Dr, Miami, FL"
+ },
+ {
+  "slug": "vendome-place",
+  "name": "Vendome Place",
+  "registryName": "VENDOME PLACE CONDO",
+  "folio": "0232260160001",
+  "zip": "33140",
+  "countyHeightFt": 113,
+  "address": "4301 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "triton-tower",
+  "name": "Triton Tower",
+  "registryName": "TRITON TOWER CONDO",
+  "folio": "0232260070001",
+  "zip": "33140",
+  "countyHeightFt": 174,
+  "address": "2899 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "galeria",
+  "name": "Galeria",
+  "registryName": "GALERIA CONDO",
+  "folio": "0232140130001",
+  "zip": "33140",
+  "countyHeightFt": 198,
+  "address": "5415 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "arlen-house",
+  "name": "Arlen House",
+  "registryName": "ARLEN HOUSE CONDO ASSN INC",
+  "folio": "3122140160001",
+  "zip": "33160",
+  "countyHeightFt": 221,
+  "address": "300 Bayview Dr, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "arlen-beach",
+  "name": "Arlen Beach",
+  "registryName": "ARLEN BEACH CONDO",
+  "folio": "0232110280001",
+  "zip": "33140",
+  "countyHeightFt": 182,
+  "address": "5701 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "oceanfront-plaza",
+  "name": "Oceanfront Plaza",
+  "registryName": "OCEANFRONT PLAZA, A CONDO",
+  "folio": "0232260040001",
+  "zip": "33140",
+  "countyHeightFt": 226,
+  "address": "2625 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "key-biscayne-commodore-club-i",
+  "name": "Key Biscayne Commodore Club I",
+  "registryName": "KEY BISCAYNE COMMODORE CLUB I",
+  "folio": "2442320120001",
+  "zip": "33149",
+  "countyHeightFt": 129,
+  "address": "177 Ocean Ln Dr, Key Biscayne, FL"
+ },
+ {
+  "slug": "four-winds",
+  "name": "Four Winds",
+  "registryName": "FOUR WINDS, A CONDO",
+  "folio": "1422350160001",
+  "zip": "33154",
+  "countyHeightFt": 144,
+  "address": "9225 Collins Ave, Surfside, FL"
+ },
+ {
+  "slug": "arlen-king-cole",
+  "name": "Arlen King Cole",
+  "registryName": "ARLEN KING COLE",
+  "folio": "0232100290001",
+  "zip": "33141",
+  "countyHeightFt": 147,
+  "address": "900 Bay Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "bal-harbour-tower",
+  "name": "Bal Harbour Tower",
+  "registryName": "BAL HARBOUR TOWER CONDO",
+  "folio": "1222260340001",
+  "zip": "33154",
+  "countyHeightFt": 271,
+  "address": "9999 Collins Ave, Bal Harbour, FL"
+ },
+ {
+  "slug": "royal-embassy",
+  "name": "Royal Embassy",
+  "registryName": "ROYAL EMBASSY CONDO",
+  "folio": "0232110410001",
+  "zip": "33140",
+  "countyHeightFt": 164,
+  "address": "5750 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "maison-grande",
+  "name": "Maison Grande",
+  "registryName": "MAISON GRANDE",
+  "folio": "0232110250001",
+  "zip": "33140",
+  "countyHeightFt": 177,
+  "address": "6039 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "palms-of-key-biscayne",
+  "name": "Palms of Key Biscayne",
+  "registryName": "PALMS OF KEY BISCAYNE",
+  "folio": "2442320640001",
+  "zip": "33149",
+  "countyHeightFt": 120,
+  "address": "77 Crandon Blvd, Key Biscayne, FL"
+ },
+ {
+  "slug": "ocean-point",
+  "name": "Ocean Point",
+  "registryName": "OCEAN POINT",
+  "folio": "0242031180001",
+  "zip": "33139",
+  "countyHeightFt": 115,
+  "address": "345 Ocean Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "fifty-six-sixty-collins-ave",
+  "name": "Fifty-six Sixty Collins Ave",
+  "registryName": "FIFTY-SIX SIXTY COLLINS AVE CONDO",
+  "folio": "0232110230001",
+  "zip": "33140",
+  "countyHeightFt": 224,
+  "address": "5660 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "brickell-key-one",
+  "name": "Brickell Key One",
+  "registryName": "BRICKELL KEY ONE, A CONDO",
+  "folio": "0142060490060",
+  "zip": "33131",
+  "countyHeightFt": 226,
+  "address": "520 Brickell Key Dr, Miami, FL"
+ },
+ {
+  "slug": "island-breakers",
+  "name": "Island Breakers",
+  "registryName": "ISLAND BREAKERS, A CONDO, INC.",
+  "folio": "2442320020064",
+  "zip": "33149",
+  "countyHeightFt": 110,
+  "address": "150 Ocean Ln Dr, Key Biscayne, FL"
+ },
+ {
+  "slug": "l-excellence",
+  "name": "L'Excellence",
+  "registryName": "L'EXCELLENCE, A CONDO",
+  "folio": "0232110570001",
+  "zip": "33141",
+  "countyHeightFt": 219,
+  "address": "5757 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "burleigh-house",
+  "name": "Burleigh House",
+  "registryName": "BURLEIGH HOUSE",
+  "folio": "0232110220001",
+  "zip": "33141",
+  "countyHeightFt": 183,
+  "address": "7135 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "la-rive-gauche",
+  "name": "La Rive Gauche",
+  "registryName": "LA RIVE GAUCHE, A CONDO",
+  "folio": "0232110550001",
+  "zip": "33140",
+  "countyHeightFt": 140,
+  "address": "5880 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "mystic-pointe-tower-600",
+  "name": "Mystic Pointe Tower 600",
+  "registryName": "MYSTIC POINTE TOWER 600 CONDO",
+  "folio": "2822020310001",
+  "zip": "33180",
+  "countyHeightFt": 222,
+  "address": "3400 NE 192nd St, Aventura, FL"
+ },
+ {
+  "slug": "king-david-towers",
+  "name": "King David Towers",
+  "registryName": "KING DAVID TOWERS CONDO",
+  "folio": "0232260310001",
+  "zip": "33140",
+  "countyHeightFt": 155,
+  "address": "3411 Indian Creek Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "bristol-tower",
+  "name": "Bristol Tower",
+  "registryName": "BRISTOL TOWER, A CONDO",
+  "folio": "0141390550001",
+  "zip": "33129",
+  "countyHeightFt": 398,
+  "address": "2127 Brickell Ave, Miami, FL"
+ },
+ {
+  "slug": "the-sterling",
+  "name": "The Sterling",
+  "registryName": "STERLING, A CONDO, THE",
+  "folio": "0232110590001",
+  "zip": "33143",
+  "countyHeightFt": 220,
+  "address": "6767 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "turnberry-towers",
+  "name": "Turnberry Towers",
+  "registryName": "TURNBERRY TOWERS, A CONDO",
+  "folio": "2812350200001",
+  "zip": "33180",
+  "countyHeightFt": 317,
+  "address": "19355 Turnberry Way, Aventura, FL"
+ },
+ {
+  "slug": "1000-island-blvd-williams-island",
+  "name": "1000 Island Blvd Williams Island",
+  "registryName": "1000 ISLAND BLVD WILLIAMS ISLAND A CONDO",
+  "folio": "2822100750001",
+  "zip": "33160",
+  "countyHeightFt": 313,
+  "address": "1000 Island Blvd, Aventura, FL"
+ },
+ {
+  "slug": "aquasol",
+  "name": "Aquasol",
+  "registryName": "AQUASOL, A CONDO",
+  "folio": "0232110680001",
+  "zip": "33141",
+  "countyHeightFt": 166,
+  "address": "6770 Indian Creek Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "azure",
+  "name": "Azure",
+  "registryName": "AZURE, A CONDO",
+  "folio": "1422350460001",
+  "zip": "33154",
+  "countyHeightFt": 131,
+  "address": "9401 Collins Ave, Surfside, FL"
+ },
+ {
+  "slug": "brickell-town-house",
+  "name": "Brickell Town House",
+  "registryName": "BRICKELL TOWN HOUSE, A CONDO",
+  "folio": "0141390290001",
+  "zip": "33129",
+  "countyHeightFt": 285,
+  "address": "2451 Brickell Ave, Miami, FL"
+ },
+ {
+  "slug": "5600",
+  "name": "5600",
+  "registryName": "5600, A CONDO",
+  "folio": "0232140270001",
+  "zip": "33140",
+  "countyHeightFt": 177,
+  "address": "5600 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "blue-diamond",
+  "name": "Blue Diamond",
+  "registryName": "BLUE DIAMOND CONDO",
+  "folio": "0232230180001",
+  "zip": "33140",
+  "countyHeightFt": 426,
+  "address": "4775 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "la-tour",
+  "name": "La Tour",
+  "registryName": "LA TOUR CONDO",
+  "folio": "0232260380001",
+  "zip": "33140",
+  "countyHeightFt": 283,
+  "address": "4201 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "5900-collins-avenue",
+  "name": "5900 Collins Avenue",
+  "registryName": "5900 COLLINS AVENUE CONDO",
+  "folio": "0232140260001",
+  "zip": "33140",
+  "countyHeightFt": 219,
+  "address": "5900 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "plaza-of-bal-harbour",
+  "name": "Plaza of Bal Harbour",
+  "registryName": "PLAZA OF BAL HARBOUR, A CONDO",
+  "folio": "1222260290001",
+  "zip": "33154",
+  "countyHeightFt": 175,
+  "address": "10185 Collins Ave, Bal Harbour, FL"
+ },
+ {
+  "slug": "byron-gardens",
+  "name": "Byron Gardens",
+  "registryName": "BYRON GARDENS CONDO",
+  "folio": "0232020480001",
+  "zip": "33141",
+  "countyHeightFt": 118,
+  "address": "7850 Byron Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "residences-at-the-bath-club",
+  "name": "Residences at the Bath Club",
+  "registryName": "RESIDENCES AT THE BATH CLUB, A CONDO,THE",
+  "folio": "0232140040030",
+  "zip": "33140",
+  "countyHeightFt": 240,
+  "address": "5937 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "bonavista",
+  "name": "Bonavista",
+  "registryName": "BONAVISTA CONDO",
+  "folio": "2812340470001",
+  "zip": "33180",
+  "countyHeightFt": 189,
+  "address": "3375 N Country Club Dr, Aventura, FL"
+ },
+ {
+  "slug": "neo",
+  "name": "Neo",
+  "registryName": "NEO, A CONDO",
+  "folio": "0141380860001",
+  "zip": "33150",
+  "countyHeightFt": 226,
+  "address": "10 SW South River Dr, Miami, FL"
+ },
+ {
+  "slug": "bentley-beach",
+  "name": "Bentley Beach",
+  "registryName": "BENTLEY BEACH CONDO",
+  "folio": "0242032720001",
+  "zip": "33139",
+  "countyHeightFt": 116,
+  "address": "101 Ocean Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "carriage-club-south",
+  "name": "Carriage Club South",
+  "registryName": "CARRIAGE CLUB SOUTH",
+  "folio": "0232140170001",
+  "zip": "33140",
+  "countyHeightFt": 173,
+  "address": "5001 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "the-carriage-club-north",
+  "name": "The Carriage Club North",
+  "registryName": "CARRIAGE CLUB NORTH, A CONDO, THE",
+  "folio": "0232140180001",
+  "zip": "33140",
+  "countyHeightFt": 165,
+  "address": "5005 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "the-corinthian",
+  "name": "The Corinthian",
+  "registryName": "CORINTHIAN, A CONDO, THE",
+  "folio": "0232110380001",
+  "zip": "33140",
+  "countyHeightFt": 168,
+  "address": "5825 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "bellini",
+  "name": "Bellini",
+  "registryName": "BELLINI, A CONDO",
+  "folio": "1222260410001",
+  "zip": "33154",
+  "countyHeightFt": 279,
+  "address": "10225 Collins Ave, Bal Harbour, FL"
+ },
+ {
+  "slug": "the-amethyst",
+  "name": "The Amethyst",
+  "registryName": "AMETHYST, A CONDO, THE",
+  "folio": "0232140220001",
+  "zip": "33140",
+  "countyHeightFt": 115,
+  "address": "5313 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "carlisle-on-the-ocean",
+  "name": "Carlisle on the Ocean",
+  "registryName": "CARLISLE ON THE OCEAN , A CONDO",
+  "folio": "1422350430001",
+  "zip": "33154",
+  "countyHeightFt": 128,
+  "address": "9195 Collins Ave, Surfside, FL"
+ },
+ {
+  "slug": "parc-at-turnberry-isle",
+  "name": "Parc at Turnberry Isle",
+  "registryName": "PARC AT TURNBERRY ISLE, A CONDO",
+  "folio": "2822020470001",
+  "zip": "33180",
+  "countyHeightFt": 239,
+  "address": "19400 Turnberry Way, Aventura, FL"
+ },
+ {
+  "slug": "belle-plaza",
+  "name": "Belle Plaza",
+  "registryName": "BELLE PLAZA, A CONDO",
+  "folio": "0232330470001",
+  "zip": "33139",
+  "countyHeightFt": 249,
+  "address": "20 Island Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "octagon-towers-i",
+  "name": "Octagon Towers I",
+  "registryName": "OCTAGON TOWERS I CONDO, A CONDO",
+  "folio": "0232340940001",
+  "zip": "33169",
+  "countyHeightFt": 157,
+  "address": "1881 Washington Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "seacoast-5700",
+  "name": "Seacoast 5700",
+  "registryName": "SEACOAST 5700 CONDO",
+  "folio": "0232110650001",
+  "zip": "33140",
+  "countyHeightFt": 169,
+  "address": "5700 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "millennium",
+  "name": "Millennium",
+  "registryName": "MILLENNIUM, A CONDO",
+  "folio": "3122020400001",
+  "zip": "33160",
+  "countyHeightFt": 336,
+  "address": "18671 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "imperial-house",
+  "name": "Imperial House",
+  "registryName": "IMPERIAL HOUSE CONDO",
+  "folio": "0232140070001",
+  "zip": "33140",
+  "countyHeightFt": 184,
+  "address": "5255 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "yacht-club-at-portofino",
+  "name": "Yacht Club at Portofino",
+  "registryName": "YACHT CLUB AT PORTOFINO CONDO",
+  "folio": "0242032340001",
+  "zip": "33139",
+  "countyHeightFt": 325,
+  "address": "90 Alton Rd, Miami Beach, FL"
+ },
+ {
+  "slug": "ocean-three",
+  "name": "Ocean Three",
+  "registryName": "OCEAN THREE CONDO",
+  "folio": "3122020430001",
+  "zip": "33160",
+  "countyHeightFt": 405,
+  "address": "18911 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "commodore-plaza-at-century-21",
+  "name": "Commodore Plaza at Century 21",
+  "registryName": "COMMODORE PLAZA AT CENTURY 21",
+  "folio": "2822100000062",
+  "zip": "33160",
+  "countyHeightFt": 274,
+  "address": "2780 NE 183rd St, Aventura, FL"
+ },
+ {
+  "slug": "the-aventura-beach-club",
+  "name": "The Aventura Beach Club",
+  "registryName": "AVENTURA BEACH CLUB, A CONDO, THE",
+  "folio": "3122020340001",
+  "zip": "33160",
+  "countyHeightFt": 146,
+  "address": "19201 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "castle-beach-club",
+  "name": "Castle Beach Club",
+  "registryName": "CASTLE BEACH CLUB, A CONDO",
+  "folio": "0232140210001",
+  "zip": "33140",
+  "countyHeightFt": 205,
+  "address": "5445 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "the-pavilion",
+  "name": "The Pavilion",
+  "registryName": "PAVILION, A CONDO, THE",
+  "folio": "0232110620001",
+  "zip": "33140",
+  "countyHeightFt": 182,
+  "address": "5601 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "the-casablanca",
+  "name": "The Casablanca",
+  "registryName": "CASABLANCA, A CONDO, THE",
+  "folio": "0232110640001",
+  "zip": "33140",
+  "countyHeightFt": 125,
+  "address": "6345 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "lincoln-towers",
+  "name": "Lincoln Towers",
+  "registryName": "LINCOLN TOWERS CONDO",
+  "folio": "0232330590001",
+  "zip": "33139",
+  "countyHeightFt": 126,
+  "address": "1300 Lincoln Rd, Miami Beach, FL"
+ },
+ {
+  "slug": "island-pointe",
+  "name": "Island Pointe",
+  "registryName": "ISLAND POINTE CONDO",
+  "folio": "1322270950001",
+  "zip": "33154",
+  "countyHeightFt": 121,
+  "address": "10350 W Bay Harbor Dr, Bay Harbor Islands, FL"
+ },
+ {
+  "slug": "crystal-house",
+  "name": "Crystal House",
+  "registryName": "CRYSTAL HOUSE",
+  "folio": "0232140060001",
+  "zip": "33140",
+  "countyHeightFt": 148,
+  "address": "5055 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "sands-pointe-ocean-beach-and-resort",
+  "name": "Sands Pointe Ocean Beach and Resort",
+  "registryName": "SANDS POINTE OCEAN BEACH CONDO AND RESORT",
+  "folio": "3122110610001",
+  "zip": "33180",
+  "countyHeightFt": 278,
+  "address": "16711 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "bellamare-at-williams-island",
+  "name": "Bellamare at Williams Island",
+  "registryName": "BELLAMARE AT WILLIAMS ISLAND, A CONDO",
+  "folio": "2822100660020",
+  "zip": "33160",
+  "countyHeightFt": 328,
+  "address": "6000 Island Blvd, Aventura, FL"
+ },
+ {
+  "slug": "grand-bay-residences",
+  "name": "Grand Bay Residences",
+  "registryName": "GRAND BAY RESIDENCES, A CONDO",
+  "folio": "2452050490001",
+  "zip": "33149",
+  "countyHeightFt": 161,
+  "address": "445 Grand Bay Dr, Key Biscayne, FL"
+ },
+ {
+  "slug": "the-executive",
+  "name": "The Executive",
+  "registryName": "EXECUTIVE CONDO, THE",
+  "folio": "0232140120001",
+  "zip": "33140",
+  "countyHeightFt": 162,
+  "address": "4925 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "the-alexander",
+  "name": "The Alexander",
+  "registryName": "ALEXANDER, A CONDO, THE",
+  "folio": "0232140190001",
+  "zip": "33140",
+  "countyHeightFt": 156,
+  "address": "5225 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "island-terrace",
+  "name": "Island Terrace",
+  "registryName": "ISLAND TERRACE CONDO",
+  "folio": "0232330440001",
+  "zip": "33139",
+  "countyHeightFt": 160,
+  "address": "5 Island Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "collins",
+  "name": "Collins",
+  "registryName": "COLLINS, A CONDO",
+  "folio": "0232110720001",
+  "zip": "33141",
+  "countyHeightFt": 151,
+  "address": "6917 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "platinum",
+  "name": "Platinum",
+  "registryName": "PLATINUM CONDO",
+  "folio": "0132300810001",
+  "zip": "33137",
+  "countyHeightFt": 236,
+  "address": "480 NE 30th St, Miami, FL"
+ },
+ {
+  "slug": "blue",
+  "name": "Blue",
+  "registryName": "BLUE, A CONDO",
+  "folio": "0132190440020",
+  "zip": "33137",
+  "countyHeightFt": 377,
+  "address": "601 NE 36th St, Miami, FL"
+ },
+ {
+  "slug": "quantum-on-the-bay-one",
+  "name": "Quantum on the Bay One",
+  "registryName": "QUANTUM ON THE BAY CONDO NO. ONE",
+  "folio": "0132310030510",
+  "zip": "33431",
+  "countyHeightFt": 456,
+  "address": "1900 N Bayshore Dr, Miami, FL"
+ },
+ {
+  "slug": "residences-at-one-bal-harbour",
+  "name": "Residences at One Bal Harbour",
+  "registryName": "RESIDENCES AT ONE BAL HARBOUR, A CONDO",
+  "folio": "1222260050030",
+  "zip": "33154",
+  "countyHeightFt": 298,
+  "address": "10295 Collins Ave, Bal Harbour, FL"
+ },
+ {
+  "slug": "ocean-four",
+  "name": "Ocean Four",
+  "registryName": "OCEAN FOUR CONDO",
+  "folio": "3122110770001",
+  "zip": "33160",
+  "countyHeightFt": 400,
+  "address": "17201 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "the-atrium-at-aventura",
+  "name": "The Atrium at Aventura",
+  "registryName": "ATRIUM AT AVENTURA, A CONDO THE",
+  "folio": "2822030000330",
+  "zip": "33180",
+  "countyHeightFt": 139,
+  "address": "3205 NE 188th St, Aventura, FL"
+ },
+ {
+  "slug": "continuum-on-south-beach-north-tower",
+  "name": "Continuum on South Beach North Tower",
+  "registryName": "CONTINUUM ON SOUTH BEACH CONDO, THE NORTH TOWER",
+  "folio": "0242032620001",
+  "zip": "33139",
+  "countyHeightFt": 464,
+  "address": "100 S Pointe Dr, Miami Beach, FL"
+ },
+ {
+  "slug": "the-floridian",
+  "name": "The Floridian",
+  "registryName": "FLORIDIAN, A CONDO THE",
+  "folio": "0242030010031",
+  "zip": "33139",
+  "countyHeightFt": 321,
+  "address": "650 West Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "da-vinci-on-douglas",
+  "name": "Da Vinci on Douglas",
+  "registryName": "DA VINCI ON DOUGLAS, A CONDO",
+  "folio": "0141161150001",
+  "zip": "33433",
+  "countyHeightFt": 160,
+  "address": "2665 SW 37th Ave, Miami, FL"
+ },
+ {
+  "slug": "401-blu-of-north-beach",
+  "name": "401 Blu of North Beach",
+  "registryName": "401 BLU OF NORTH BEACH CONDO",
+  "folio": "0232110790001",
+  "zip": "33141",
+  "countyHeightFt": 181,
+  "address": "401 69th St, Miami Beach, FL"
+ },
+ {
+  "slug": "turnberry-ocean-colony-south-tower",
+  "name": "Turnberry Ocean Colony South Tower",
+  "registryName": "TURNBERRY OCEAN COLONY SOUTH TOWER CONDO",
+  "folio": "3122140080185",
+  "zip": "33160",
+  "countyHeightFt": 429,
+  "address": "16047 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "mirador-1000",
+  "name": "Mirador 1000",
+  "registryName": "MIRADOR 1000, A CONDO",
+  "folio": "0232330710001",
+  "zip": "33139",
+  "countyHeightFt": 181,
+  "address": "1000 West Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "parc-central-aventura-east",
+  "name": "Parc Central Aventura East",
+  "registryName": "PARC CENTRAL AVENTURA EAST, A CONDO",
+  "folio": "2812350140113",
+  "zip": "33180",
+  "countyHeightFt": 201,
+  "address": "3300 NE 192 St, Aventura, FL"
+ },
+ {
+  "slug": "parc-central-aventura-south",
+  "name": "Parc Central Aventura South",
+  "registryName": "PARC CENTRAL AVENTURA SOUTH, A CONDO",
+  "folio": "2812350140110",
+  "zip": "33180",
+  "countyHeightFt": 201,
+  "address": "3300 NE 191 St, Aventura, FL"
+ },
+ {
+  "slug": "san-lorenzo",
+  "name": "San Lorenzo",
+  "registryName": "SAN LORENZO CONDO",
+  "folio": "0141020750001",
+  "zip": "33128",
+  "countyHeightFt": 114,
+  "address": "219 NW 12th Ave, Miami, FL"
+ },
+ {
+  "slug": "turnberry-village-south-tower",
+  "name": "Turnberry Village South Tower",
+  "registryName": "TURNBERRY VILLAGE SOUTH TOWER CONDO",
+  "folio": "2812350880001",
+  "zip": "33180",
+  "countyHeightFt": 172,
+  "address": "19900 E Country Club Dr, Aventura, FL"
+ },
+ {
+  "slug": "tdr-tower-ii",
+  "name": "TDR Tower II",
+  "registryName": "TDR TOWER II CONDO",
+  "folio": "3122140080060",
+  "zip": "33160",
+  "countyHeightFt": 497,
+  "address": "15901 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "marquis",
+  "name": "Marquis",
+  "registryName": "MARQUIS, A CONDO",
+  "folio": "0131360760010",
+  "zip": "33132",
+  "countyHeightFt": 148,
+  "address": "1100 Biscayne Blvd, Miami, FL"
+ },
+ {
+  "slug": "north-carillon-beach",
+  "name": "North Carillon Beach",
+  "registryName": "NORTH CARILLON BEACH, A CONDO",
+  "folio": "0232110010060",
+  "zip": "33141",
+  "countyHeightFt": 367,
+  "address": "6899 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "mirador-1200",
+  "name": "Mirador 1200",
+  "registryName": "MIRADOR 1200, A CONDO",
+  "folio": "0232330730001",
+  "zip": "33139",
+  "countyHeightFt": 178,
+  "address": "1200 West Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "the-peninsula-ii",
+  "name": "The Peninsula II",
+  "registryName": "PENINSULA II, A CONDO THE",
+  "folio": "2822030610021",
+  "zip": "33160",
+  "countyHeightFt": 320,
+  "address": "3201 NE 183rd St, Aventura, FL"
+ },
+ {
+  "slug": "jade-ocean",
+  "name": "Jade Ocean",
+  "registryName": "JADE OCEAN CONDO",
+  "folio": "3122110790001",
+  "zip": "33160",
+  "countyHeightFt": 508,
+  "address": "17121 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "james-central-towers",
+  "name": "James Central Towers",
+  "registryName": "JAMES CENTRAL TOWERS",
+  "folio": "0232340410001",
+  "zip": "33139",
+  "countyHeightFt": 119,
+  "address": "245 18 St, Miami Beach, FL"
+ },
+ {
+  "slug": "the-caribbean",
+  "name": "The Caribbean",
+  "registryName": "CARIBBEAN, A CONDO THE",
+  "folio": "0232260520001",
+  "zip": "33140",
+  "countyHeightFt": 222,
+  "address": "3737 Collins Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "1300-ponce",
+  "name": "1300 Ponce",
+  "registryName": "1300 PONCE, A CONDO",
+  "folio": "0341081230001",
+  "zip": "33134",
+  "countyHeightFt": 130,
+  "address": "1300 Ponce De Leon Blvd, Coral Gables, FL"
+ },
+ {
+  "slug": "mint",
+  "name": "Mint",
+  "registryName": "MINT CONDOMINIUM",
+  "folio": "0141370480012",
+  "zip": "33131",
+  "countyHeightFt": 529,
+  "address": "92 SW 3rd St, Miami, FL"
+ },
+ {
+  "slug": "1100-west",
+  "name": "1100 West",
+  "registryName": "1100 WEST, A CONDO",
+  "folio": "0242033340001",
+  "zip": "33139",
+  "countyHeightFt": 182,
+  "address": "1100 West Ave, Miami Beach, FL"
+ },
+ {
+  "slug": "23-biscayne-bay",
+  "name": "23 Biscayne Bay",
+  "registryName": "23 BISCAYNE BAY, A CONDO",
+  "folio": "0132300900001",
+  "zip": "33137",
+  "countyHeightFt": 171,
+  "address": "601 NE 23rd St, Miami, FL"
+ },
+ {
+  "slug": "mybrickell",
+  "name": "MyBrickell",
+  "registryName": "MYBRICKELL CONDO",
+  "folio": "0141381560001",
+  "zip": "33131",
+  "countyHeightFt": 275,
+  "address": "31 SE 6th St, Miami, FL"
+ },
+ {
+  "slug": "17749-collins-avenue",
+  "name": "17749 Collins Avenue",
+  "registryName": "17749 COLLINS AVENUE, A CONDO",
+  "folio": "3122110830001",
+  "zip": "33160",
+  "countyHeightFt": 610,
+  "address": "17749 Collins Ave, Sunny Isles Beach, FL"
+ },
+ {
+  "slug": "grove-at-grand-bay",
+  "name": "Grove at Grand Bay",
+  "registryName": "GROVE AT GRAND BAY CONDO",
+  "folio": "0141220400001",
+  "zip": "33133",
+  "countyHeightFt": 301,
+  "address": "2669 S Bayshore Dr, Miami, FL"
+ },
+ {
+  "slug": "aventura-parksquare-residences",
+  "name": "Aventura Parksquare Residences",
+  "registryName": "AVENTURA PARKSQUARE RESIDENCES, A CONDO",
+  "folio": "2812340064210",
+  "zip": "33180",
+  "countyHeightFt": 105,
+  "address": "2950 NE 207 St, Aventura, FL"
+ }
+]
